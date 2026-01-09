@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Base Colors - Violet (Default) */
+  --primary: #7C3AED;
+  --primary-foreground: #ffffff;
+  --secondary: #A78BFA;
+
+  /* Backgrounds */
+  --background: #F8FAFC;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+
+  /* Text */
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+
+  /* Borders & UI */
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #7C3AED;
+
+  /* Radius */
+  --radius: 1rem;
+}
+
+/* Dark Mode Overrides */
+:root.dark {
+  --background: #0F172A;
+  --sidebar: #1E293B;
+  --card: #1E293B;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+
+  --border: #334155;
+  --input: #334155;
+}
+
+/* Color Themes */
+:root.theme-blue {
+  --primary: #2563EB;
+  --secondary: #60A5FA;
+  --ring: #2563EB;
+}
+
+:root.theme-emerald {
+  --primary: #059669;
+  --secondary: #34D399;
+  --ring: #059669;
+}
+
+:root.theme-rose {
+  --primary: #E11D48;
+  --secondary: #FB7185;
+  --ring: #E11D48;
+}
+
+@theme {
+  /* Color Mapping */
+  --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-card: var(--card);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Border Radius */
+  --radius-4xl: 2rem;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 4px 20px -2px var(--primary);
+}
+
+/* Base Styles */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
