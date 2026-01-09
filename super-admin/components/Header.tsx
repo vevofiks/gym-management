@@ -1,23 +1,24 @@
-import React from 'react';
+"use client";
+import React, { FC } from 'react';
 import { Search, Bell, Sun, Moon, Menu } from 'lucide-react';
 
 interface HeaderProps {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
+  theme?: 'light' | 'dark';
+  toggleTheme?: () => void;
   toggleSidebar: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ theme, toggleTheme, toggleSidebar }) => {
+export const Header: FC<HeaderProps> = ({ theme = 'light', toggleTheme, toggleSidebar }) => {
   return (
     <header className="sticky top-0 z-10 flex w-full bg-white drop-shadow-sm dark:bg-[#151C2C] dark:drop-shadow-none border-b border-gray-200 dark:border-gray-800">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
+      <div className="flex grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
         <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
           {/* Hamburger Toggle */}
           <button
             onClick={toggleSidebar}
             className="block rounded-sm border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800 lg:hidden"
           >
-             <Menu className="h-5 w-5 text-gray-600 dark:text-white" />
+            <Menu className="h-5 w-5 text-gray-600 dark:text-white" />
           </button>
         </div>
 

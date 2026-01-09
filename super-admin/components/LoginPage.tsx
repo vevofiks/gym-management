@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+"use client";
+import { useState } from 'react';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, Check, X, ArrowRight, Loader2 } from 'lucide-react';
 
 interface LoginPageProps {
@@ -35,8 +36,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }
 
     if (!isPasswordValid) {
-        setError('Password does not meet security requirements');
-        return;
+      setError('Password does not meet security requirements');
+      return;
     }
 
     setIsLoading(true);
@@ -44,7 +45,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     // Simulate API call
     setTimeout(() => {
       // Mock Credential Check
-      if (email === 'admin@fitpulse.com' && password === 'Admin@123') {
+      if (email === 'admin@gmail.com' && password === 'Admin@123') {
         onLogin();
       } else {
         setError('Invalid email or password. (Try: admin@fitpulse.com / Admin@123)');
@@ -56,10 +57,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4 dark:bg-[#0B1120]">
       <div className="w-full max-w-md animate-in fade-in zoom-in duration-300">
-        
+
         {/* Card */}
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-[#151C2C]">
-          
+
           {/* Header */}
           <div className="mb-8 flex flex-col items-center text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/30">
@@ -73,7 +74,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            
+
             {/* Email Field */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
@@ -102,13 +103,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => {
-                      setPassword(e.target.value);
-                      setTouched(true);
+                    setPassword(e.target.value);
+                    setTouched(true);
                   }}
                   className={`block w-full rounded-lg border bg-gray-50 p-2.5 pl-10 pr-10 text-gray-900 placeholder-gray-500 outline-none focus:ring-1 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 transition-colors
-                    ${touched && !isPasswordValid 
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500' 
-                        : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700'
+                    ${touched && !isPasswordValid
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700'
                     }`}
                   placeholder="••••••••"
                 />
@@ -124,23 +125,23 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
             {/* Validation Checklist (Shows when typing) */}
             {password.length > 0 && (
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
-                    <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">Password Requirements:</p>
-                    <div className="space-y-1">
-                        {validations.map((rule, idx) => (
-                            <div key={idx} className="flex items-center gap-2 text-xs">
-                                {rule.valid ? (
-                                    <Check size={12} className="text-green-500" />
-                                ) : (
-                                    <X size={12} className="text-gray-300 dark:text-gray-600" />
-                                )}
-                                <span className={rule.valid ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-500'}>
-                                    {rule.label}
-                                </span>
-                            </div>
-                        ))}
+              <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
+                <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">Password Requirements:</p>
+                <div className="space-y-1">
+                  {validations.map((rule, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs">
+                      {rule.valid ? (
+                        <Check size={12} className="text-green-500" />
+                      ) : (
+                        <X size={12} className="text-gray-300 dark:text-gray-600" />
+                      )}
+                      <span className={rule.valid ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-500'}>
+                        {rule.label}
+                      </span>
                     </div>
+                  ))}
                 </div>
+              </div>
             )}
 
             {/* Error Message */}
@@ -159,20 +160,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             >
               {isLoading ? (
                 <>
-                    <Loader2 size={18} className="animate-spin" /> Signing in...
+                  <Loader2 size={18} className="animate-spin" /> Signing in...
                 </>
               ) : (
                 <>
-                    Sign In <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                  Sign In <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                 </>
               )}
             </button>
 
             {/* Footer Links */}
             <div className="text-center text-sm">
-                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
-                    Forgot your password?
-                </a>
+              <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                Forgot your password?
+              </a>
             </div>
           </form>
         </div>

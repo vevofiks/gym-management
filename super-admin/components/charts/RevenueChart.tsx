@@ -1,5 +1,6 @@
-import React from 'react';
+"use client";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useTheme } from '../ThemeContext';
 
 const data = [
   { name: 'Starter Plan', value: 12500, color: '#6366f1' }, // Indigo
@@ -8,6 +9,9 @@ const data = [
 ];
 
 export const RevenueChart: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
@@ -25,10 +29,14 @@ export const RevenueChart: React.FC = () => {
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
-        <Tooltip 
-            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
-            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff' }}
-            itemStyle={{ color: '#fff' }}
+        <Tooltip
+          formatter={(value: any) => [`$${value?.toLocaleString()}`, 'Revenue']}
+          contentStyle={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            borderColor: isDark ? '#334155' : '#e2e8f0',
+            color: isDark ? '#fff' : '#0f172a'
+          }}
+          itemStyle={{ color: isDark ? '#fff' : '#0f172a' }}
         />
       </PieChart>
     </ResponsiveContainer>

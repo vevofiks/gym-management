@@ -1,5 +1,6 @@
-import React from 'react';
+"use client";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useTheme } from '../ThemeContext';
 
 const data = [
   { name: 'M', value: 400 },
@@ -12,19 +13,29 @@ const data = [
 ];
 
 export const SalesBarChart: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data}>
-        <Tooltip 
-             cursor={{fill: 'transparent'}}
-             contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+        <Tooltip
+          cursor={{ fill: 'transparent' }}
+          contentStyle={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
+            color: isDark ? '#fff' : '#111',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+          }}
+          itemStyle={{ color: isDark ? '#15896B' : '#0f172a'}}
         />
         <Bar dataKey="value" radius={[4, 4, 4, 4]}>
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill="#0ea5e9" />
+            <Cell key={entry.name} fill="#0ea5e9" />
           ))}
         </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
-};
+};  

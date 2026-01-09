@@ -1,12 +1,15 @@
+"use client";
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  BarChart3, 
-  MessageSquare, 
-  CreditCard, 
-  Settings, 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  BarChart3,
+  MessageSquare,
+  CreditCard,
+  Settings,
   LogOut,
   Activity,
   ShieldCheck,
@@ -18,34 +21,37 @@ import {
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  currentView: string;
-  onNavigate: (view: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (isCollapsed: boolean) => void;
-  onLogout: () => void;
+  onLogout?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  isOpen, 
-  setIsOpen, 
-  currentView, 
-  onNavigate,
+export const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  setIsOpen,
   isCollapsed,
   setIsCollapsed,
   onLogout
 }) => {
-  
-  const handleNav = (view: string) => {
-    onNavigate(view);
+  const pathname = usePathname();
+
+  const handleNav = () => {
     if (window.innerWidth < 1024) {
       setIsOpen(false);
     }
   };
 
-  const linkClass = (view: string) => `
+  const isActive = (path: string) => {
+    // Exact match or subpath (if needed, but here tabs are top level)
+    if (path === '/' && pathname === '/') return true;
+    if (path !== '/' && pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  const linkClass = (path: string) => `
     group relative flex items-center gap-2.5 rounded-lg py-3 font-medium duration-300 ease-in-out cursor-pointer
-    ${currentView === view 
-      ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' 
+    ${isActive(path)
+      ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'
       : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'}
     ${isCollapsed ? 'justify-center px-2' : 'px-4'}
   `;
@@ -58,7 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       w-72 border-r border-gray-200 dark:border-gray-800 shadow-xl lg:shadow-none`}
     >
       {/* Mobile Close Button - Absolutely Positioned */}
-      <button 
+      <button
         onClick={() => setIsOpen(false)}
         className="absolute top-4 right-4 z-50 block rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white lg:hidden"
       >
@@ -68,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Header / Logo */}
       <div className={`flex items-center justify-between gap-2 px-6 py-6 lg:py-8 ${isCollapsed ? 'lg:justify-center lg:px-4' : ''}`}>
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
             <ShieldCheck size={24} />
           </div>
           <span className={`text-2xl font-bold text-gray-800 dark:text-white ${isCollapsed ? 'lg:hidden' : 'block'}`}>
@@ -86,43 +92,43 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </h3>
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
-                <div onClick={() => handleNav('overview')} className={linkClass('overview')} title={isCollapsed ? "Overview" : ""}>
+                <Link href="/" onClick={handleNav} className={linkClass('/')} title={isCollapsed ? "Overview" : ""}>
                   <LayoutDashboard size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Overview</span>
-                </div>
+                </Link>
               </li>
               <li>
-                <div onClick={() => handleNav('gyms')} className={linkClass('gyms')} title={isCollapsed ? "Manage Gyms" : ""}>
+                <Link href="/gyms" onClick={handleNav} className={linkClass('/gyms')} title={isCollapsed ? "Manage Gyms" : ""}>
                   <Building2 size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Manage Gyms</span>
-                </div>
+                </Link>
               </li>
               <li>
-                <div onClick={() => handleNav('subscriptions')} className={linkClass('subscriptions')} title={isCollapsed ? "Subscriptions" : ""}>
+                <Link href="/subscriptions" onClick={handleNav} className={linkClass('/subscriptions')} title={isCollapsed ? "Subscriptions" : ""}>
                   <CreditCard size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Subscriptions</span>
                   {!isCollapsed && (
                     <span className="ml-auto rounded bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
-                        12
+                      12
                     </span>
                   )}
                   {isCollapsed && (
-                     <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 lg:block hidden"></span>
+                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 lg:block hidden"></span>
                   )}
-                </div>
+                </Link>
               </li>
               <li>
-                <div onClick={() => handleNav('owners')} className={linkClass('owners')} title={isCollapsed ? "Gym Owners" : ""}>
+                <Link href="/owners" onClick={handleNav} className={linkClass('/owners')} title={isCollapsed ? "Gym Owners" : ""}>
                   <Users size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Gym Owners</span>
-                </div>
+                </Link>
               </li>
-              <li>
-                <div onClick={() => handleNav('metrics')} className={linkClass('metrics')} title={isCollapsed ? "Metrics" : ""}>
+              {/* <li>
+                <Link href="/metrics" onClick={handleNav} className={linkClass('/metrics')} title={isCollapsed ? "Metrics" : ""}>
                   <BarChart3 size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Metrics</span>
-                </div>
-              </li>
+                </Link>
+              </li> */}
             </ul>
           </div>
 
@@ -133,22 +139,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </h3>
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
-                <div onClick={() => handleNav('support')} className={linkClass('support')} title={isCollapsed ? "Support Tickets" : ""}>
+                <Link href="/support" onClick={handleNav} className={linkClass('/support')} title={isCollapsed ? "Support Tickets" : ""}>
                   <MessageSquare size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Support Tickets</span>
-                </div>
+                </Link>
               </li>
               <li>
-                <div onClick={() => handleNav('status')} className={linkClass('status')} title={isCollapsed ? "System Status" : ""}>
+                <Link href="/status" onClick={handleNav} className={linkClass('/status')} title={isCollapsed ? "System Status" : ""}>
                   <Activity size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>System Status</span>
-                </div>
+                </Link>
               </li>
               <li>
-                <div onClick={() => handleNav('settings')} className={linkClass('settings')} title={isCollapsed ? "Global Settings" : ""}>
+                <Link href="/settings" onClick={handleNav} className={linkClass('/settings')} title={isCollapsed ? "Global Settings" : ""}>
                   <Settings size={20} className="shrink-0" />
                   <span className={isCollapsed ? 'lg:hidden' : 'block'}>Global Settings</span>
-                </div>
+                </Link>
               </li>
             </ul>
           </div>
@@ -156,24 +162,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Bottom Actions */}
         <div className={`mt-auto px-6 pb-6 ${isCollapsed ? 'lg:px-2' : ''}`}>
-           <button 
-             onClick={onLogout}
-             className={`flex w-full items-center gap-2.5 rounded-lg bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 ${isCollapsed ? 'justify-center lg:px-2' : ''}`}
-             title="Log Out"
-           >
-             <LogOut size={18} className="shrink-0" />
-             <span className={isCollapsed ? 'lg:hidden' : 'block'}>Log Out</span>
-           </button>
+          <button
+            onClick={onLogout}
+            className={`flex w-full items-center gap-2.5 rounded-lg bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 ${isCollapsed ? 'justify-center lg:px-2' : ''}`}
+            title="Log Out"
+          >
+            <LogOut size={18} className="shrink-0" />
+            <span className={isCollapsed ? 'lg:hidden' : 'block'}>Log Out</span>
+          </button>
         </div>
 
         {/* Desktop Collapse Toggle */}
         <div className="hidden border-t border-gray-200 p-4 dark:border-gray-800 lg:flex lg:justify-end">
-            <button 
-                onClick={() => setIsCollapsed(!isCollapsed)} 
-                className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 ${isCollapsed ? 'w-full' : ''}`}
-            >
-                {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-            </button>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 ${isCollapsed ? 'w-full' : ''}`}
+          >
+            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
         </div>
       </div>
     </aside>
