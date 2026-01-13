@@ -12,9 +12,7 @@ router = APIRouter(tags=["Authentication"])
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
-):
-    
-    print("This is the form data :", form_data)
+):    
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -22,5 +20,5 @@ def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"sub": user.username})
+    access_token = create_access_token(data={"sub": user.username, "role": user.role, "tenant_id": user.tenant_id})
     return {"access_token": access_token, "token_type": "bearer"}

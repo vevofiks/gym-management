@@ -15,7 +15,7 @@ def create_user(db: Session, user_create: UserCreate):
         tenant_id=user_create.tenant_id,
         hashed_password=hashed_password,
         role=(
-            user_create.role.value if hasattr(user_create.role, "value") else "gym_admn"
+            user_create.role.value if hasattr(user_create.role, "value") else "gym_admin"
         ),
     )
 

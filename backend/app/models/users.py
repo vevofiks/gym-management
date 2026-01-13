@@ -21,6 +21,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(String, default=UserRole.GYMADMIN.value)
     is_active = Column(Boolean, default=True)
-    tenant_id = Column(Integer, ForeignKey("tenants.id"))
-    tenant = relationship("Tenant", backref="users")
+    tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=True)
+    tenant = relationship("Tenant", back_populates="users")
     created_at = Column(DateTime(timezone=True), server_default=func.now())

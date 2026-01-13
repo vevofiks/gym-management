@@ -5,6 +5,7 @@ from app.core.database import get_db
 from app.models.users import User
 from app.services.user_service import create_user
 from app.schemas.users import UserCreate, UserResponse
+from app.schemas.token import Token
 from app.core.deps import get_current_user
 
 
