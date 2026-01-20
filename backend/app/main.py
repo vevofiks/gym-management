@@ -1,36 +1,46 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from loguru import logger
+import sys
 from app.core.database import engine
-from app.models import Base
-from app.routers import users, tenants
-from app.routers import auth
-
-Base.metadata.create_all(bind=engine)
+from app.models import *
+from app.routers import users, tenants, auth, members, admin
+from app.core.config import settings
 
 
-app = FastAPI(title="GYM MANAGEMENT")
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    description="Multi-tenant gym management SaaS platform",
+    debug=settings.DEBUG
+)
 
 
+app.include_router(auth.router)
+app.include_router(admin.router)
 app.include_router(users.router)
 app.include_router(tenants.router)
-app.include_router(auth.router)
+app.include_router(members.router)
 
-
-origins = [
-    "http://localhost",
-    "http://localhost:5173",
-    "http://localhost:3000",
-]
-
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/")
+@app.get("/", tags=["Health"])
 def health_check():
-    return {"status": "running", "message": "Gym SaaS is Live"}
+    """
+    Health check endpoint.
+    
+    Returns application status and version information.
+    """
+    return {
+        "status": "running",
+        "message": "Gym Management SaaS is Live",
+        "version": settings.PROJECT_VERSION,
+        "environment": settings.ENVIRONMENT
+    }

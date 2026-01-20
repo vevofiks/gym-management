@@ -1,17 +1,49 @@
 import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
-load_dotenv()
 
-class Settings:
-    PROJECT_NAME : str = "GYM MANAGEMENT SAAS"
-    PROJECT_VERSION : str = "1.0.0"
+class Settings(BaseSettings):
+    """Application settings with environment variable validation."""
     
-    DATABASE_URL : str | None = os.getenv("DATABASE_URL")
+    # Project Info
+    PROJECT_NAME: str = "GYM MANAGEMENT SAAS"
+    PROJECT_VERSION: str = "1.0.0"
+    ENVIRONMENT: str = "development"
+    DEBUG: bool = True
     
-    SECRET_KEY: str | None = os.getenv("SECRET_KEY")
-    ALGORITHM: str | None = os.getenv("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int | None = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+    # Database Configuration
+    DATABASE_URL: str
+    DATABASE_NAME: str = "gym_management"
+    DATABASE_USER: str = "postgres"
+    DATABASE_PASSWORD: str
     
+    # JWT Configuration
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
+    # CORS Configuration
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+    
+    def is_production(self) -> bool:
+        """Check if running in production environment."""
+        return self.ENVIRONMENT.lower() == "production"
+    
+    def is_development(self) -> bool:
+        """Check if running in development environment."""
+        return self.ENVIRONMENT.lower() == "development"
+
+
 settings = Settings()
