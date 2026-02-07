@@ -239,6 +239,46 @@ export interface SubscriptionLimits {
     plan_name?: string;
 }
 
+// Subscription Status Types
+export type SubscriptionStatusType = 'trial' | 'active' | 'expired' | 'suspended' | 'cancelled';
+
+export interface PlanLimits {
+    max_members: number; // -1 means unlimited
+    max_staff: number;
+    max_plans: number;
+}
+
+export interface CurrentUsage {
+    member_count: number;
+    staff_count: number;
+    plan_count: number;
+}
+
+export interface FeatureAccess {
+    whatsapp_enabled: boolean;
+    analytics_enabled: boolean;
+}
+
+export interface PlanDetails {
+    id: number;
+    name: string;
+    price: number;
+}
+
+export interface SubscriptionDetails {
+    has_subscription: boolean;
+    is_active: boolean;
+    status: SubscriptionStatusType;
+    is_trial: boolean;
+    days_remaining: number | null;
+    plan_name: string;
+    plan?: PlanDetails;
+    current_usage: CurrentUsage;
+    plan_limits: PlanLimits;
+    features: FeatureAccess;
+    auto_renew?: boolean;
+}
+
 // Member Management Types
 export enum MemberStatus {
     ACTIVE = 'active',

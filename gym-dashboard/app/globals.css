@@ -81,6 +81,7 @@
   /* Shadows */
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 4px 20px -2px var(--primary);
+  /* --shadow-glow-yellow: 0 4px 20px -2px oklch(79.5% 0.184 86.047); */
 }
 
 /* Base Styles */

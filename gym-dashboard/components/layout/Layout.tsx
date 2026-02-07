@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { usePathname } from 'next/navigation';
+import SubscriptionBanner from '../SubscriptionBanner';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -14,11 +15,11 @@ export const Layout = ({ children }: LayoutProps) => {
 
   const getPageTitle = (path: string) => {
     switch (path) {
-      case '/': return { title : 'Dashboard', subtitle : 'Start managing your gym today!' };
-      case '/members': return { title : 'Member Management', subtitle : 'Manage your members' };
-      case '/finances': return { title : 'Financials', subtitle : 'Manage your finances' };
-      case '/analytics': return { title : 'Analytics', subtitle : 'Analyze your gym' };
-      default: return { title : 'Dashboard', subtitle : 'Start managing your gym today!' };
+      case '/': return { title: 'Dashboard', subtitle: 'Start managing your gym today!' };
+      case '/members': return { title: 'Member Management', subtitle: 'Manage your members' };
+      case '/finances': return { title: 'Financials', subtitle: 'Manage your finances' };
+      case '/analytics': return { title: 'Analytics', subtitle: 'Analyze your gym' };
+      default: return { title: 'Dashboard', subtitle: 'Start managing your gym today!' };
     }
   };
 
@@ -27,12 +28,17 @@ export const Layout = ({ children }: LayoutProps) => {
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+        {/* Full-width banner */}
+        <SubscriptionBanner />
+
         <div className="px-6 lg:px-10">
-          <Header
-            title={getPageTitle(pathname).title}
-            subtitle={getPageTitle(pathname).subtitle}
-            onMenuClick={() => setIsSidebarOpen(true)}
-          />
+          {pathname === "/subscription" ? null : (
+            <Header
+              title={getPageTitle(pathname).title}
+              subtitle={getPageTitle(pathname).subtitle}
+              onMenuClick={() => setIsSidebarOpen(true)}
+            />
+          )}
         </div>
 
         <main className="flex-1 px-6 pb-6 lg:px-10 lg:pb-10 overflow-x-hidden">

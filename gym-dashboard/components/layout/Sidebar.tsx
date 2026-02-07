@@ -28,7 +28,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const logout = useAuthStore((state) => state.logout);
     const { theme, toggleTheme, colorTheme, setColorTheme } = useTheme();
     const router = useRouter()
-    
+
 
     const handleLogout = () => {
         logout();
@@ -38,6 +38,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Users, label: 'Members', path: '/members' },
+        { icon: ClipboardList, label: 'Plans', path: '/plans' },
         { icon: CreditCard, label: 'Finances', path: '/finances' },
         { icon: TrendingUp, label: 'Analytics', path: '/analytics' },
         { icon: Settings, label: 'Settings', path: '/settings' },
@@ -133,7 +134,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
                             {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
                         </button>
-                        
+
 
                         <div className="flex items-center gap-2">
                             {(['violet', 'blue', 'emerald', 'rose'] as const).map((c) => (
@@ -159,7 +160,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             onClick={handleLogout}
                             className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary"
                         >
-                           <LogOut /> Logout
+                            <LogOut /> Logout
                         </button>
                     </div>
                 </div>
