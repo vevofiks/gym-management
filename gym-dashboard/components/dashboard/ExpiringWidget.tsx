@@ -3,7 +3,6 @@ import { Member } from '@/types/index';
 import { Skeleton } from '../ui/Skeleton';
 import { Clock, Send, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import { useSendPaymentLink } from '@/hooks/useGymData';
 
 interface Props {
   members?: Member[];
@@ -11,7 +10,10 @@ interface Props {
 }
 
 export const ExpiringWidget = ({ members, isLoading }: Props) => {
-  const { mutate: sendLink, isPending } = useSendPaymentLink();
+  const handleSendPaymentLink = (memberId: string) => {
+    // TODO: Implement payment link functionality when backend endpoint is ready
+    console.log('Send payment link to member:', memberId);
+  };
 
   if (isLoading) {
     return <Skeleton className="h-[400px] w-full rounded-4xl" />;
@@ -44,7 +46,7 @@ export const ExpiringWidget = ({ members, isLoading }: Props) => {
             </div>
 
             <button
-              onClick={() => sendLink(member.id)}
+              onClick={() => handleSendPaymentLink(member.id)}
               className="group flex h-9 w-9 items-center justify-center rounded-full bg-card shadow-sm border border-border hover:bg-primary hover:text-white transition-all"
               title="Send Payment Link"
             >

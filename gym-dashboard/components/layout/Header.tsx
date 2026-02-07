@@ -2,10 +2,11 @@ import { Search, Bell, Settings, Menu } from 'lucide-react';
 
 interface HeaderProps {
     title: string;
+    subtitle: string;
     onMenuClick: () => void;
 }
 
-export const Header = ({ title, onMenuClick }: HeaderProps) => {
+export const Header = ({ title, subtitle, onMenuClick }: HeaderProps) => {
   return (
     <header className="flex items-center justify-between pb-8 pt-6">
       <div className="flex items-center gap-4">
@@ -19,7 +20,7 @@ export const Header = ({ title, onMenuClick }: HeaderProps) => {
         
         <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-text-primary tracking-tight transition-colors">{title}</h1>
-            <p className="hidden md:block text-text-secondary font-medium mt-1">Welcome back, get ready for action.</p>
+            <p className="hidden md:block text-text-secondary font-medium mt-1">{subtitle}</p>
         </div>
       </div>
 

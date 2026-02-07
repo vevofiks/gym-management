@@ -42,7 +42,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const isActive = (path: string) => {
-    // Exact match or subpath (if needed, but here tabs are top level)
     if (path === '/' && pathname === '/') return true;
     if (path !== '/' && pathname.startsWith(path)) return true;
     return false;

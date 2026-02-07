@@ -24,8 +24,11 @@ class Member(Base):
 
     joining_date = Column(Date, nullable=False)
     membership_expiry_date = Column(Date, nullable=False)
-    membership_type = Column(String(50), nullable=False) # Monthly, 3 Months, 6 Months, 1 Year
     status = Column(Enum(MemberStatus), default=MemberStatus.ACTIVE, nullable=False)
+    
+    # Profile photos
+    before_photo_url = Column(String(500), nullable=True)
+    after_photo_url = Column(String(500), nullable=True)
     
     # Plan and fee tracking
     plan_id = Column(Integer, ForeignKey("membership_plans.id"), nullable=True)

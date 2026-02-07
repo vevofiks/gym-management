@@ -16,17 +16,39 @@ class Tenant(Base):
     upi_id = Column(String(100), nullable=True)
     whatsapp_access_token = Column(String(500), nullable=True)
     whatsapp_phone_id = Column(String(50), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+    payment_qr_code_url = Column(String(500), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
     # Relationships
     users = relationship("User", back_populates="tenant", cascade="all, delete-orphan")
-    members = relationship("Member", back_populates="tenant", cascade="all, delete-orphan")
-    membership_plans = relationship("MembershipPlan", back_populates="tenant", cascade="all, delete-orphan")
-    
-    __table_args__ = (
-        Index('ix_tenants_active_paid', 'is_active', 'paid_until'),
+    members = relationship(
+        "Member", back_populates="tenant", cascade="all, delete-orphan"
     )
-    
+    membership_plans = relationship(
+        "MembershipPlan", back_populates="tenant", cascade="all, delete-orphan"
+    )
+    expenses = relationship(
+        "Expense", back_populates="tenant", cascade="all, delete-orphan"
+    )
+    diet_plan_templates = relationship(
+        "DietPlanTemplate", back_populates="tenant", cascade="all, delete-orphan"
+    )
+    subscription = relationship(
+        "TenantSubscription",
+        back_populates="tenant",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (Index("ix_tenants_active_paid", "is_active", "paid_until"),)
+
     def __repr__(self) -> str:
         return f"<Tenant(id={self.id}, name='{self.name}', is_active={self.is_active})>"

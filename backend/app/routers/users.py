@@ -21,7 +21,7 @@ from app.schemas.users import (
     ChangePassword,
     UserListResponse,
 )
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, check_staff_limit
 from app.core.exceptions import UserAlreadyExistsException
 from loguru import logger
 
@@ -31,11 +31,7 @@ router = APIRouter(prefix="/gym-owners", tags=["Gym Owners & Staff"])
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
 def read_user_me(current_user: User = Depends(get_current_user)):
-    """
-    Get current gym owner/staff profile.
 
-    Returns the profile information for the currently authenticated gym owner or staff member.
-    """
     logger.info(f"Gym owner/staff {current_user.username} retrieved their profile")
     return current_user
 
@@ -46,12 +42,6 @@ def change_own_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Change own password.
-
-    Allows gym owners and staff to change their own password.
-    Requires old password verification.
-    """
     success = change_password(
         db, current_user.id, password_data.old_password, password_data.new_password
     )
@@ -77,9 +67,6 @@ def list_users(
 ):
     """
     List staff in own tenant.
-
-    Returns paginated list of staff members from the current user's tenant.
-    This does NOT include gym members (customers).
     """
     if not current_user.tenant_id:
         raise HTTPException(
@@ -104,10 +91,11 @@ def list_users(
 
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_new_user(
+def create_new_staff(
     user: UserCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _: None = Depends(check_staff_limit),  # Check staff limit before creating
 ):
     """
     Create a new gym staff member in own tenant.
@@ -187,16 +175,11 @@ def create_new_user(
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(
+def get_staff_by_id(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Get staff member by ID from own tenant.
-
-    This retrieves staff information, NOT gym member (customer) data.
-    """
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -213,17 +196,12 @@ def get_user(
 
 
 @router.put("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-def update_user_details(
+def update_staff_details(
     user_id: int,
     user_update: UserUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Update staff member details in own tenant.
-
-    This updates staff information, NOT gym member (customer) data.
-    """
     if not current_user.tenant_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -255,7 +233,7 @@ def update_user_details(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user_by_id(
+def delete_staff_by_id(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

@@ -6,8 +6,8 @@ from app.core.validators import validate_upi_id, validate_url
 
 class TenantBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="Gym/Tenant name")
-    
-    @field_validator('name')
+
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         v = v.strip()
@@ -17,20 +17,28 @@ class TenantBase(BaseModel):
 
 
 class TenantCreate(TenantBase):
-    google_map: Optional[str] = Field(None, max_length=500, description="Google Maps URL")
-    upi_id: Optional[str] = Field(None, max_length=100, description="UPI ID for payments")
-    whatsapp_access_token: Optional[str] = Field(None, max_length=500, description="WhatsApp API access token")
-    whatsapp_phone_id: Optional[str] = Field(None, max_length=50, description="WhatsApp phone ID")
+    google_map: Optional[str] = Field(
+        None, max_length=500, description="Google Maps URL"
+    )
+    upi_id: Optional[str] = Field(
+        None, max_length=100, description="UPI ID for payments"
+    )
+    whatsapp_access_token: Optional[str] = Field(
+        None, max_length=500, description="WhatsApp API access token"
+    )
+    whatsapp_phone_id: Optional[str] = Field(
+        None, max_length=50, description="WhatsApp phone ID"
+    )
     address: Optional[str] = Field(None, max_length=500, description="Physical address")
-    
-    @field_validator('google_map')
+
+    @field_validator("google_map")
     @classmethod
     def validate_google_map_url(cls, v: Optional[str]) -> Optional[str]:
         if v:
             return validate_url(v)
         return v
-    
-    @field_validator('upi_id')
+
+    @field_validator("upi_id")
     @classmethod
     def validate_upi_format(cls, v: Optional[str]) -> Optional[str]:
         if v:
@@ -43,6 +51,7 @@ class TenantResponse(TenantBase):
     is_active: bool
     paid_until: Optional[date] = None
     upi_id: Optional[str] = None
+    payment_qr_code_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -55,8 +64,9 @@ class TenantUpdate(BaseModel):
     upi_id: str | None = Field(None, max_length=100)
     whatsapp_access_token: str | None = Field(None, max_length=500)
     whatsapp_phone_id: str | None = Field(None, max_length=50)
-    
-    @field_validator('name')
+    payment_qr_code_url: str | None = Field(None, max_length=500)
+
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str | None) -> str | None:
         if v is None:
@@ -65,15 +75,15 @@ class TenantUpdate(BaseModel):
         if not v:
             raise ValueError("Tenant name cannot be empty")
         return v
-    
-    @field_validator('google_map')
+
+    @field_validator("google_map")
     @classmethod
     def validate_google_map_url(cls, v: str | None) -> str | None:
         if v:
             return validate_url(v)
         return v
-    
-    @field_validator('upi_id')
+
+    @field_validator("upi_id")
     @classmethod
     def validate_upi_format(cls, v: str | None) -> str | None:
         if v:

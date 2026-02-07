@@ -10,8 +10,8 @@ export interface Member {
     name: string;
     email: string;
     avatarUrl: string;
-    joinDate: string; // ISO String
-    expiryDate: string; // ISO String
+    joinDate: string; 
+    expiryDate: string;
     status: MembershipStatus;
     plan: 'Basic' | 'Pro' | 'Elite';
     lastCheckIn: string;
@@ -151,3 +151,195 @@ export interface BillingInfo {
         pdfUrl: string;
     }[];
 }
+
+// Authentication Types
+export interface LoginRequest {
+    username: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    access_token: string;
+    token_type: string;
+}
+
+export interface AuthUser {
+    username: string;
+    role: string;
+    tenant_id: number;
+    plan_name?: string;
+    subscription_status?: string;
+}
+
+export interface AuthState {
+    accessToken: string | null;
+    user: AuthUser | null;
+    isAuthenticated: boolean;
+}
+
+// Membership Plan Types
+export interface MembershipPlan {
+    id: number;
+    tenant_id: number;
+    name: string;
+    description: string | null;
+    duration_days: number;
+    price: number;
+    features: string[];
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PlanCreate {
+    name: string;
+    description?: string;
+    duration_days: number;
+    price: number;
+    features?: string[];
+}
+
+export interface PlanUpdate {
+    name?: string;
+    description?: string;
+    duration_days?: number;
+    price?: number;
+    features?: string[];
+    is_active?: boolean;
+}
+
+export interface PlanStats {
+    plan_id: number;
+    plan_name: string;
+    total_members: number;
+    active_members: number;
+    total_revenue: number;
+}
+
+export interface PlanListResponse {
+    plans: MembershipPlan[];
+    total: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+}
+
+export interface SubscriptionLimits {
+    current_usage: {
+        member_count: number;
+        staff_count: number;
+        plan_count: number;
+    };
+    plan_limits: {
+        max_members: number; // -1 means unlimited
+        max_staff: number;
+        max_plans: number;
+    };
+    is_trial: boolean;
+    plan_name?: string;
+}
+
+// Member Management Types
+export enum MemberStatus {
+    ACTIVE = 'active',
+    EXPIRED = 'expired',
+    INACTIVE = 'inactive',
+}
+
+export interface MemberBase {
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    email?: string | null;
+}
+
+export interface MemberCreate extends MemberBase {
+    joining_date: string; // ISO date
+    membership_type?: string; // "Monthly", "3 Months", "6 Months", "1 Year"
+    plan_id?: number;
+    before_photo_url?: string;
+}
+
+export interface MemberUpdate {
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    email?: string | null;
+    membership_type?: string;
+    plan_id?: number;
+    status?: MemberStatus;
+    before_photo_url?: string;
+    after_photo_url?: string;
+}
+
+export interface MemberResponse extends MemberBase {
+    id: number;
+    tenant_id: number;
+    joining_date: string;
+    membership_expiry_date: string;
+    membership_type: string;
+    plan_id?: number;
+    current_plan_start_date?: string;
+    total_fees_paid?: number;
+    outstanding_dues?: number;
+    before_photo_url?: string;
+    after_photo_url?: string;
+    status: MemberStatus;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface MemberListResponse {
+    members: MemberResponse[];
+    total: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
+}
+
+export interface MemberRenew {
+    membership_type?: string;
+    plan_id?: number;
+    renewal_date?: string;
+}
+
+export interface MemberPaymentRecord {
+    id: number;
+    payment_date: string;
+    amount: number;
+    payment_method: string;
+    payment_status: string;
+    notes?: string;
+}
+
+export interface MemberPlanDetail {
+    id: number;
+    name: string;
+    duration_days: number;
+    price: number;
+    description?: string;
+}
+
+export interface MemberProfileResponse {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    email?: string;
+    joining_date: string;
+    membership_expiry_date: string;
+    status: MemberStatus;
+    before_photo_url?: string;
+    after_photo_url?: string;
+    plan?: MemberPlanDetail;
+    current_plan_start_date?: string;
+    plan_days_remaining?: number;
+    total_fees_paid: number;
+    outstanding_dues: number;
+    recent_payments: MemberPaymentRecord[];
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+

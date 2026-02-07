@@ -5,17 +5,18 @@ import {
     CreditCard,
     Settings,
     TrendingUp,
-    LogOut,
     Plus,
     X,
     Moon,
-    Sun
+    Sun,
+    ClipboardList,
+    LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '@/context/ThemeContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/AuthStore';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -24,8 +25,15 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const pathname = usePathname();
+    const logout = useAuthStore((state) => state.logout);
     const { theme, toggleTheme, colorTheme, setColorTheme } = useTheme();
-    const { logout } = useAuth();
+    const router = useRouter()
+    
+
+    const handleLogout = () => {
+        logout();
+        router.push('/login');
+    };
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -60,8 +68,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-sidebar"></div>
                     </div>
                     <div className="flex flex-col">
-                        <h2 className="text-lg font-bold text-text-primary leading-tight">AMRAZ RAFEEQUE</h2>
-                        <span className="text-xs font-medium text-primary">Gym Owner</span>
+                        <h2 className="text-lg font-bold text-text-primary leading-tight uppercase">DEMO USER</h2>
+                        <span className="text-xs font-medium text-primary">GYM OWNER</span>
                     </div>
                 </div>
 
@@ -93,7 +101,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             <Link
                                 key={item.path}
                                 href={item.path}
-                                onClick={() => onClose()} // Close sidebar on mobile nav
+                                onClick={() => onClose()}
                                 className={cn(
                                     "flex items-center gap-4 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
                                     isActive
@@ -125,6 +133,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
                             {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
                         </button>
+                        
 
                         <div className="flex items-center gap-2">
                             {(['violet', 'blue', 'emerald', 'rose'] as const).map((c) => (
@@ -145,13 +154,14 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                             ))}
                         </div>
                     </div>
-                    <button
-                        onClick={logout}
-                        className="flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-sm font-medium text-text-secondary hover:bg-red-50 hover:text-red-600 transition-all"
-                    >
-                        <LogOut size={22} className="text-text-secondary" />
-                        Logout
-                    </button>
+                    <div className='flex items-center justify-between px-2'>
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary"
+                        >
+                           <LogOut /> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         </aside>

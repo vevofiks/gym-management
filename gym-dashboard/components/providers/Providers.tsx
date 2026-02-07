@@ -1,27 +1,48 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/context/AuthContext';
+import { useEffect } from 'react';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { useAuthStore } from '@/store/AuthStore';
+
+function AuthInitializer() {
+    const checkAuth = useAuthStore((state) => state.checkAuth);
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+
+    return null;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
-    const [queryClient] = useState(() => new QueryClient({
-        defaultOptions: {
-            queries: {
-                staleTime: 60000,
-                refetchOnWindowFocus: false,
-            },
-        },
-    }));
-
     return (
-        <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-                <ThemeProvider>
-                    {children}
-                </ThemeProvider>
-            </AuthProvider>
-        </QueryClientProvider>
+        <ThemeProvider>
+            <AuthInitializer />
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: 'var(--color-sidebar)',
+                        color: 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border)',
+                    },
+                    success: {
+                        iconTheme: {
+                            primary: 'var(--color-primary)',
+                            secondary: 'white',
+                        },
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: 'white',
+                        },
+                    },
+                }}
+            />
+            {children}
+        </ThemeProvider>
     );
 }
