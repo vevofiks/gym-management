@@ -33,7 +33,7 @@ def create_membership_plan(
     plan: PlanCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    _: None = Depends(check_plan_limit),  # Check plan limit before creating
+    _: None = Depends(check_plan_limit),
 ):
     if not current_user.tenant_id:
         raise HTTPException(
@@ -125,7 +125,7 @@ def update_membership_plan(
         )
 
     try:
-        updated_plan = update_plan(db, plan_id, current_user.tenant_id, plan_update)
+        updated_plan = update_plan(plan_id, plan_update, current_user.tenant_id, db)
         if not updated_plan:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found"

@@ -46,6 +46,13 @@ def create_plan(db: Session, plan_data, tenant_id: int) -> MembershipPlan:
     db.commit()
     db.refresh(db_plan)
 
+    # Parse features JSON back to list for response
+    if db_plan.features:
+        try:
+            db_plan.features = json.loads(db_plan.features)
+        except json.JSONDecodeError:
+            db_plan.features = []
+
     logger.info(
         f"Created plan: {db_plan.name} (ID: {db_plan.id}) for tenant {tenant_id}"
     )
@@ -53,16 +60,18 @@ def create_plan(db: Session, plan_data, tenant_id: int) -> MembershipPlan:
 
 
 def get_plan_by_id(
-    db: Session, plan_id: int, tenant_id: int
+    db: Session, plan_id: int, tenant_id: int, is_active: bool = True
 ) -> Optional[MembershipPlan]:
     """Get plan by ID with tenant validation."""
+    print("Get id", plan_id)
+    print("Get tenant id", tenant_id)
+    print("Get is active", is_active)
     plan = (
         db.query(MembershipPlan)
         .filter(
             and_(
                 MembershipPlan.id == plan_id,
                 MembershipPlan.tenant_id == tenant_id,
-                MembershipPlan.is_active == True,
             )
         )
         .first()
@@ -108,10 +117,14 @@ def get_plans_by_tenant(
 
 
 def update_plan(
-    db: Session, plan_id: int, tenant_id: int, plan_update
+    plan_id: int, plan_update, tenant_id: int, db: Session
 ) -> Optional[MembershipPlan]:
     """Update plan details."""
-    plan = get_plan_by_id(db, plan_id, tenant_id)
+    print("This is the plan id", plan_id)
+    print("This is the plan update", plan_update)
+    print("This is the tenant id", tenant_id)
+    plan = get_plan_by_id(db, plan_id, tenant_id, plan_update.is_active)
+    print("This is the plan", plan)
     if not plan:
         return None
 
@@ -123,7 +136,7 @@ def update_plan(
                 and_(
                     MembershipPlan.tenant_id == tenant_id,
                     MembershipPlan.name == plan_update.name,
-                    MembershipPlan.is_active == True,
+                    MembershipPlan.is_active == plan_update.is_active,
                     MembershipPlan.id != plan_id,
                 )
             )
@@ -177,7 +190,8 @@ def delete_plan(db: Session, plan_id: int, tenant_id: int) -> bool:
             f"Cannot delete plan. {members_count} active members are using this plan."
         )
 
-    plan.is_active = False
+    db.delete(plan)
+    db.refresh(plan)
     db.commit()
 
     logger.info(f"Deleted plan: {plan.name} (ID: {plan.id})")
