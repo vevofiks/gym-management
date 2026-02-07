@@ -5,10 +5,6 @@ from app.core.database import Base
 
 
 class MembershipPlan(Base):
-    """
-    Membership plans created by gym owners.
-    Each gym can have multiple plans with custom pricing and duration.
-    """
     __tablename__ = "membership_plans"
     
     id = Column(Integer, primary_key=True, index=True)

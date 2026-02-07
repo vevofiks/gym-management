@@ -50,7 +50,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 def admin_list_tenants(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(50, ge=1, le=100, description="Items per page"),
-    search: Optional[str] = Query(None, description="Search by tenant name"),
+    search: str | None = Query(None, description="Search by tenant name"),
     active_only: bool = Query(True, description="Filter active tenants only"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser),

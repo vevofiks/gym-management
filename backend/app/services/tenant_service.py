@@ -37,7 +37,7 @@ def create_tenant(db: Session, tenant: TenantCreate) -> Tenant:
         whatsapp_phone_id=tenant.whatsapp_phone_id,
     )
     db.add(db_tenant)
-    db.commit()
+    db.commit() 
     db.refresh(db_tenant)
     
     logger.info(f"Tenant created: {db_tenant.name} (ID: {db_tenant.id})")
@@ -191,7 +191,6 @@ def update_subscription(
     tenant.paid_until = paid_until
     db.commit()
     db.refresh(tenant)
-    
     logger.info(f"Subscription updated for tenant {tenant.name} (ID: {tenant.id}) until {paid_until}")
     return tenant
 

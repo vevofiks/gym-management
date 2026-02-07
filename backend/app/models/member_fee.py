@@ -15,7 +15,8 @@ class MemberFee(Base):
     member_id = Column(Integer, ForeignKey("members.id"), nullable=False)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     plan_id = Column(Integer, ForeignKey("membership_plans.id"))
-    amount = Column(Numeric(10, 2), nullable=False)
+    original_amount = Column(Numeric(10, 2), nullable=False)
+    amount_paid = Column(Numeric(10, 2), nullable=False)
     payment_method = Column(String(50))  # cash, upi, card, bank_transfer
     payment_date = Column(Date, nullable=False)
     payment_status = Column(String(20), default='paid')  # paid, pending, refunded

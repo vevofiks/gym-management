@@ -13,7 +13,13 @@ Complete API reference with examples for all endpoints.
 3. [User Endpoints](#user-endpoints)
 4. [Tenant Endpoints](#tenant-endpoints)
 5. [Member Endpoints](#member-endpoints)
-6. [Health Check](#health-check)
+6. [Membership Plans](#membership-plans)
+7. [Fee Management](#fee-management)
+8. [Expense Management](#expense-management)
+9. [Tenant Subscriptions](#tenant-subscriptions)
+10. [Diet Plans](#diet-plans)
+11. [Advanced Reports](#advanced-reports)
+12. [Health Check](#health-check)
 
 ---
 
@@ -593,7 +599,9 @@ Authorization: Bearer <token>
   "email": "newstaff@example.com",
   "phone_number": "9876543212",
   "password": "SecurePass123!",
-  "role": "gym_staff"
+  "role": "gym_staff",
+  "plan_id": 1,
+  "before_photo_url": "https://res.cloudinary.com/demo/image/upload/v12345/before.jpg"
 }
 ```
 
@@ -691,6 +699,81 @@ Authorization: Bearer <token>
 ```json
 {
   "detail": "Cannot delete your own account"
+}
+```
+
+---
+
+### 8. Get Member Detailed Profile
+
+**Endpoint**: `GET /members/{member_id}/profile`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get comprehensive member profile with payment history and plan details
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 5,
+  "first_name": "Amit",
+  "last_name": "Kumar",
+  "phone_number": "9876543210",
+  "email": "amit@example.com",
+  "joining_date": "2026-01-01",
+  "membership_expiry_date": "2026-02-01",
+  "status": "ACTIVE",
+  "before_photo_url": "https://res.cloudinary.com/demo/image/upload/v1/before.jpg",
+  "after_photo_url": null,
+  "plan": {
+    "id": 1,
+    "name": "Starter Plan",
+    "duration_days": 30,
+    "price": 1999.0,
+    "description": "Basic fitness plan"
+  },
+  "current_plan_start_date": "2026-01-01",
+  "plan_days_remaining": 25,
+  "total_fees_paid": 1999.0,
+  "outstanding_dues": 0.0,
+  "recent_payments": [
+    {
+      "id": 10,
+      "payment_date": "2026-01-01",
+      "amount": 1999.0,
+      "payment_method": "upi",
+      "payment_status": "success"
+    }
+  ],
+  "is_active": true
+}
+```
+
+---
+
+### 9. Upload Member Photo
+
+**Endpoint**: `POST /members/{member_id}/photo/{photo_type}`  
+**Access**: Authenticated  
+**Description**: Update member's before or after photo URL
+
+**Path Parameters**:
+
+- `photo_type`: `before` or `after`
+
+**Query Parameters**:
+
+- `photo_url` (required): URL of the uploaded photo (e.g., from Cloudinary)
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 5,
+  "first_name": "Amit",
+  "last_name": "Kumar",
+  "before_photo_url": "https://res.cloudinary.com/demo/image/upload/v123456/before.jpg",
+  "status": "ACTIVE"
+  // ... other member fields
 }
 ```
 
@@ -973,6 +1056,1073 @@ Authorization: Bearer <token>
 
 ---
 
+### 7. Get Detailed Member Profile
+
+**Endpoint**: `GET /members/{member_id}/profile`  
+**Access**: Authenticated (tenant-scoped)  
+**Description**: Get comprehensive member profile with payment history and plan details
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 1,
+  "first_name": "Rahul",
+  "last_name": "Sharma",
+  "phone_number": "9123456789",
+  "email": "rahul@example.com",
+  "joining_date": "2026-01-01",
+  "membership_expiry_date": "2026-02-01",
+  "status": "ACTIVE",
+  "before_photo_url": "https://cdn.example.com/photos/member-1-before.jpg",
+  "after_photo_url": "https://cdn.example.com/photos/member-1-after.jpg",
+  "plan": {
+    "id": 1,
+    "name": "Premium Monthly",
+    "duration_days": 30,
+    "price": 2500.0,
+    "description": "Full gym access with personal training"
+  },
+  "current_plan_start_date": "2026-01-01",
+  "plan_days_remaining": 11,
+  "total_fees_paid": 5000.0,
+  "outstanding_dues": 0.0,
+  "recent_payments": [
+    {
+      "id": 1,
+      "payment_date": "2026-01-20",
+      "amount": 2500.0,
+      "payment_method": "CASH",
+      "payment_status": "PAID",
+      "notes": "Monthly renewal"
+    },
+    {
+      "id": 2,
+      "payment_date": "2026-01-01",
+      "amount": 2500.0,
+      "payment_method": "UPI",
+      "payment_status": "PAID",
+      "notes": "Initial membership"
+    }
+  ],
+  "is_active": true,
+  "created_at": "2026-01-01T10:00:00",
+  "updated_at": "2026-01-20T15:30:00"
+}
+```
+
+---
+
+### 8. Upload Member Photo
+
+**Endpoint**: `POST /members/{member_id}/photo/{photo_type}`  
+**Access**: Authenticated (tenant-scoped)  
+**Description**: Upload before or after transformation photo for member profile
+
+**Path Parameters**:
+
+- `member_id` (int): Member ID
+- `photo_type` (string): "before" or "after"
+
+**Query Parameters**:
+
+- `photo_url` (string, required): URL of the uploaded photo
+
+**Example Request**:
+
+```
+POST /members/1/photo/before?photo_url=https://cdn.example.com/photos/member-1-before.jpg
+Authorization: Bearer <token>
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 1,
+  "first_name": "Rahul",
+  "last_name": "Sharma",
+  "phone_number": "9123456789",
+  "email": "rahul@example.com",
+  "joining_date": "2026-01-01",
+  "membership_expiry_date": "2026-02-01",
+  "membership_type": "Monthly",
+  "plan_id": 1,
+  "current_plan_start_date": "2026-01-01",
+  "total_fees_paid": 2500.0,
+  "outstanding_dues": 0.0,
+  "before_photo_url": "https://cdn.example.com/photos/member-1-before.jpg",
+  "after_photo_url": null,
+  "status": "ACTIVE",
+  "is_active": true,
+  "created_at": "2026-01-01T10:00:00",
+  "updated_at": "2026-01-20T16:00:00"
+}
+```
+
+**Upload Flow**:
+
+1. Upload image file to cloud storage (AWS S3, Google Cloud Storage, etc.)
+2. Get the publicly accessible URL from the storage service
+3. Call this endpoint with the URL
+4. The member's profile will be updated with the photo URL
+
+**Error Response** (422 Unprocessable Entity):
+
+```json
+{
+  "detail": "photo_type must be 'before' or 'after'"
+}
+```
+
+---
+
+---
+
+## Membership Plans
+
+> **Note**: All plan endpoints require authentication. Gym owners and staff can manage plans for their gym.
+
+### 1. Create Membership Plan
+
+**Endpoint**: `POST /plans/`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Create a custom membership plan with pricing and duration
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body**:
+
+```json
+{
+  "name": "Premium Monthly",
+  "description": "Full gym access with personal training",
+  "duration_days": 30,
+  "price": 2500.0,
+  "features": ["Gym Access", "Locker", "Personal Training", "Diet Plan"]
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": 1,
+  "tenant_id": 1,
+  "name": "Premium Monthly",
+  "description": "Full gym access with personal training",
+  "duration_days": 30,
+  "price": 2500.0,
+  "features": ["Gym Access", "Locker", "Personal Training", "Diet Plan"],
+  "is_active": true,
+  "created_at": "2026-01-21T10:00:00",
+  "updated_at": "2026-01-21T10:00:00"
+}
+```
+
+---
+
+### 2. List Membership Plans
+
+**Endpoint**: `GET /plans/`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get paginated list of membership plans
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters**:
+
+- `page` (optional, default: 1): Page number
+- `page_size` (optional, default: 50): Items per page
+- `active_only` (optional, default: true): Show only active plans
+
+**Response** (200 OK):
+
+```json
+{
+  "plans": [
+    {
+      "id": 1,
+      "tenant_id": 1,
+      "name": "Premium Monthly",
+      "description": "Full gym access with personal training",
+      "duration_days": 30,
+      "price": 2500.0,
+      "features": ["Gym Access", "Locker", "Personal Training", "Diet Plan"],
+      "is_active": true,
+      "created_at": "2026-01-21T10:00:00",
+      "updated_at": "2026-01-21T10:00:00"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1
+}
+```
+
+---
+
+### 3. Get Membership Plan
+
+**Endpoint**: `GET /plans/{plan_id}`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get details of a specific plan
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 1,
+  "tenant_id": 1,
+  "name": "Premium Monthly",
+  "description": "Full gym access with personal training",
+  "duration_days": 30,
+  "price": 2500.0,
+  "features": ["Gym Access", "Locker", "Personal Training", "Diet Plan"],
+  "is_active": true,
+  "created_at": "2026-01-21T10:00:00",
+  "updated_at": "2026-01-21T10:00:00"
+}
+```
+
+---
+
+### 4. Update Membership Plan
+
+**Endpoint**: `PUT /plans/{plan_id}`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Update plan details
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body** (all fields optional):
+
+```json
+{
+  "name": "Premium Monthly Plus",
+  "price": 2800.0,
+  "features": [
+    "Gym Access",
+    "Locker",
+    "Personal Training",
+    "Diet Plan",
+    "Spa Access"
+  ]
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 1,
+  "tenant_id": 1,
+  "name": "Premium Monthly Plus",
+  "description": "Full gym access with personal training",
+  "duration_days": 30,
+  "price": 2800.0,
+  "features": [
+    "Gym Access",
+    "Locker",
+    "Personal Training",
+    "Diet Plan",
+    "Spa Access"
+  ],
+  "is_active": true,
+  "created_at": "2026-01-21T10:00:00",
+  "updated_at": "2026-01-21T11:00:00"
+}
+```
+
+---
+
+### 5. Delete Membership Plan
+
+**Endpoint**: `DELETE /plans/{plan_id}`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Soft delete a plan (cannot delete if members are using it)
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response** (204 No Content)
+
+**Error Response** (400 Bad Request):
+
+```json
+{
+  "detail": "Cannot delete plan. 5 active members are using this plan."
+}
+```
+
+---
+
+### 6. Get Plan Statistics
+
+**Endpoint**: `GET /plans/{plan_id}/stats`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get member count and revenue statistics for a plan
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "plan_id": 1,
+  "plan_name": "Premium Monthly",
+  "total_members": 25,
+  "active_members": 23,
+  "total_revenue": 62500.0
+}
+```
+
+---
+
+### 5. Get Plan Statistics
+
+**Endpoint**: `GET /plans/{plan_id}/stats`  
+**Access**: Authenticated  
+**Description**: Get performance metrics for a specific plan
+
+**Response** (200 OK):
+
+```json
+{
+  "plan_id": 1,
+  "plan_name": "Starter Plan",
+  "total_members": 45,
+  "active_members": 38,
+  "total_revenue": 89955.0
+}
+```
+
+---
+
+## Fee Management
+
+> **Note**: All fee endpoints require authentication. Track member payments and generate financial reports.
+
+### 1. Record Member Payment
+
+**Endpoint**: `POST /fees/members/{member_id}`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Record a fee payment for a member
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Request Body**:
+
+```json
+{
+  "amount": 2500.0,
+  "payment_method": "upi",
+  "payment_date": "2026-01-21",
+  "transaction_id": "UPI123456789",
+  "plan_id": 1,
+  "notes": "January membership fee"
+}
+```
+
+**Payment Methods**: `cash`, `upi`, `card`, `bank_transfer`
+
+**Response** (201 Created):
+
+```json
+{
+  "id": 1,
+  "member_id": 123,
+  "tenant_id": 1,
+  "plan_id": 1,
+  "amount": 2500.0,
+  "payment_method": "upi",
+  "payment_date": "2026-01-21",
+  "payment_status": "paid",
+  "transaction_id": "UPI123456789",
+  "notes": "January membership fee",
+  "created_by": 5,
+  "created_at": "2026-01-21T10:30:00"
+}
+```
+
+---
+
+### 2. Get Member Payment History
+
+**Endpoint**: `GET /fees/members/{member_id}`
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get all payments made by a specific member
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters**:
+
+- `page` (optional, default: 1): Page number
+- `page_size` (optional, default: 50): Items per page
+
+**Response** (200 OK):
+
+```json
+{
+  "fees": [
+    {
+      "id": 1,
+      "member_id": 123,
+      "tenant_id": 1,
+      "plan_id": 1,
+      "amount": 2500.0,
+      "payment_method": "upi",
+      "payment_date": "2026-01-21",
+      "payment_status": "paid",
+      "transaction_id": "UPI123456789",
+      "notes": "January membership fee",
+      "created_by": 5,
+      "created_at": "2026-01-21T10:30:00"
+    }
+  ],
+  "total": 1,
+  "total_amount": 2500.0,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1
+}
+```
+
+---
+
+### 3. List All Fees
+
+**Endpoint**: `GET /fees/`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get all fee payments for the gym with filters
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters**:
+
+- `page` (optional, default: 1): Page number
+- `page_size` (optional, default: 50): Items per page
+- `start_date` (optional): Filter from date (YYYY-MM-DD)
+- `end_date` (optional): Filter to date (YYYY-MM-DD)
+- `payment_method` (optional): Filter by payment method
+
+**Response** (200 OK):
+
+```json
+{
+  "fees": [
+    {
+      "id": 1,
+      "member_id": 123,
+      "tenant_id": 1,
+      "plan_id": 1,
+      "amount": 2500.0,
+      "payment_method": "upi",
+      "payment_date": "2026-01-21",
+      "payment_status": "paid",
+      "transaction_id": "UPI123456789",
+      "notes": "January membership fee",
+      "created_by": 5,
+      "created_at": "2026-01-21T10:30:00"
+    }
+  ],
+  "total": 1,
+  "total_amount": 2500.0,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1
+}
+```
+
+---
+
+### 4. Generate Financial Report
+
+**Endpoint**: `GET /fees/report`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Generate financial report for a date range
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters** (required):
+
+- `start_date`: Report start date (YYYY-MM-DD)
+- `end_date`: Report end date (YYYY-MM-DD)
+
+**Response** (200 OK):
+
+```json
+{
+  "start_date": "2026-01-01",
+  "end_date": "2026-01-31",
+  "total_revenue": 75000.0,
+  "cash_payments": 25000.0,
+  "upi_payments": 35000.0,
+  "card_payments": 10000.0,
+  "bank_transfer_payments": 5000.0,
+  "payment_count": 30,
+  "member_count": 28
+}
+```
+
+---
+
+### 5. Get Fee Statistics
+
+**Endpoint**: `GET /fees/stats`  
+**Access**: Authenticated (Gym Owner/Staff)  
+**Description**: Get overall fee statistics for the gym
+
+**Headers**:
+
+```
+Authorization: Bearer <access_token>
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "total_collected": 150000.0,
+  "total_pending": 5000.0,
+  "total_refunded": 2500.0,
+  "payment_count": 60
+}
+```
+
+---
+
+## Expense Management
+
+> **Note**: All expense endpoints require authentication (Gym Owner/Staff). Track gym expenses.
+
+### 1. Create Expense
+
+**Endpoint**: `POST /expenses/`
+**Access**: Authenticated
+**Description**: Record a new expense
+
+**Request Body**:
+
+```json
+{
+  "category": "rent",
+  "amount": 15000.0,
+  "payment_method": "bank_transfer",
+  "expense_date": "2026-01-25",
+  "description": "January Gym Rent"
+}
+```
+
+**Categories**: `rent`, `utilities`, `equipment`, `salaries`, `maintenance`, `marketing`, `supplies`, `miscellaneous`
+**Payment Methods**: `cash`, `upi`, `card`, `bank_transfer`
+
+**Response** (201 Created):
+
+```json
+{
+  "id": 1,
+  "tenant_id": 1,
+  "category": "rent",
+  "amount": 15000.0,
+  "payment_method": "bank_transfer",
+  "expense_date": "2026-01-25",
+  "description": "January Gym Rent",
+  "created_by": 2,
+  "created_at": "2026-01-25T10:00:00",
+  "updated_at": "2026-01-25T10:00:00"
+}
+```
+
+---
+
+### 2. List Expenses
+
+**Endpoint**: `GET /expenses/`
+**Access**: Authenticated
+
+**Query Parameters**:
+
+- `page`: Page number (default: 1)
+- `page_size`: Items per page (default: 50)
+- `category`: Filter by category
+- `start_date`: Filter from date
+- `end_date`: Filter to date
+- `payment_method`: Filter by payment type
+
+**Response** (200 OK):
+
+```json
+{
+  "expenses": [
+    {
+      "id": 1,
+      "category": "rent",
+      "amount": 15000.0,
+      "expense_date": "2026-01-25",
+      "description": "January Gym Rent"
+      // ... other fields
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1
+}
+```
+
+---
+
+### 3. Get Expense Statistics
+
+**Endpoint**: `GET /expenses/summary`
+**Access**: Authenticated
+
+**Query Parameters**:
+
+- `start_date` (required)
+- `end_date` (required)
+
+**Response** (200 OK):
+
+```json
+{
+  "total_expenses": 25000.0,
+  "category_breakdown": {
+    "rent": 15000.0,
+    "utilities": 5000.0,
+    "salaries": 5000.0
+  },
+  "payment_method_breakdown": {
+    "bank_transfer": 20000.0,
+    "cash": 5000.0
+  }
+}
+```
+
+---
+
+## Tenant Subscriptions
+
+> **Note**: Manage your gym's subscription to the platform.
+
+### 1. View Subscription Plans
+
+**Endpoint**: `GET /subscriptions/plans`
+**Access**: Authenticated
+**Description**: List available plans (Starter, Pro, etc.)
+
+**Response** (200 OK):
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Starter",
+    "price_monthly": 1499.0,
+    "max_members": 100,
+    "max_staff": 3,
+    "whatsapp_enabled": false,
+    "advanced_analytics": false
+  },
+  {
+    "id": 2,
+    "name": "Pro",
+    "price_monthly": 3499.0,
+    "max_members": -1,
+    "max_staff": 5,
+    "whatsapp_enabled": true,
+    "advanced_analytics": true
+  }
+]
+```
+
+---
+
+### 2. Get Current Subscription
+
+**Endpoint**: `GET /subscriptions/me`
+**Access**: Authenticated (Gym Owner)
+
+**Response** (200 OK):
+
+```json
+{
+  "id": 1,
+  "tenant_id": 1,
+  "plan_id": 2,
+  "status": "active",
+  "subscription_start_date": "2026-01-01",
+  "subscription_end_date": "2026-01-31",
+  "auto_renew": true,
+  "trial_end_date": null,
+  "is_trial_used": true
+}
+```
+
+---
+
+### 3. Get Detailed Status
+
+**Endpoint**: `GET /subscriptions/me/status`
+**Access**: Authenticated (Gym Owner)
+**Description**: Check usage limits and feature access
+
+**Response** (200 OK):
+
+```json
+{
+  "has_subscription": true,
+  "is_active": true,
+  "status": "active",
+  "is_trial": false,
+  "days_remaining": 6,
+  "plan": {
+    "id": 2,
+    "name": "Pro",
+    "price": 3499.0
+  },
+  "current_usage": {
+    "member_count": 120,
+    "staff_count": 2,
+    "plan_count": 3
+  },
+  "plan_limits": {
+    "max_members": -1,
+    "max_staff": 5,
+    "max_plans": -1
+  },
+  "features": {
+    "whatsapp": true,
+    "advanced_analytics": true
+  }
+}
+```
+
+---
+
+### 4. Initiate Dummy Payment
+
+**Endpoint**: `POST /subscriptions/payment/dummy/initiate`  
+**Access**: Gym Owner  
+**Description**: Initiate a simulated payment for subscription (Testing only)
+
+**Request Body**:
+
+```json
+{
+  "plan_id": 2,
+  "payment_method": "upi",
+  "notes": "Testing Pro plan upgrade"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "payment_id": 12,
+  "order_id": "ORDER_123456",
+  "amount": 3999.0,
+  "currency": "INR",
+  "plan_name": "Pro",
+  "status": "pending",
+  "message": "Dummy payment initiated. Call /payment/dummy/complete with this payment_id to simulate success."
+}
+```
+
+---
+
+### 5. Complete Dummy Payment
+
+**Endpoint**: `POST /subscriptions/payment/dummy/complete`  
+**Access**: Gym Owner  
+**Description**: Complete/verify a simulated payment
+
+**Request Body**:
+
+```json
+{
+  "payment_id": 12,
+  "dummy_transaction_id": "T_SIM_7890",
+  "payment_status": "success"
+}
+```
+
+**Response** (200 OK):
+
+```json
+{
+  "success": true,
+  "message": "Payment successful! Pro activated.",
+  "payment_id": 12,
+  "subscription_status": "active",
+  "subscription_end_date": "2026-03-06",
+  "plan_name": "Pro"
+}
+```
+
+---
+
+### 6. Payment History
+
+**Endpoint**: `GET /subscriptions/payment/history`  
+**Access**: Gym Owner  
+**Description**: List all subscription payment records
+
+**Response** (200 OK):
+
+```json
+{
+  "payments": [
+    {
+      "id": 12,
+      "amount": 3999.0,
+      "status": "success",
+      "payment_date": "2026-02-06T00:15:00",
+      "plan_id": 2
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+## Diet Plans
+
+> **Note**: **Pro Plan Feature**. Templates and assignments for gym members. Requires WhatsApp integration for messaging features.
+
+### 1. Create Diet Plan Template
+
+**Endpoint**: `POST /diet-plans/templates`  
+**Access**: Gym Owner/Staff (Pro Plan)
+
+**Request Body**:
+
+```json
+{
+  "name": "Keto Weight Loss",
+  "description": "High fat, low carb diet plan",
+  "category": "weight_loss",
+  "plan_data": {
+    "breakfast": "Eggs and Avocado",
+    "lunch": "Grilled Chicken Salad",
+    "dinner": "Steak with Broccoli"
+  }
+}
+```
+
+**Categories**: `weight_loss`, `weight_gain`, `muscle_building`, `maintenance`
+
+**Response** (201 Created):
+
+```json
+{
+  "id": 1,
+  "name": "Keto Weight Loss",
+  "category": "weight_loss",
+  "is_active": true
+}
+```
+
+---
+
+### 2. List Diet Plan Templates
+
+**Endpoint**: `GET /diet-plans/templates`  
+**Query Parameters**:
+
+- `category` (optional): Filter by category
+- `active_only` (optional, default: true)
+
+**Response** (200 OK):
+
+```json
+{
+  "templates": [
+    {
+      "id": 1,
+      "name": "Keto Weight Loss",
+      "category": "weight_loss"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+### 3. Assign Diet Plan to Member
+
+**Endpoint**: `POST /diet-plans/assign`  
+**Description**: Assign a plan to a member and optionally send via WhatsApp
+
+**Request Body**:
+
+```json
+{
+  "member_id": 5,
+  "template_id": 1,
+  "send_whatsapp": true,
+  "notes": "Follow strictly for 30 days"
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": 10,
+  "member_id": 5,
+  "template_id": 1,
+  "assigned_at": "2026-02-06T00:15:00",
+  "whatsapp_sent": true
+}
+```
+
+---
+
+### 4. Get Member Diet Plans
+
+**Endpoint**: `GET /diet-plans/members/{member_id}/plans`
+
+**Response** (200 OK):
+
+```json
+[
+  {
+    "id": 10,
+    "template_name": "Keto Weight Loss",
+    "assigned_at": "2026-02-06",
+    "notes": "Follow strictly for 30 days"
+  }
+]
+```
+
+---
+
+## Advanced Reports
+
+> **Note**: **Pro Plan Only**. These endpoints provide deeper analytics.
+
+### 1. Financial Report
+
+**Endpoint**: `GET /reports/financial`
+**Access**: Authenticated (Pro Plan)
+
+**Query Parameters**:
+
+- `start_date` (optional)
+- `end_date` (optional)
+
+**Response** (200 OK):
+
+```json
+{
+  "summary": {
+    "total_revenue": 50000.0,
+    "total_expenses": 20000.0,
+    "net_profit": 30000.0,
+    "profit_margin_percent": 60.0
+  },
+  "revenue_trend": [
+    { "label": "Dec 2025", "value": 45000.0 },
+    { "label": "Jan 2026", "value": 50000.0 }
+  ],
+  "expense_trend": [
+    { "label": "Dec 2025", "value": 18000.0 },
+    { "label": "Jan 2026", "value": 20000.0 }
+  ]
+}
+```
+
+---
+
+### 2. Member Analytics
+
+**Endpoint**: `GET /reports/members`
+**Access**: Authenticated (Pro Plan)
+
+**Response** (200 OK):
+
+```json
+{
+  "stats": {
+    "total_active_members": 120,
+    "new_members_this_month": 15,
+    "expiring_soon_count": 5,
+    "churn_rate_percent": 2.5
+  },
+  "plan_distribution": [
+    { "label": "Monthly", "value": 80, "percentage": 66.6 },
+    { "label": "Yearly", "value": 40, "percentage": 33.3 }
+  ]
+}
+```
+
+---
+
+### 3. Outstanding Dues
+
+**Endpoint**: `GET /reports/dues`
+**Access**: Authenticated (Pro Plan)
+
+**Response** (200 OK):
+
+```json
+[
+  {
+    "member_id": 5,
+    "member_name": "Amit Kumar",
+    "amount_due": 500.0,
+    "days_overdue": 5
+  }
+]
+```
+
 ## Health Check
 
 ### Get Health Status
@@ -1148,5 +2298,5 @@ Visit `http://localhost:8000/docs` for interactive Swagger UI documentation wher
 
 ---
 
-**Last Updated**: 2026-01-20  
-**API Version**: 1.0.0
+**Last Updated**: 2026-02-06  
+**API Version**: 1.1.0

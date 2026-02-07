@@ -7,12 +7,12 @@ from loguru import logger
 def authenticate_user(db: Session, username: str, password: str):
     """
     Authenticate user with username and password.
-    
+
     Args:
         db: Database session
         username: Username to authenticate
         password: Plain text password to verify
-        
+
     Returns:
         User object if authentication successful, None otherwise
     """
@@ -30,11 +30,11 @@ def authenticate_user(db: Session, username: str, password: str):
 def verify_user_active(db: Session, user_id: int) -> bool:
     """
     Check if user account is active.
-    
+
     Args:
         db: Database session
         user_id: User ID
-        
+
     Returns:
         True if user is active, False otherwise
     """
@@ -42,38 +42,3 @@ def verify_user_active(db: Session, user_id: int) -> bool:
     if not user:
         return False
     return user.is_active
-
-
-def change_user_password(
-    db: Session,
-    user_id: int,
-    old_password: str,
-    new_password: str
-) -> bool:
-    """
-    Change user password with old password verification.
-    
-    Args:
-        db: Database session
-        user_id: User ID
-        old_password: Current password
-        new_password: New password (already validated)
-        
-    Returns:
-        True if password changed successfully, False otherwise
-    """
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
-    if not user:
-        return False
-    
-    # Verify old password
-    if not pwd_context.verify(old_password, str(user.hashed_password)):
-        logger.warning(f"Failed password change attempt for user {user.username}: incorrect old password")
-        return False
-    
-    # Set new password
-    user.hashed_password = hash_password(new_password)
-    db.commit()
-    
-    logger.info(f"Password changed successfully for user: {user.username} (ID: {user.id})")
-    return True

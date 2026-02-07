@@ -12,14 +12,13 @@ export const Layout = ({ children }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
-  // Helper to determine page title from path
   const getPageTitle = (path: string) => {
     switch (path) {
-      case '/': return 'Dashboard';
-      case '/members': return 'Member Management';
-      case '/finances': return 'Financials';
-      case '/analytics': return 'Analytics';
-      default: return 'Dashboard';
+      case '/': return { title : 'Dashboard', subtitle : 'Start managing your gym today!' };
+      case '/members': return { title : 'Member Management', subtitle : 'Manage your members' };
+      case '/finances': return { title : 'Financials', subtitle : 'Manage your finances' };
+      case '/analytics': return { title : 'Analytics', subtitle : 'Analyze your gym' };
+      default: return { title : 'Dashboard', subtitle : 'Start managing your gym today!' };
     }
   };
 
@@ -30,7 +29,8 @@ export const Layout = ({ children }: LayoutProps) => {
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
         <div className="px-6 lg:px-10">
           <Header
-            title={getPageTitle(pathname)}
+            title={getPageTitle(pathname).title}
+            subtitle={getPageTitle(pathname).subtitle}
             onMenuClick={() => setIsSidebarOpen(true)}
           />
         </div>
@@ -40,7 +40,6 @@ export const Layout = ({ children }: LayoutProps) => {
         </main>
       </div>
 
-      {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-0 bg-black/50 backdrop-blur-sm lg:hidden"
