@@ -1,0 +1,36 @@
+# Root .gitignore for Gym Management Project
+
+# Environment
+.env
+venv/
+env/
+.vscode/
+.idea/
+
+# Logs
+*.log
+backend/logs/
+backend/backend_logs.txt
+
+# Database
+backend/gym.db
+*.sqlite
+*.sqlite3
+
+# Node.js
+**/node_modules/
+**/dist/
+**/build/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*.so
+
+# OS
+.DS_Store
+Thumbs.db
