@@ -52,11 +52,11 @@ export const SettingsPage: React.FC = () => {
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Platform Name</label>
-                    <input type="text" defaultValue="AdminPulse" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                    <input type="text" defaultValue="FitDash Admin" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Support Email</label>
-                    <input type="email" defaultValue="support@adminpulse.com" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                    <input type="email" defaultValue="support@fitdash.com" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Primary Timezone</label>
@@ -107,7 +107,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
-                  <input type="email" defaultValue="admin@fitpulse.com" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                  <input type="email" defaultValue="admin@fitdash.com" className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
                 </div>
               </div>
             </form>

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GymPulse - Owner Dashboard",
+  title: "FitDash - Owner Dashboard",
   description: "Manage your gym empire",
 };
 

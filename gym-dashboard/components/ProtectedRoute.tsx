@@ -10,15 +10,25 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const router = useRouter();
-    const { checkAuth, isAuthenticated } = useAuthStore();
+    const { checkAuth, isAuthenticated, updateUser } = useAuthStore();
 
     useEffect(() => {
         const isAuth = checkAuth();
 
         if (!isAuth) {
             router.push('/login');
+        } else {
+            // Fetch latest user data to keep store in sync (e.g. avatar_url)
+            import('@/services/userService').then(({ getMe }) => {
+                getMe().then(data => {
+                    updateUser({
+                        avatar_url: data.avatar_url,
+                        username: data.username,
+                    });
+                }).catch(err => console.error('Failed to sync profile', err));
+            });
         }
-    }, [checkAuth, router]);
+    }, [checkAuth, router, updateUser]);
 
     if (!isAuthenticated) {
         return (

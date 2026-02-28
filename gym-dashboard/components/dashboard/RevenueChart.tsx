@@ -1,10 +1,10 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { RevenueData } from '@/types/index';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { RevenueChartDataPoint } from '@/types/index';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useTheme } from '@/context/ThemeContext';
 
 interface Props {
-  data?: RevenueData[];
+  data?: RevenueChartDataPoint[];
   isLoading: boolean;
 }
 
@@ -15,11 +15,6 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
     return <Skeleton className="h-[350px] w-full rounded-4xl" />;
   }
 
-  // Determine colors based on context isn't directly possible with CSS vars in Recharts prop, 
-  // but we can assume 'primary' class for stroke/fill usually works if we could pass class,
-  // however Recharts needs hex strings.
-  // Ideally, we'd read getComputedStyle but for simplicity we will stick to a neutral + CSS variable for the container.
-
   return (
     <div className="h-full w-full rounded-4xl bg-card p-8 shadow-soft border border-border">
       <div className="mb-8 flex items-center justify-between">
@@ -27,21 +22,20 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
           <h3 className="text-xl font-bold text-text-primary">Revenue Analytics</h3>
           <p className="text-sm text-text-secondary">Income vs Expenses over time</p>
         </div>
-        <select className="rounded-xl bg-background border-none px-4 py-2 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/20">
-          <option>Last 6 Months</option>
-          <option>Last Year</option>
-        </select>
       </div>
 
       <div className="h-[250px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                {/* We use a specific violet here as reading CSS var in SVG defs is tricky without inline styles */}
+              <linearlinear id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-              </linearGradient>
+              </linearlinear>
+              <linearlinear id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
+              </linearlinear>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#F1F5F9'} />
             <XAxis
@@ -55,7 +49,7 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: theme === 'dark' ? '#94A3B8' : '#64748B', fontSize: 12, fontWeight: 500 }}
-              tickFormatter={(value) => `$${value / 1000}k`}
+              tickFormatter={(value) => `₹${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
             />
             <Tooltip
               contentStyle={{
@@ -67,14 +61,33 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
                 fontWeight: 'bold',
                 color: theme === 'dark' ? '#fff' : '#000'
               }}
+              formatter={(value: number | undefined) => value !== undefined ? `₹${value.toLocaleString()}` : '₹0'}
+            />
+            <Legend
+              wrapperStyle={{
+                paddingTop: '20px',
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
             />
             <Area
               type="monotone"
               dataKey="revenue"
               stroke="#7C3AED"
-              strokeWidth={4}
+              strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorRevenue)"
+              name="Revenue"
+            />
+            <Area
+              type="monotone"
+              dataKey="expenses"
+              stroke="#EF4444"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#colorExpenses)"
+              name="Expenses"
             />
           </AreaChart>
         </ResponsiveContainer>

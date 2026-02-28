@@ -1,4 +1,5 @@
 from pydantic import BaseModel, field_validator, Field
+from datetime import datetime
 from app.models.users import UserRole
 from app.core.validators import (
     validate_email,
@@ -9,28 +10,32 @@ from app.core.validators import (
 
 
 class UserBase(BaseModel):
-    name: str = Field(..., min_length=2, max_length=100, description="Full name of the user")
-    username: str = Field(..., min_length=3, max_length=30, description="Unique username")
+    name: str = Field(
+        ..., min_length=2, max_length=100, description="Full name of the user"
+    )
+    username: str = Field(
+        ..., min_length=3, max_length=30, description="Unique username"
+    )
     email: str = Field(..., max_length=255, description="Email address")
     phone_number: str = Field(..., description="Phone number")
     role: UserRole = Field(default=UserRole.GYMOWNER, description="User role")
-    
-    @field_validator('email')
+
+    @field_validator("email")
     @classmethod
     def validate_email_format(cls, v: str) -> str:
         return validate_email(v)
-    
-    @field_validator('phone_number')
+
+    @field_validator("phone_number")
     @classmethod
     def validate_phone_format(cls, v: str) -> str:
         return validate_phone_number(v)
-    
-    @field_validator('username')
+
+    @field_validator("username")
     @classmethod
     def validate_username_format(cls, v: str) -> str:
         return validate_username(v)
-    
-    @field_validator('name')
+
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         v = v.strip()
@@ -42,8 +47,8 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, description="Password (min 8 characters)")
     # tenant_id: int | None = Field(None, gt=0, description="Tenant ID")
-    
-    @field_validator('password')
+
+    @field_validator("password")
     @classmethod
     def validate_password_format(cls, v: str) -> str:
         return validate_password_strength(v)
@@ -53,6 +58,8 @@ class UserResponse(UserBase):
     id: int
     is_active: bool = True
     tenant_id: int | None = None
+    avatar_url: str | None = None
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -63,8 +70,10 @@ class UserUpdate(BaseModel):
     email: str | None = Field(None, max_length=255)
     phone_number: str | None = Field(None)
     role: UserRole | None = Field(None)
-    
-    @field_validator('name')
+    avatar_url: str | None = Field(None)
+    is_active: bool | None = Field(None)
+
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str | None) -> str | None:
         if v is None:
@@ -73,15 +82,15 @@ class UserUpdate(BaseModel):
         if not v:
             raise ValueError("Name cannot be empty")
         return v
-    
-    @field_validator('email')
+
+    @field_validator("email")
     @classmethod
     def validate_email_format(cls, v: str | None) -> str | None:
         if v is None:
             return v
         return validate_email(v)
-    
-    @field_validator('phone_number')
+
+    @field_validator("phone_number")
     @classmethod
     def validate_phone_format(cls, v: str | None) -> str | None:
         if v is None:
@@ -92,8 +101,8 @@ class UserUpdate(BaseModel):
 class ChangePassword(BaseModel):
     old_password: str = Field(..., min_length=8, description="Current password")
     new_password: str = Field(..., min_length=8, description="New password")
-    
-    @field_validator('new_password')
+
+    @field_validator("new_password")
     @classmethod
     def validate_password_format(cls, v: str) -> str:
         return validate_password_strength(v)
@@ -105,3 +114,40 @@ class UserListResponse(BaseModel):
     page: int | None = None
     page_size: int | None = None
     total_pages: int | None = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., description="Email address of the user")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        return validate_email(v)
+
+
+class VerifyOTPRequest(BaseModel):
+    email: str = Field(..., description="Email address of the user")
+    otp: str = Field(..., min_length=6, max_length=6, description="6-digit OTP")
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str = Field(..., description="Email address of the user")
+    otp: str = Field(..., min_length=6, max_length=6, description="6-digit OTP")
+    new_password: str = Field(..., min_length=8, description="New password")
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password_format(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
+class UniquenessCheckRequest(BaseModel):
+    username: str | None = None
+    email: str | None = None
+    phone_number: str | None = None
+    exclude_user_id: int | None = None
+
+
+class UniquenessCheckResponse(BaseModel):
+    is_unique: bool
+    errors: dict[str, str] = {}

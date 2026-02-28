@@ -1,7 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { MemberResponse, MemberStatus } from "@/types/index";
 import { Edit, Trash2, Eye } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
+// ... (omitted imports for brevity, but I'll make sure to add it correctly)
 
 export const columns: ColumnDef<MemberResponse>[] = [
   {
@@ -34,10 +35,10 @@ export const columns: ColumnDef<MemberResponse>[] = [
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: () => <span className="hidden md:inline">Email</span>,
     cell: ({ row }) => {
       return (
-        <span className="text-sm text-text-secondary">
+        <span className="text-sm text-text-secondary hidden md:inline">
           {row.original.email || 'N/A'}
         </span>
       );
@@ -50,7 +51,7 @@ export const columns: ColumnDef<MemberResponse>[] = [
       const membershipType = row.original.membership_type;
       return (
         <span className={cn(
-          "px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+          "px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 whitespace-nowrap"
         )}>
           {membershipType}
         </span>
@@ -93,12 +94,12 @@ export const columns: ColumnDef<MemberResponse>[] = [
       return (
         <div>
           <div className={cn(
-            "font-medium",
+            "font-medium whitespace-nowrap",
             isExpired ? "text-red-600 dark:text-red-400" :
               isExpiringSoon ? "text-orange-600 dark:text-orange-400" :
                 "text-text-secondary"
           )}>
-            {expiryDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {formatDate(row.original.membership_expiry_date)}
           </div>
           {isExpiringSoon && !isExpired && (
             <div className="text-xs text-orange-600 dark:text-orange-400">

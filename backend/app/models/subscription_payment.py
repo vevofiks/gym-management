@@ -37,10 +37,12 @@ class SubscriptionPayment(Base):
         String(50), nullable=True
     )  # "razorpay", "upi", "card", etc.
 
-    # Razorpay fields (TO BE IMPLEMENTED BY USER)
-    # razorpay_order_id = Column(String(100), nullable=True)
-    # razorpay_payment_id = Column(String(100), nullable=True, unique=True)
-    # razorpay_signature = Column(String(500), nullable=True)
+    # Razorpay fields
+    razorpay_order_id = Column(String(100), nullable=True)
+    razorpay_payment_id = Column(String(100), nullable=True, unique=True)
+    razorpay_signature = Column(String(500), nullable=True)
+    invoice_url = Column(String(500), nullable=True)  # URL to PDF invoice
+    payment_metadata = Column(String, nullable=True)  # JSON string of gateway response
 
     # Status
     status = Column(

@@ -8,12 +8,30 @@ interface AuthStore extends AuthState {
     logout: () => void;
     setToken: (token: string) => void;
     checkAuth: () => boolean;
+    updateUser: (userData: Partial<AuthUser>) => void;
+    forgotPassword: (email: string) => Promise<void>;
+    verifyOtp: (email: string, otp: string) => Promise<void>;
+    resetPassword: (email: string, otp: string, newPassword: string) => Promise<void>;
     isLoading: boolean;
     error: string | null;
 }
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/',
+});
+
+// Request interceptor to add auth token
+api.interceptors.request.use((config) => {
+    const state = useAuthStore.getState();
+    const token = state.accessToken;
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 const decodeToken = (token: string): AuthUser | null => {
@@ -26,9 +44,9 @@ const decodeToken = (token: string): AuthUser | null => {
                 .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
                 .join('')
         );
-        
+
         const payload = JSON.parse(jsonPayload);
-        
+
         return {
             username: payload.sub,
             role: payload.role,
@@ -53,7 +71,7 @@ export const useAuthStore = create<AuthStore>()(
 
             login: async (credentials: LoginRequest) => {
                 set({ isLoading: true, error: null });
-                
+
                 try {
                     // Create form data for OAuth2PasswordRequestForm
                     const formData = new URLSearchParams();
@@ -77,8 +95,6 @@ export const useAuthStore = create<AuthStore>()(
                         throw new Error('Invalid token received');
                     }
 
-                    // Set axios default authorization header
-                    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
                     set({
                         accessToken: access_token,
@@ -101,8 +117,7 @@ export const useAuthStore = create<AuthStore>()(
             },
 
             logout: () => {
-                delete api.defaults.headers.common['Authorization'];
-                
+
                 set({
                     accessToken: null,
                     user: null,
@@ -110,14 +125,13 @@ export const useAuthStore = create<AuthStore>()(
                     error: null,
                 });
 
-                
+
             },
 
             setToken: (token: string) => {
                 const user = decodeToken(token);
-                
+
                 if (user) {
-                    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                     set({
                         accessToken: token,
                         user,
@@ -128,7 +142,7 @@ export const useAuthStore = create<AuthStore>()(
 
             checkAuth: () => {
                 const { accessToken } = get();
-                
+
                 if (!accessToken) {
                     return false;
                 }
@@ -143,9 +157,9 @@ export const useAuthStore = create<AuthStore>()(
                             .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
                             .join('')
                     );
-                    
+
                     const payload = JSON.parse(jsonPayload);
-                    
+
                     // Check if token is expired
                     if (payload.exp) {
                         const currentTime = Math.floor(Date.now() / 1000);
@@ -155,20 +169,63 @@ export const useAuthStore = create<AuthStore>()(
                             return false;
                         }
                     }
-                    
+
                     const user = decodeToken(accessToken);
                     if (!user) {
                         get().logout();
                         return false;
                     }
 
-                    // Set axios header if token is valid
-                    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                     return true;
                 } catch (error) {
                     console.error('Token validation failed:', error);
                     get().logout();
                     return false;
+                }
+            },
+
+            updateUser: (userData: Partial<AuthUser>) => {
+                const currentUser = get().user;
+                if (currentUser) {
+                    set({
+                        user: { ...currentUser, ...userData }
+                    });
+                }
+            },
+
+            forgotPassword: async (email: string) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.post('/auth/forgot-password', { email });
+                    set({ isLoading: false });
+                } catch (error: any) {
+                    const errorMessage = error.response?.data?.detail || 'Failed to send OTP. Please try again.';
+                    set({ isLoading: false, error: errorMessage });
+                    throw new Error(errorMessage);
+                }
+            },
+
+            verifyOtp: async (email: string, otp: string) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.post('/auth/verify-otp', { email, otp });
+                    set({ isLoading: false });
+                } catch (error: any) {
+                    const errorMessage = error.response?.data?.detail || 'Invalid or expired OTP.';
+                    set({ isLoading: false, error: errorMessage });
+                    throw new Error(errorMessage);
+                }
+            },
+
+            resetPassword: async (email: string, otp: string, newPassword: string) => {
+                set({ isLoading: true, error: null });
+                try {
+                    await api.post('/auth/reset-password', { email, otp, new_password: newPassword });
+                    set({ isLoading: false });
+                } catch (error: any) {
+                    const errorMessage = error.response?.data?.detail || 'Failed to reset password.';
+                    set({ isLoading: false, error: errorMessage });
+                    throw new Error(errorMessage);
                 }
             },
         }),

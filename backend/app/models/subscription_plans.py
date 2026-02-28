@@ -33,10 +33,14 @@ class SubscriptionPlan(Base):
     advanced_analytics = Column(
         Boolean, default=False, nullable=False
     )  # False for Starter, True for Pro
+    store_enabled = Column(
+        Boolean, default=False, nullable=False
+    )  # False for Starter, True for Pro
 
     # Metadata
     description = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_deleted = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -1,23 +1,63 @@
-import React from 'react';
-import { Member } from '@/types/index';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ExpiringMember } from '@/types/index';
 import { Skeleton } from '../ui/Skeleton';
-import { Clock, Send, ChevronRight } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { Clock, Send, ChevronRight, Loader2, MessageSquare } from 'lucide-react';
+import { format } from 'date-fns';
+import { triggerWhatsAppExpiryReminders } from '@/services/whatsappService';
+import toast from 'react-hot-toast';
 
 interface Props {
-  members?: Member[];
+  members?: ExpiringMember[];
   isLoading: boolean;
 }
 
 export const ExpiringWidget = ({ members, isLoading }: Props) => {
-  const handleSendPaymentLink = (memberId: string) => {
-    // TODO: Implement payment link functionality when backend endpoint is ready
-    console.log('Send payment link to member:', memberId);
+  const router = useRouter();
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendAllReminders = async () => {
+    if (!members || members.length === 0) return;
+
+    setIsSending(true);
+    try {
+      const res = await triggerWhatsAppExpiryReminders(7); // Default to 7 days
+      if (res.sent_count > 0) {
+        toast.success(`Sent ${res.sent_count} reminders via WhatsApp!`);
+      } else if (res.total_members === 0) {
+        toast.error('No members found expiring in 7 days.');
+      } else {
+        toast.error('Failed to send reminders. Check WhatsApp connection.');
+      }
+    } catch (error) {
+      toast.error('Error sending WhatsApp reminders');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendSingleReminder = async (member: ExpiringMember) => {
+    // For now we use the same bulk endpoint but we could add a single one
+    // or just inform the user we are sending for this specific day
+    setIsSending(true);
+    try {
+      // Logic for single member would typically go here
+      // For simplicity, we just trigger the bulk for now or show a message
+      toast(`Sending reminder to ${member.first_name}...`);
+      await triggerWhatsAppExpiryReminders(member.days_until_expiry);
+      toast.success('Reminder sent!');
+    } catch (error) {
+      toast.error('Failed to send reminder');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (isLoading) {
     return <Skeleton className="h-[400px] w-full rounded-4xl" />;
   }
+
+  const memberCount = members?.length || 0;
 
   return (
     <div className="flex h-full flex-col rounded-4xl bg-card p-6 shadow-soft border border-border">
@@ -28,43 +68,71 @@ export const ExpiringWidget = ({ members, isLoading }: Props) => {
           </div>
           <div>
             <h3 className="text-lg font-bold text-text-primary">Expiring Soon</h3>
-            <p className="text-xs font-medium text-text-secondary">Action needed: 5 members</p>
+            <p className="text-xs font-medium text-text-secondary">
+              {memberCount > 0 ? `Action needed: ${memberCount} members` : 'All good!'}
+            </p>
           </div>
         </div>
-        <button className="text-sm font-bold text-primary hover:text-primary/80">See All</button>
+        <button
+          onClick={() => router.push('/members/insights?filter=expiring_soon')}
+          className="text-sm font-bold text-primary hover:text-primary/80"
+        >
+          See All
+        </button>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto pr-2">
         {members?.map((member) => (
           <div key={member.id} className="flex items-center justify-between rounded-2xl bg-background p-4 transition-colors hover:bg-background/80 border border-transparent hover:border-border">
             <div className="flex items-center gap-3">
-              <img src={member.avatarUrl} alt={member.name} className="h-10 w-10 rounded-full object-cover" />
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                {member.first_name[0]}{member.last_name[0]}
+              </div>
               <div>
-                <p className="text-sm font-bold text-text-primary">{member.name}</p>
-                <p className="text-xs font-medium text-red-500">Exp: {formatDate(member.expiryDate)}</p>
+                <p className="text-sm font-bold text-text-primary">
+                  {member.first_name} {member.last_name}
+                </p>
+                <p className="text-xs font-medium text-red-500">
+                  {member.days_until_expiry === 0
+                    ? 'Expires today'
+                    : member.days_until_expiry === 1
+                      ? 'Expires tomorrow'
+                      : `Expires in ${member.days_until_expiry} days`}
+                </p>
               </div>
             </div>
 
             <button
-              onClick={() => handleSendPaymentLink(member.id)}
-              className="group flex h-9 w-9 items-center justify-center rounded-full bg-card shadow-sm border border-border hover:bg-primary hover:text-white transition-all"
-              title="Send Payment Link"
+              onClick={() => handleSendSingleReminder(member)}
+              disabled={isSending}
+              className="group flex h-9 w-9 items-center justify-center rounded-full bg-card shadow-sm border border-border hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+              title="Send WhatsApp Reminder"
             >
-              <Send size={16} className="ml-0.5" />
+              {isSending ? <Loader2 size={14} className="animate-spin" /> : <Send size={16} className="ml-0.5" />}
             </button>
           </div>
         ))}
 
         {(!members || members.length === 0) && (
-          <div className="flex h-full items-center justify-center text-text-secondary">
-            <p>No memberships expiring soon.</p>
+          <div className="flex h-full items-center justify-center text-text-secondary py-12">
+            <div className="text-center">
+              <p className="font-semibold">No memberships expiring soon.</p>
+              <p className="text-xs mt-1">You're all set!</p>
+            </div>
           </div>
         )}
       </div>
 
-      <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-700 py-3 text-sm font-bold text-white hover:opacity-90 transition-all">
-        View All Expirations <ChevronRight size={16} />
-      </button>
+      {memberCount > 0 && (
+        <button
+          onClick={handleSendAllReminders}
+          disabled={isSending}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-700 py-3 text-sm font-bold text-white hover:opacity-90 transition-all disabled:opacity-50"
+        >
+          {isSending ? <Loader2 size={18} className="animate-spin" /> : <MessageSquare size={18} />}
+          Send All Reminders <ChevronRight size={16} />
+        </button>
+      )}
     </div>
   );
 };

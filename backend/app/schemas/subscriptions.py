@@ -59,6 +59,7 @@ class SubscriptionStatusResponse(BaseModel):
     current_usage: Dict[str, int]  # {member_count, staff_count, plan_count}
     plan_limits: Dict[str, int]  # {max_members, max_staff, max_plans}
     features: Dict[str, bool]  # {whatsapp, advanced_analytics}
+    expires_at: Optional[datetime] = None
     auto_renew: bool = False
 
 
@@ -79,11 +80,11 @@ class PaymentInitiateRequest(BaseModel):
 class PaymentVerifyRequest(BaseModel):
     """Request to verify payment (Razorpay)"""
 
-    # razorpay_order_id: str
-    # razorpay_payment_id: str
-    # razorpay_signature: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
     payment_id: int  # Internal payment ID
-    # User will add Razorpay fields
+    invoice_url: Optional[str] = None
 
 
 class SubscriptionPaymentResponse(BaseModel):
@@ -99,6 +100,7 @@ class SubscriptionPaymentResponse(BaseModel):
     status: PaymentStatus
     payment_date: Optional[datetime]
     notes: Optional[str]
+    invoice_url: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -110,53 +112,3 @@ class PaymentHistoryResponse(BaseModel):
 
     payments: list[SubscriptionPaymentResponse]
     total: int
-
-
-# ============================================================================
-# DUMMY PAYMENT GATEWAY SCHEMAS
-# ============================================================================
-
-
-class DummyPaymentInitiateRequest(BaseModel):
-    """Request to initiate dummy payment for subscription"""
-
-    plan_id: int = Field(..., description="Plan to subscribe to (1=Starter, 2=Pro)")
-    payment_method: str = Field(
-        default="dummy_gateway", description="Payment method (dummy_gateway, upi, card)"
-    )
-    notes: Optional[str] = Field(None, description="Optional payment notes")
-
-
-class DummyPaymentInitiateResponse(BaseModel):
-    """Response after initiating dummy payment"""
-
-    payment_id: int = Field(..., description="Internal payment ID")
-    order_id: str = Field(..., description="Dummy order ID (for simulation)")
-    amount: Decimal = Field(..., description="Amount to be paid")
-    currency: str = Field(default="INR")
-    plan_name: str = Field(..., description="Name of the plan")
-    status: str = Field(default="pending", description="Payment status")
-    message: str = Field(..., description="Instructions for completing dummy payment")
-
-
-class DummyPaymentCompleteRequest(BaseModel):
-    """Request to complete/verify dummy payment"""
-
-    payment_id: int = Field(..., description="Payment ID from initiate response")
-    dummy_transaction_id: str = Field(
-        ..., description="Simulated transaction ID from frontend"
-    )
-    payment_status: str = Field(
-        default="success", description="Payment result (success/failed)"
-    )
-
-
-class DummyPaymentCompleteResponse(BaseModel):
-    """Response after completing dummy payment"""
-
-    success: bool
-    message: str
-    payment_id: int
-    subscription_status: str
-    subscription_end_date: Optional[date]
-    plan_name: str

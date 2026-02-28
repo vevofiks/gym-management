@@ -71,6 +71,7 @@ class PlanResponse(BaseModel):
     price: Decimal
     features: Optional[list[str]] = None
     is_active: bool
+    member_count: int = 0
     created_at: datetime
     updated_at: datetime
 

@@ -1,12 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
+from fastapi.responses import StreamingResponse
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from typing import Optional, TYPE_CHECKING
+import io
+import csv
 from math import ceil
+from datetime import date
 
 from app.core.database import get_db
 from app.models.users import User
 from app.models.member import MemberStatus
-from app.core.deps import get_current_gym_owner, check_member_limit
+from app.core.deps import (
+    get_current_gym_owner,
+    check_member_limit,
+    get_current_gym_user,
+)
 from app.core.exceptions import UserAlreadyExistsException
 from app.schemas.members import (
     MemberCreate,
@@ -15,6 +24,8 @@ from app.schemas.members import (
     MemberListResponse,
     MemberRenew,
     MemberProfileResponse,
+    MemberUniquenessCheckRequest,
+    MemberUniquenessCheckResponse,
 )
 from app.services.member_service import (
     create_member,
@@ -25,18 +36,68 @@ from app.services.member_service import (
     renew_membership,
     update_member_photo,
     get_member_profile_detailed,
+    send_expiry_reminders,
+    get_all_members_for_export,
 )
+from app.models.member import Member
 from loguru import logger
 
 
 router = APIRouter(prefix="/members", tags=["members"])
 
 
+@router.post("/validate-uniqueness", response_model=MemberUniquenessCheckResponse)
+def validate_member_uniqueness(
+    request: MemberUniquenessCheckRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_user),
+):
+    """
+    Check if a member with the same email or phone number already exists in the tenant.
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    errors = {}
+
+    if request.email:
+        query = db.query(Member).filter(
+            and_(
+                Member.tenant_id == current_user.tenant_id,
+                Member.email == request.email,
+                Member.is_deleted == False,
+            )
+        )
+        if request.exclude_member_id:
+            query = query.filter(Member.id != request.exclude_member_id)
+        if query.first():
+            errors["email"] = "A member with this email already exists"
+
+    if request.phone_number:
+        query = db.query(Member).filter(
+            and_(
+                Member.tenant_id == current_user.tenant_id,
+                Member.phone_number == request.phone_number,
+                Member.is_deleted == False,
+            )
+        )
+        if request.exclude_member_id:
+            query = query.filter(Member.id != request.exclude_member_id)
+        if query.first():
+            errors["phone_number"] = "A member with this phone number already exists"
+
+    return MemberUniquenessCheckResponse(is_unique=len(errors) == 0, errors=errors)
+
+
 @router.post("/", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
 def create_new_member(
     member: MemberCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
     _: None = Depends(check_member_limit),  # Check member limit before creating
 ):
     if current_user.tenant_id is None:
@@ -46,7 +107,9 @@ def create_new_member(
         )
 
     try:
-        new_member = create_member(db, member, current_user.tenant_id)  # type: ignore
+        new_member = create_member(
+            db, member, current_user.tenant_id, current_user.id, background_tasks
+        )  # type: ignore
         logger.info(
             f"Member created by user {current_user.username}: {new_member.first_name} {new_member.last_name}"
         )
@@ -71,7 +134,7 @@ def create_new_member(
 def get_member(
     member_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     if current_user.tenant_id is None:
         raise HTTPException(
@@ -96,11 +159,17 @@ def get_member(
 @router.get("/", response_model=MemberListResponse, status_code=status.HTTP_200_OK)
 def list_members(
     page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    page_size: int = Query(50, ge=1, le=1000, description="Items per page"),
     search: Optional[str] = Query(None, description="Search by name or phone"),
     status_filter: Optional[MemberStatus] = Query(None, description="Filter by status"),
+    report_type: Optional[str] = Query(
+        None, description="Type of report: expiring_soon, expired, outstanding_dues"
+    ),
+    days_ahead: int = Query(
+        7, ge=1, le=30, description="Days ahead for expiring_soon report"
+    ),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     if current_user.tenant_id is None:
         raise HTTPException(
@@ -116,6 +185,8 @@ def list_members(
         limit=page_size,
         search=search,
         status=status_filter,
+        report_type=report_type,
+        days_ahead=days_ahead,
     )
 
     total_pages = ceil(total / page_size) if total > 0 else 1
@@ -145,7 +216,7 @@ def update_member_details(
     member_id: int,
     member_update: MemberUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     if current_user.tenant_id is None:
         raise HTTPException(
@@ -180,7 +251,7 @@ def update_member_details(
 def delete_member_by_id(
     member_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     if current_user.tenant_id is None:
         raise HTTPException(
@@ -204,8 +275,9 @@ def delete_member_by_id(
 def renew_member_membership(
     member_id: int,
     renewal: MemberRenew,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     """
     Renew member's membership.
@@ -221,7 +293,14 @@ def renew_member_membership(
         )
 
     try:
-        renewed_member = renew_membership(db, member_id, current_user.tenant_id, renewal)  # type: ignore
+        renewed_member = renew_membership(
+            db,
+            member_id,
+            current_user.tenant_id,
+            renewal,
+            current_user.id,
+            background_tasks,
+        )  # type: ignore
         if not renewed_member:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Member not found"
@@ -247,7 +326,7 @@ def renew_member_membership(
 def get_member_detailed_profile(
     member_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     """
     Get detailed member profile with payment history and plan details.
@@ -284,7 +363,7 @@ def upload_member_photo(
     photo_type: str,
     photo_url: str = Query(..., description="URL of the uploaded photo"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
+    current_user: User = Depends(get_current_gym_user),
 ):
     """
     Update member's before or after photo.
@@ -334,3 +413,101 @@ def upload_member_photo(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while updating the photo",
         )
+
+
+@router.post("/remind-expiry", status_code=status.HTTP_200_OK)
+async def trigger_expiry_reminders(
+    days: int = Query(7, ge=1, le=30, description="Days before expiry to remind"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_user),
+):
+    """
+    Manually trigger WhatsApp expiry reminders for members whose membership
+    expires in the specified number of days.
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    try:
+        logger.info(
+            f"Triggering expiry reminders for tenant {current_user.tenant_id} (days: {days})"
+        )
+        result = await send_expiry_reminders(db, current_user.tenant_id, days)  # type: ignore
+        return result
+    except Exception as e:
+        logger.error(f"Error triggering expiry reminders: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while sending reminders",
+        )
+
+
+@router.get("/export/csv", status_code=status.HTTP_200_OK)
+def export_members_to_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_user),
+):
+    """
+    Export all members of the gym to a CSV file.
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    members = get_all_members_for_export(db, current_user.tenant_id)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header
+    writer.writerow(
+        [
+            "ID",
+            "First Name",
+            "Last Name",
+            "Phone",
+            "Email",
+            "Joining Date",
+            "Expiry Date",
+            "Status",
+            "Plan",
+            "Total Paid",
+            "Outstanding Dues",
+            "Gender",
+            "Blood Group",
+        ]
+    )
+
+    for m in members:
+        writer.writerow(
+            [
+                m.id,
+                m.first_name,
+                m.last_name,
+                m.phone_number,
+                m.email or "N/A",
+                m.joining_date,
+                m.membership_expiry_date,
+                m.status.value if hasattr(m.status, "value") else str(m.status),
+                m.plan.name if m.plan else "Legacy/None",
+                float(m.total_fees_paid),
+                float(m.outstanding_dues),
+                m.gender or "N/A",
+                m.blood_group or "N/A",
+            ]
+        )
+
+    output.seek(0)
+
+    filename = f"members_{current_user.tenant_id}_{date.today()}.csv"
+
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

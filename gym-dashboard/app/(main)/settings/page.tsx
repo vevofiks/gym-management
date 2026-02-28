@@ -1,268 +1,397 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { Switch } from '@/components/ui/Switch';
-import { MOCK_GYM_SETTINGS, MOCK_NOTIFICATIONS } from '@/lib/mockData';
-import { Building2, Bell, Save, CreditCard, Lock } from 'lucide-react';
+import { getMyTenant, updateMyTenant } from '@/services/tenantService';
+import { uploadQRCode, uploadLogo } from '@/services/cloudinaryService';
+import { Building2, Bell, Save, CreditCard, QrCode, Upload, Trash2, Loader2, Image as ImageIcon, MessageSquare, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { useSubscriptionStore } from '@/store/SubscriptionStore';
+import { useAuthStore } from '@/store/AuthStore';
+import Link from 'next/link';
 
 export default function SettingsPage() {
-    const [gymForm, setGymForm] = useState(MOCK_GYM_SETTINGS);
-    const [notifForm, setNotifForm] = useState(MOCK_NOTIFICATIONS);
+    const { user } = useAuthStore();
+    const { hasFeature } = useSubscriptionStore();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Form states
+    const [gymForm, setGymForm] = useState({
+        name: '',
+        contact_email: '',
+        contact_phone: '',
+        address: '',
+        city: '',
+        state: '',
+        zip_code: '',
+        payment_qr_code_url: '',
+        logo_url: '',
+    });
+    const [isEditingGym, setIsEditingGym] = useState(false);
+    const [originalGymForm, setOriginalGymForm] = useState(gymForm);
+
+    useEffect(() => {
+        const fetchTenant = async () => {
+            try {
+                const data = await getMyTenant();
+                const initialForm = {
+                    name: data.name || '',
+                    contact_email: data.contact_email || '',
+                    contact_phone: data.contact_phone || '',
+                    address: data.address || '',
+                    city: data.city || '',
+                    state: data.state || '',
+                    zip_code: data.zip_code || '',
+                    payment_qr_code_url: data.payment_qr_code_url || '',
+                    logo_url: data.logo_url || '',
+                };
+                setGymForm(initialForm);
+                setOriginalGymForm(initialForm);
+            } catch (error) {
+                console.error('Failed to fetch tenant settings:', error);
+                toast.error('Failed to load settings');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTenant();
+    }, []);
+
+    const handleSaveGymInfo = async () => {
+        setIsSaving(true);
+        try {
+            await updateMyTenant(gymForm);
+            setOriginalGymForm(gymForm);
+            setIsEditingGym(false);
+            toast.success('Gym settings updated!');
+        } catch (error) {
+            console.error('Failed to update settings:', error);
+            toast.error('Failed to save settings');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setGymForm(originalGymForm);
+        setIsEditingGym(false);
+    };
+
+    const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsSaving(true);
+        try {
+            const url = await uploadLogo(file);
+            const updatedForm = { ...gymForm, logo_url: url };
+            setGymForm(updatedForm);
+            await updateMyTenant(updatedForm);
+            setOriginalGymForm(updatedForm);
+            toast.success('Gym logo updated!');
+        } catch (error) {
+            console.error('Failed to upload logo:', error);
+            toast.error('Failed to upload logo');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleRemoveLogo = async () => {
+        setIsSaving(true);
+        try {
+            const updatedForm = { ...gymForm, logo_url: '' };
+            setGymForm(updatedForm);
+            await updateMyTenant(updatedForm);
+            setOriginalGymForm(updatedForm);
+            toast.success('Gym logo removed');
+        } catch (error) {
+            toast.error('Failed to remove logo');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleQRCodeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const url = await uploadQRCode(file);
+            const updatedForm = { ...gymForm, payment_qr_code_url: url };
+            setGymForm(updatedForm);
+            await updateMyTenant(updatedForm);
+            setOriginalGymForm(updatedForm);
+            toast.success('QR Code updated!');
+        } catch (error) {
+            console.error('Failed to upload QR code:', error);
+            toast.error('Failed to upload QR code');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveQRCode = async () => {
+        try {
+            const updatedForm = { ...gymForm, payment_qr_code_url: '' };
+            setGymForm(updatedForm);
+            await updateMyTenant(updatedForm);
+            setOriginalGymForm(updatedForm);
+            toast.success('QR Code removed');
+        } catch (error) {
+            toast.error('Failed to remove QR code');
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="animate-spin text-primary" size={32} />
+            </div>
+        );
+    }
+
+    if (user?.role === 'gym_staff') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+                <div className="p-4 rounded-full bg-primary/10 text-primary">
+                    <Building2 size={48} />
+                </div>
+                <div className="text-center">
+                    <h2 className="text-2xl font-black text-text-primary uppercase tracking-tight">Access Restricted</h2>
+                    <p className="text-text-secondary font-bold">Only gym owners can access settings details.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const infoFields = [
+        { label: 'Gym Name', value: gymForm.name, key: 'name', type: 'text' },
+        { label: 'Email', value: gymForm.contact_email, key: 'contact_email', type: 'email' },
+        { label: 'Phone', value: gymForm.contact_phone, key: 'contact_phone', type: 'tel' },
+        { label: 'Address', value: gymForm.address, key: 'address', type: 'text' },
+        { label: 'City', value: gymForm.city, key: 'city', type: 'text' },
+        { label: 'State', value: gymForm.state, key: 'state', type: 'text' },
+        { label: 'Zip Code', value: gymForm.zip_code, key: 'zip_code', type: 'text' },
+    ];
 
     return (
         <div className="space-y-8">
             {/* Gym Information Section */}
             <Card>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <Building2 className="text-primary" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-text-primary">Gym Information</h2>
-                        <p className="text-sm text-text-secondary">Manage your gym's basic details</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                        label="Gym Name"
-                        value={gymForm.gymName}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, gymName: e.target.value }))}
-                        placeholder="Enter gym name"
-                    />
-                    <Input
-                        label="Email"
-                        type="email"
-                        value={gymForm.email}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="gym@example.com"
-                    />
-                    <Input
-                        label="Phone"
-                        type="tel"
-                        value={gymForm.phone}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, phone: e.target.value }))}
-                        placeholder="+1 (555) 123-4567"
-                    />
-                    <Input
-                        label="Website"
-                        type="url"
-                        value={gymForm.website}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, website: e.target.value }))}
-                        placeholder="www.yourgym.com"
-                    />
-                    <Input
-                        label="Address"
-                        value={gymForm.address}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, address: e.target.value }))}
-                        placeholder="123 Fitness Street"
-                        className="md:col-span-2"
-                    />
-                    <Input
-                        label="City"
-                        value={gymForm.city}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, city: e.target.value }))}
-                        placeholder="San Francisco"
-                    />
-                    <Input
-                        label="State"
-                        value={gymForm.state}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, state: e.target.value }))}
-                        placeholder="California"
-                    />
-                    <Input
-                        label="Zip Code"
-                        value={gymForm.zipCode}
-                        onChange={(e) => setGymForm(prev => ({ ...prev, zipCode: e.target.value }))}
-                        placeholder="94102"
-                    />
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="text-sm font-semibold text-text-primary mb-4">Operating Hours</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <p className="text-sm font-medium text-text-secondary mb-3">Weekdays</p>
-                            <div className="flex gap-3">
-                                <Input
-                                    label="Open"
-                                    type="time"
-                                    value={gymForm.operatingHours.weekday.open}
-                                    onChange={(e) => setGymForm(prev => ({
-                                        ...prev,
-                                        operatingHours: {
-                                            ...prev.operatingHours,
-                                            weekday: { ...prev.operatingHours.weekday, open: e.target.value }
-                                        }
-                                    }))}
-                                />
-                                <Input
-                                    label="Close"
-                                    type="time"
-                                    value={gymForm.operatingHours.weekday.close}
-                                    onChange={(e) => setGymForm(prev => ({
-                                        ...prev,
-                                        operatingHours: {
-                                            ...prev.operatingHours,
-                                            weekday: { ...prev.operatingHours.weekday, close: e.target.value }
-                                        }
-                                    }))}
-                                />
-                            </div>
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                            <Building2 className="text-primary" size={24} />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-text-secondary mb-3">Weekends</p>
-                            <div className="flex gap-3">
-                                <Input
-                                    label="Open"
-                                    type="time"
-                                    value={gymForm.operatingHours.weekend.open}
-                                    onChange={(e) => setGymForm(prev => ({
-                                        ...prev,
-                                        operatingHours: {
-                                            ...prev.operatingHours,
-                                            weekend: { ...prev.operatingHours.weekend, open: e.target.value }
-                                        }
-                                    }))}
-                                />
-                                <Input
-                                    label="Close"
-                                    type="time"
-                                    value={gymForm.operatingHours.weekend.close}
-                                    onChange={(e) => setGymForm(prev => ({
-                                        ...prev,
-                                        operatingHours: {
-                                            ...prev.operatingHours,
-                                            weekend: { ...prev.operatingHours.weekend, close: e.target.value }
-                                        }
-                                    }))}
-                                />
+                            <h2 className="text-xl font-bold text-text-primary">Gym Information</h2>
+                            <p className="text-sm text-text-secondary">Manage your gym&apos;s basic details</p>
+                        </div>
+                    </div>
+                    {!isEditingGym && user?.role === 'gym_owner' && (
+                        <button
+                            onClick={() => setIsEditingGym(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-bold hover:bg-primary/20 transition-all"
+                        >
+                            Edit Information
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-8 mb-8">
+                    {/* Logo Upload */}
+                    <div className="space-y-4">
+                        <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">Gym Logo</label>
+                        <div className="relative group w-32 h-32 rounded-2xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
+                            {gymForm.logo_url ? (
+                                <>
+                                    <img
+                                        src={gymForm.logo_url}
+                                        alt="Gym Logo"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <button
+                                            onClick={handleRemoveLogo}
+                                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                            title="Remove Logo"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                        <label className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 cursor-pointer transition-colors" title="Change Logo">
+                                            <Upload size={16} />
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                                        </label>
+                                    </div>
+                                </>
+                            ) : (
+                                <label className="flex flex-col items-center gap-2 cursor-pointer p-4 text-center">
+                                    {isSaving ? (
+                                        <Loader2 className="animate-spin text-primary" size={24} />
+                                    ) : (
+                                        <>
+                                            <ImageIcon className="text-text-secondary opacity-50" size={24} />
+                                            <span className="text-[10px] text-text-secondary font-medium">Upload Logo</span>
+                                        </>
+                                    )}
+                                    <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={isSaving} />
+                                </label>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        {infoFields.map((field) => (
+                            <div key={field.key} className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">{field.label}</label>
+                                {isEditingGym ? (
+                                    <Input
+                                        value={field.value}
+                                        type={field.type}
+                                        onChange={(e) => setGymForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                        placeholder={`Enter ${field.label.toLowerCase()}`}
+                                        className="h-11"
+                                        disabled={isSaving}
+                                    />
+                                ) : (
+                                    <div className="h-11 flex items-center px-4 rounded-xl bg-background/50 border border-transparent text-sm font-bold text-text-primary">
+                                        {field.value || <span className="text-text-secondary/50 font-normal italic">Not set</span>}
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="mt-6 flex justify-end">
-                    <button
-                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
-                    >
-                        <Save size={18} />
-                        Save Changes
-                    </button>
-                </div>
-            </Card>
-
-            {/* Notification Preferences Section */}
-            <Card>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <Bell className="text-primary" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-text-primary">Notification Preferences</h2>
-                        <p className="text-sm text-text-secondary">Manage how you receive alerts</p>
-                    </div>
-                </div>
-
-                <div className="space-y-4">
-                    <Switch
-                        label="Email Notifications"
-                        checked={notifForm.emailNotifications}
-                        onChange={(checked) => setNotifForm(prev => ({ ...prev, emailNotifications: checked }))}
-                    />
-                    <Switch
-                        label="SMS Notifications"
-                        checked={notifForm.smsNotifications}
-                        onChange={(checked) => setNotifForm(prev => ({ ...prev, smsNotifications: checked }))}
-                    />
-                    <div className="pt-4 border-t border-border">
-                        <p className="text-sm font-semibold text-text-primary mb-4">Alert Types</p>
-                        <div className="space-y-4">
-                            <Switch
-                                label="Membership Expiry Alerts"
-                                checked={notifForm.membershipExpiry}
-                                onChange={(checked) => setNotifForm(prev => ({ ...prev, membershipExpiry: checked }))}
-                            />
-                            <Switch
-                                label="Payment Reminders"
-                                checked={notifForm.paymentReminders}
-                                onChange={(checked) => setNotifForm(prev => ({ ...prev, paymentReminders: checked }))}
-                            />
-                            <Switch
-                                label="New Member Alerts"
-                                checked={notifForm.newMemberAlerts}
-                                onChange={(checked) => setNotifForm(prev => ({ ...prev, newMemberAlerts: checked }))}
-                            />
-                            <Switch
-                                label="Attendance Reports"
-                                checked={notifForm.attendanceReports}
-                                onChange={(checked) => setNotifForm(prev => ({ ...prev, attendanceReports: checked }))}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                    <button
-                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
-                    >
-                        <Save size={18} />
-                        Save Preferences
-                    </button>
-                </div>
-            </Card>
-
-            {/* Security Section */}
-            <Card>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                        <Lock className="text-primary" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-text-primary">Security</h2>
-                        <p className="text-sm text-text-secondary">Update password and security settings</p>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input
-                            label="Current Password"
-                            type="password"
-                            placeholder="••••••••"
-                        />
-                        <div className="hidden md:block"></div>
-                        <Input
-                            label="New Password"
-                            type="password"
-                            placeholder="••••••••"
-                        />
-                        <Input
-                            label="Confirm New Password"
-                            type="password"
-                            placeholder="••••••••"
-                        />
-                    </div>
-
-                    <div className="flex justify-end">
-                        <button className="px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors">
-                            Update Password
+                {isEditingGym && (
+                    <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-border/50">
+                        <button
+                            onClick={handleCancelEdit}
+                            disabled={isSaving}
+                            className="px-6 py-2.5 rounded-xl font-bold text-text-secondary hover:bg-muted transition-all disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveGymInfo}
+                            disabled={isSaving}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
+                        >
+                            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                            Save Changes
                         </button>
                     </div>
+                )}
+            </Card>
 
-                    <div className="pt-6 border-t border-border">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-sm font-bold text-text-primary">Two-Factor Authentication</h3>
-                                <p className="text-sm text-text-secondary mt-1">Add an extra layer of security to your account</p>
-                            </div>
-                            <Switch checked={false} onChange={() => { }} />
+            {/* Payment & QR Code Section */}
+            {user?.role === 'gym_owner' && (
+                <Card>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                            <CreditCard className="text-primary" size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-text-primary">Payment Information</h2>
+                            <p className="text-sm text-text-secondary">Configure your payment collection methods</p>
                         </div>
                     </div>
-                </div>
-            </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                            <label className="block text-xs font-bold text-text-secondary uppercase">Payment QR Code</label>
+                            <div className="relative group w-48 h-48 rounded-2xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
+                                {gymForm.payment_qr_code_url ? (
+                                    <>
+                                        <img
+                                            src={gymForm.payment_qr_code_url}
+                                            alt="Payment QR"
+                                            className="w-full h-full object-contain p-2"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={handleRemoveQRCode}
+                                                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                                title="Remove QR Code"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                            <label className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 cursor-pointer transition-colors" title="Change QR Code">
+                                                <Upload size={16} />
+                                                <input type="file" className="hidden" accept="image/*" onChange={handleQRCodeUpload} />
+                                            </label>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <label className="flex flex-col items-center gap-2 cursor-pointer p-4 text-center">
+                                        {isUploading ? (
+                                            <Loader2 className="animate-spin text-primary" size={32} />
+                                        ) : (
+                                            <>
+                                                <QrCode className="text-text-secondary opacity-50" size={32} />
+                                                <span className="text-xs text-text-secondary font-medium">Click to upload QR Code</span>
+                                            </>
+                                        )}
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleQRCodeUpload} disabled={isUploading} />
+                                    </label>
+                                )}
+                            </div>
+                            <p className="text-xs text-text-secondary max-w-xs">
+                                This QR code will be displayed to new members during onboarding for easy payment collection.
+                            </p>
+                        </div>
+
+                        <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                            <h4 className="font-bold text-text-primary flex items-center gap-2 mb-2">
+                                <Bell size={16} className="text-primary" />
+                                Auto-Sync
+                            </h4>
+                            <p className="text-sm text-text-secondary mb-4">
+                                Changes to your payment information are automatically synced and will be visible to all staff members and during member onboarding.
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* WhatsApp Integration Section */}
+            {user?.role === 'gym_owner' && hasFeature('whatsapp') && (
+                <Card className="border-primary/20 bg-primary/5">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-primary/10">
+                                <MessageSquare className="text-primary" size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-text-primary">WhatsApp Automation</h2>
+                                <p className="text-sm text-text-secondary">Connected business account settings</p>
+                            </div>
+                        </div>
+                        <Link
+                            href="/settings/whatsapp"
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all"
+                        >
+                            Detailed Settings
+                            <ExternalLink size={16} />
+                        </Link>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-background border border-border flex items-center justify-between">
+                        <div>
+                            <p className="font-bold text-text-primary">WhatsApp Service</p>
+                            <p className="text-xs text-text-secondary">Manage message triggers and connection</p>
+                        </div>
+                        <Link href="/settings/whatsapp" className="text-primary font-bold text-sm hover:underline">
+                            Configure
+                        </Link>
+                    </div>
+                </Card>
+            )}
         </div>
     );
 }

@@ -6,7 +6,9 @@ from app.models.member import Member, MemberStatus
 from app.models.membership_plan import MembershipPlan
 from app.schemas.members import MemberCreate, MemberUpdate, MemberRenew
 from app.core.exceptions import UserAlreadyExistsException
+from decimal import Decimal
 from loguru import logger
+from app.services.audit_service import log_activity
 
 
 def calculate_expiry_date(joining_date: date, membership_type: str) -> date:
@@ -52,7 +54,13 @@ def update_member_status(member: Member) -> MemberStatus:
         return MemberStatus.ACTIVE
 
 
-def create_member(db: Session, member_create: MemberCreate, tenant_id: int) -> Member:
+def create_member(
+    db: Session,
+    member_create: MemberCreate,
+    tenant_id: int,
+    user_id: int = None,
+    background_tasks: Optional[any] = None,
+) -> Member:
     """
     Create a new member.
 
@@ -74,7 +82,7 @@ def create_member(db: Session, member_create: MemberCreate, tenant_id: int) -> M
             and_(
                 Member.tenant_id == tenant_id,
                 Member.phone_number == member_create.phone_number,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
         )
         .first()
@@ -131,19 +139,130 @@ def create_member(db: Session, member_create: MemberCreate, tenant_id: int) -> M
         current_plan_start_date=(
             member_create.joining_date if member_create.plan_id else None
         ),
+        before_photo_url=member_create.before_photo_url,
+        # Health and Personal Information
+        weight=member_create.weight,
+        height=member_create.height,
+        blood_group=member_create.blood_group,
+        medical_conditions=member_create.medical_conditions,
+        emergency_contact_name=member_create.emergency_contact_name,
+        emergency_contact_phone=member_create.emergency_contact_phone,
+        date_of_birth=member_create.date_of_birth,
+        gender=member_create.gender,
+        address=member_create.address,
         status=MemberStatus.ACTIVE,
     )
+
+    # Calculate initial outstanding dues
+    total_to_pay = Decimal("0.0")
+    if plan:
+        total_to_pay = Decimal(str(plan.price))
+
+    joining_fee = member_create.joining_fee or Decimal("0.0")
+    discount = member_create.discount or Decimal("0.0")
+    payment_amount = member_create.payment_amount or Decimal("0.0")
+
+    total_to_pay += joining_fee
+    total_to_pay -= discount
+
+    logger.info(
+        f"Fee Calculation - Plan: {plan.price if plan else 0}, Joining: {joining_fee}, Discount: {discount}, Total To Pay: {total_to_pay}, Paid: {payment_amount}"
+    )
+
+    db_member.outstanding_dues = total_to_pay
+    db_member.total_fees_paid = Decimal("0.0")
 
     db.add(db_member)
     db.commit()
     db.refresh(db_member)
 
+    # Log activity
+    log_activity(
+        db,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        type="member_registration",
+        description=f"New member registered: {db_member.first_name} {db_member.last_name}",
+        meta={"member_id": db_member.id, "plan_id": db_member.plan_id},
+    )
+
+    # Handle initial payment if provided
+    if member_create.payment_method and member_create.payment_amount:
+        from app.services.fee_service import record_fee
+        from app.schemas.member_fee import FeeCreate, PaymentMethod
+
+        try:
+            fee_data = FeeCreate(
+                amount=member_create.payment_amount,
+                payment_method=PaymentMethod(member_create.payment_method),
+                payment_date=date.today(),
+                transaction_id=member_create.transaction_id,
+                payment_screenshot_url=member_create.payment_screenshot_url,
+                notes=member_create.payment_notes,
+                plan_id=member_create.plan_id,
+            )
+            record_fee(
+                db,
+                db_member.id,
+                tenant_id,
+                fee_data,
+                user_id,
+                background_tasks=background_tasks,
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to record initial payment for member {db_member.id}: {e}"
+            )
+            # We don't fail member creation if payment recording fails, but we log it
+
     logger.info(
         f"New member created: {db_member.first_name} {db_member.last_name} (ID: {db_member.id})"
     )
 
-    # TODO: Send WhatsApp welcome message (requires async context)
-    # WhatsApp notifications are disabled for now to avoid asyncio errors in sync context
+    # Send WhatsApp welcome message
+    try:
+        from app.services.whatsapp_service import whatsapp_service
+
+        # Get gym name from tenant if possible, or use default
+        gym_name = db_member.tenant.name if db_member.tenant else "Our Gym"
+
+        if background_tasks:
+            background_tasks.add_task(
+                whatsapp_service.send_welcome_message,
+                db=db,
+                tenant_id=tenant_id,
+                phone_number=db_member.phone_number,
+                member_name=f"{db_member.first_name} {db_member.last_name}",
+                membership_type=plan_name or "Gym Membership",
+                joining_date=db_member.joining_date,
+                expiry_date=db_member.membership_expiry_date,
+                gym_name=gym_name,
+            )
+        else:
+            # Fallback if background_tasks not provided (though recommended)
+            import asyncio
+
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(
+                        whatsapp_service.send_welcome_message(
+                            db=db,
+                            tenant_id=tenant_id,
+                            phone_number=db_member.phone_number,
+                            member_name=f"{db_member.first_name} {db_member.last_name}",
+                            membership_type=plan_name or "Gym Membership",
+                            joining_date=db_member.joining_date,
+                            expiry_date=db_member.membership_expiry_date,
+                            gym_name=gym_name,
+                        )
+                    )
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(
+            f"Failed to send WhatsApp welcome message for member {db_member.id}: {e}"
+        )
 
     return db_member
 
@@ -161,7 +280,7 @@ def get_member_by_id(db: Session, member_id: int, tenant_id: int) -> Optional[Me
             and_(
                 Member.id == member_id,
                 Member.tenant_id == tenant_id,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
         )
         .first()
@@ -185,9 +304,11 @@ def get_members_by_tenant(
     limit: int = 100,
     search: Optional[str] = None,
     status: Optional[MemberStatus] = None,
+    report_type: Optional[str] = None,
+    days_ahead: int = 7,
 ) -> tuple[list[Member], int]:
     query = db.query(Member).filter(
-        and_(Member.tenant_id == tenant_id, Member.is_active == True)
+        and_(Member.tenant_id == tenant_id, Member.is_deleted == False)
     )
 
     # Apply search filter
@@ -204,6 +325,22 @@ def get_members_by_tenant(
     # Apply status filter
     if status:
         query = query.filter(Member.status == status)
+
+    # Apply specialized report filters
+    if report_type == "expiring_soon":
+        today = date.today()
+        future_date = today + timedelta(days=days_ahead)
+        query = query.filter(
+            and_(
+                Member.membership_expiry_date >= today,
+                Member.membership_expiry_date <= future_date,
+                Member.status == MemberStatus.ACTIVE,
+            )
+        )
+    elif report_type == "expired":
+        query = query.filter(Member.status == MemberStatus.EXPIRED)
+    elif report_type == "outstanding_dues":
+        query = query.filter(Member.outstanding_dues > 0)
 
     # Get total count
     total = query.count()
@@ -238,7 +375,7 @@ def update_member(
                 and_(
                     Member.tenant_id == tenant_id,
                     Member.phone_number == member_update.phone_number,
-                    Member.is_active == True,
+                    Member.is_deleted == False,
                     Member.id != member_id,
                 )
             )
@@ -269,6 +406,7 @@ def delete_member(db: Session, member_id: int, tenant_id: int) -> bool:
     if not member:
         return False
 
+    member.is_deleted = True
     member.is_active = False
     member.status = MemberStatus.INACTIVE
     db.commit()
@@ -280,7 +418,12 @@ def delete_member(db: Session, member_id: int, tenant_id: int) -> bool:
 
 
 def renew_membership(
-    db: Session, member_id: int, tenant_id: int, renewal: MemberRenew
+    db: Session,
+    member_id: int,
+    tenant_id: int,
+    renewal: MemberRenew,
+    user_id: int = None,
+    background_tasks: Optional[any] = None,
 ) -> Optional[Member]:
     member = get_member_by_id(db, member_id, tenant_id)
     if not member:
@@ -295,6 +438,7 @@ def renew_membership(
     # Handle plan-based or legacy renewal
     plan_name = None
     duration_days = None
+    plan_price = Decimal("0.0")
 
     if renewal.plan_id:
         # Renewing with custom plan
@@ -315,12 +459,16 @@ def renew_membership(
 
         plan_name = plan.name
         duration_days = plan.duration_days
+        plan_price = plan.price
         member.plan_id = renewal.plan_id
         member.current_plan_start_date = start_date
     elif renewal.membership_type:
         # Renewing with legacy membership type
         plan_name = renewal.membership_type
         duration_days = _get_duration_from_type(renewal.membership_type)
+        # For legacy, we don't have a price stored in plans table
+        # We'll use the renewal amount as the plan price for calculation
+        plan_price = renewal.payment_amount
     else:
         raise ValueError("Either plan_id or membership_type must be provided")
 
@@ -330,6 +478,40 @@ def renew_membership(
     member.membership_expiry_date = new_expiry
     member.status = MemberStatus.ACTIVE
 
+    # Update financial fields
+    total_to_pay = plan_price + (renewal.joining_fee or Decimal("0.0"))
+    total_to_pay -= renewal.discount or Decimal("0.0")
+
+    # Add new dues to existing outstanding dues
+    member.outstanding_dues = (member.outstanding_dues or Decimal("0.0")) + total_to_pay
+
+    # Record the payment and update member fields (handled by record_fee)
+    from app.services.fee_service import record_fee
+    from app.schemas.member_fee import FeeCreate, PaymentMethod
+
+    try:
+        fee_data = FeeCreate(
+            amount=renewal.payment_amount,
+            payment_method=PaymentMethod(renewal.payment_method),
+            payment_date=renewal_date,
+            transaction_id=renewal.transaction_id,
+            payment_screenshot_url=renewal.payment_screenshot_url,
+            notes=renewal.payment_notes,
+            plan_id=renewal.plan_id or member.plan_id,
+        )
+        record_fee(
+            db,
+            member.id,
+            tenant_id,
+            fee_data,
+            user_id,
+            background_tasks=background_tasks,
+        )
+    except Exception as e:
+        logger.error(f"Failed to record renewal payment for member {member.id}: {e}")
+        # We still commit the renewal because the expiry date has changed
+        # but the financial state might be slightly off if recording fails.
+
     db.commit()
     db.refresh(member)
 
@@ -337,8 +519,45 @@ def renew_membership(
         f"Membership renewed: {member.first_name} {member.last_name} (ID: {member.id}) until {new_expiry}"
     )
 
-    # TODO: Send WhatsApp renewal confirmation (requires async context)
-    # WhatsApp notifications are disabled for now to avoid asyncio errors in sync context
+    # Send WhatsApp renewal confirmation
+    try:
+        from app.services.whatsapp_service import whatsapp_service
+
+        gym_name = member.tenant.name if member.tenant else "Our Gym"
+        if background_tasks:
+            background_tasks.add_task(
+                whatsapp_service.send_renewal_confirmation,
+                db=db,
+                tenant_id=tenant_id,
+                phone_number=member.phone_number,
+                member_name=f"{member.first_name} {member.last_name}",
+                membership_type=plan_name or "Gym Membership",
+                new_expiry_date=new_expiry,
+                gym_name=gym_name,
+            )
+        else:
+            import asyncio
+
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(
+                        whatsapp_service.send_renewal_confirmation(
+                            db=db,
+                            tenant_id=tenant_id,
+                            phone_number=member.phone_number,
+                            member_name=f"{member.first_name} {member.last_name}",
+                            membership_type=plan_name or "Gym Membership",
+                            new_expiry_date=new_expiry,
+                            gym_name=gym_name,
+                        )
+                    )
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(
+            f"Failed to send WhatsApp renewal message for member {member.id}: {e}"
+        )
 
     return member
 
@@ -406,6 +625,16 @@ def get_member_profile_detailed(db: Session, member_id: int, tenant_id: int):
         "status": member.status,
         "before_photo_url": member.before_photo_url,
         "after_photo_url": member.after_photo_url,
+        # Health and Personal Information
+        "weight": float(member.weight) if member.weight else None,
+        "height": float(member.height) if member.height else None,
+        "blood_group": member.blood_group,
+        "medical_conditions": member.medical_conditions,
+        "emergency_contact_name": member.emergency_contact_name,
+        "emergency_contact_phone": member.emergency_contact_phone,
+        "date_of_birth": member.date_of_birth,
+        "gender": member.gender,
+        "address": member.address,
         "plan": None,
         "current_plan_start_date": member.current_plan_start_date,
         "plan_days_remaining": days_remaining,
@@ -422,6 +651,8 @@ def get_member_profile_detailed(db: Session, member_id: int, tenant_id: int):
                 "amount": float(fee.amount),
                 "payment_method": fee.payment_method,
                 "payment_status": fee.payment_status,
+                "transaction_id": fee.transaction_id,
+                "payment_screenshot_url": fee.payment_screenshot_url,
                 "notes": fee.notes,
             }
             for fee in recent_fees
@@ -457,7 +688,7 @@ async def send_expiry_reminders(
         .filter(
             and_(
                 Member.tenant_id == tenant_id,
-                Member.is_active == True,
+                Member.is_deleted == False,
                 Member.status == MemberStatus.ACTIVE,
                 Member.membership_expiry_date == target_date,
             )
@@ -473,10 +704,10 @@ async def send_expiry_reminders(
             result = await whatsapp_service.send_expiry_reminder(
                 db=db,
                 tenant_id=tenant_id,
-                phone_number=member.phone_number,
                 member_name=f"{member.first_name} {member.last_name}",
                 expiry_date=member.membership_expiry_date,
                 days_remaining=days_before_expiry,
+                gym_name=member.tenant.name if member.tenant else "Our Gym",
             )
 
             if result.get("success"):
@@ -505,3 +736,26 @@ async def send_expiry_reminders(
         "failed_count": failed_count,
         "days_before_expiry": days_before_expiry,
     }
+
+
+def get_all_members_for_export(db: Session, tenant_id: int):
+    """
+    Get all members for a tenant specifically for CSV export.
+    Returns all non-deleted members.
+    """
+    members = (
+        db.query(Member)
+        .filter(and_(Member.tenant_id == tenant_id, Member.is_deleted == False))
+        .all()
+    )
+
+    # Update statuses before returning
+    for member in members:
+        new_status = update_member_status(member)
+        if member.status != new_status:
+            member.status = new_status
+
+    if members:
+        db.commit()
+
+    return members

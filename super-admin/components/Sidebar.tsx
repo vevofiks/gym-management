@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Activity,
+  Trash2,
   ShieldCheck,
   X,
   ChevronLeft,
@@ -25,6 +26,14 @@ interface SidebarProps {
   setIsCollapsed: (isCollapsed: boolean) => void;
   onLogout?: () => void;
 }
+
+const navItems = [
+  { label: 'Overview', href: '/', icon: LayoutDashboard },
+  { label: 'Manage Gyms', href: '/gyms', icon: Building2 },
+  { label: 'Manage Gym Owners', href: '/owners', icon: Users },
+  { label: 'Subscriptions', href: '/subscriptions', icon: CreditCard, badge: 12 },
+  { label: 'Trash', href: '/trash', icon: Trash2 },
+];
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
@@ -77,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <ShieldCheck size={24} />
           </div>
           <span className={`text-2xl font-bold text-gray-800 dark:text-white ${isCollapsed ? 'lg:hidden' : 'block'}`}>
-            AdminPulse
+            FitDash Admin
           </span>
         </div>
       </div>
@@ -90,44 +99,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
               PLATFORM
             </h3>
             <ul className="mb-6 flex flex-col gap-1.5">
-              <li>
-                <Link href="/" onClick={handleNav} className={linkClass('/')} title={isCollapsed ? "Overview" : ""}>
-                  <LayoutDashboard size={20} className="shrink-0" />
-                  <span className={isCollapsed ? 'lg:hidden' : 'block'}>Overview</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/gyms" onClick={handleNav} className={linkClass('/gyms')} title={isCollapsed ? "Manage Gyms" : ""}>
-                  <Building2 size={20} className="shrink-0" />
-                  <span className={isCollapsed ? 'lg:hidden' : 'block'}>Manage Gyms</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/subscriptions" onClick={handleNav} className={linkClass('/subscriptions')} title={isCollapsed ? "Subscriptions" : ""}>
-                  <CreditCard size={20} className="shrink-0" />
-                  <span className={isCollapsed ? 'lg:hidden' : 'block'}>Subscriptions</span>
-                  {!isCollapsed && (
-                    <span className="ml-auto rounded bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
-                      12
-                    </span>
-                  )}
-                  {isCollapsed && (
-                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 lg:block hidden"></span>
-                  )}
-                </Link>
-              </li>
-              <li>
-                <Link href="/owners" onClick={handleNav} className={linkClass('/owners')} title={isCollapsed ? "Gym Owners" : ""}>
-                  <Users size={20} className="shrink-0" />
-                  <span className={isCollapsed ? 'lg:hidden' : 'block'}>Gym Owners</span>
-                </Link>
-              </li>
-              {/* <li>
-                <Link href="/metrics" onClick={handleNav} className={linkClass('/metrics')} title={isCollapsed ? "Metrics" : ""}>
-                  <BarChart3 size={20} className="shrink-0" />
-                  <span className={isCollapsed ? 'lg:hidden' : 'block'}>Metrics</span>
-                </Link>
-              </li> */}
+              {navItems.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} onClick={handleNav} className={linkClass(item.href)} title={isCollapsed ? item.label : ""}>
+                    <item.icon size={20} className="shrink-0" />
+                    <span className={isCollapsed ? 'lg:hidden' : 'block'}>{item.label}</span>
+                    {item.badge && !isCollapsed && (
+                      <span className="ml-auto rounded bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
+                        {item.badge}
+                      </span>
+                    )}
+                    {item.badge && isCollapsed && (
+                      <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 lg:block hidden"></span>
+                    )}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

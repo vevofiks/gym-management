@@ -5,11 +5,16 @@ import { Plus, Search } from 'lucide-react';
 import { PlanCard } from '@/components/plans/PlanCard';
 import { PlanForm } from '@/components/plans/PlanForm';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { MembershipPlan, PlanCreate, PlanUpdate } from '@/types/plan';
+import { MembershipPlan, PlanCreate, PlanUpdate } from '@/types';
 import { getPlans, createPlan, updatePlan, deletePlan } from '@/services/planService';
+import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 
+import { useCanCreatePlan } from '@/hooks/useSubscription';
+
 export default function MembershipPlanPage() {
+    const { user } = useAuthStore();
+    const { canCreate, message } = useCanCreatePlan();
     const [plans, setPlans] = useState<MembershipPlan[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -107,6 +112,14 @@ export default function MembershipPlanPage() {
         }
     };
 
+    const handleCreateClick = () => {
+        if (!canCreate) {
+            toast.error(message);
+            return;
+        }
+        setShowForm(true);
+    };
+
     // Filter plans by search
     const filteredPlans = plans.filter((plan) =>
         plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -116,21 +129,17 @@ export default function MembershipPlanPage() {
     return (
         <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-text-primary">Membership Plans</h1>
-                    <p className="text-text-secondary mt-1">
-                        Manage your gym membership plans
-                    </p>
+            {user?.role === 'gym_owner' && (
+                <div className="flex items-center justify-end mb-8">
+                    <button
+                        onClick={handleCreateClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                    >
+                        <Plus size={20} />
+                        Create Plan
+                    </button>
                 </div>
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                >
-                    <Plus size={20} />
-                    Create Plan
-                </button>
-            </div>
+            )}
 
             {/* Search and Filters */}
             <div className="flex gap-4 mb-6">

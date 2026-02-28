@@ -6,12 +6,11 @@ from sqlalchemy import pool
 from alembic import context
 
 
-
 import os
 from dotenv import load_dotenv
-from app.core.config import settings  # Import your settings
-from app.core.database import Base    # Import your Base
-from app.models import users, tenant  # Import all your models here to ensure they are registered with Base
+from app.core.config import settings
+from app.core.database import Base
+from app import models  # This will trigger the imports in app/models/__init__.py
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,8 +20,8 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-    
-    
+
+
 config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL))
 
 # add your model's MetaData object here
@@ -75,9 +74,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

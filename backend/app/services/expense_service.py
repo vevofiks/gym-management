@@ -240,7 +240,11 @@ def get_expense_summary(
     )
 
     by_category = [
-        {"category": row.category, "total_amount": row.total, "count": row.count}
+        {
+            "category": row.category,
+            "total_amount": row.total if row.total else Decimal(0),
+            "count": row.count if row.count else 0,
+        }
         for row in category_query
     ]
 
@@ -259,7 +263,10 @@ def get_expense_summary(
         .all()
     )
 
-    by_payment_method = {row.payment_method: row.total for row in payment_query}
+    by_payment_method = {
+        row.payment_method: (row.total if row.total else Decimal(0))
+        for row in payment_query
+    }
 
     return {
         "total_expenses": total_amount,
@@ -369,3 +376,16 @@ def get_category_breakdown(
         }
         for row in results
     ]
+
+
+def get_all_expenses_for_export(db: Session, tenant_id: int) -> list[Expense]:
+    """
+    Get all expenses for a tenant specifically for CSV export.
+    Returns all non-deleted expenses ordered by date.
+    """
+    return (
+        db.query(Expense)
+        .filter(and_(Expense.tenant_id == tenant_id, Expense.is_deleted == False))
+        .order_by(Expense.expense_date.desc())
+        .all()
+    )

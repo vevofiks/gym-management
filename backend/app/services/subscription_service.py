@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from typing import Optional, Tuple
 from decimal import Decimal
 
@@ -11,6 +11,7 @@ from app.models.tenant import Tenant
 from app.models.member import Member
 from app.models.users import User
 from app.models.membership_plan import MembershipPlan
+from app.models.subscription_queue import SubscriptionQueue, QueueStatus
 from loguru import logger
 
 
@@ -134,7 +135,7 @@ def get_subscription_plan(db: Session, plan_id: int) -> Optional[SubscriptionPla
     return (
         db.query(SubscriptionPlan)
         .filter(
-            and_(SubscriptionPlan.id == plan_id, SubscriptionPlan.is_active == True)
+            and_(SubscriptionPlan.id == plan_id, SubscriptionPlan.is_deleted == False)
         )
         .first()
     )
@@ -144,7 +145,9 @@ def get_all_plans(db: Session) -> list[SubscriptionPlan]:
     """Get all active subscription plans"""
     return (
         db.query(SubscriptionPlan)
-        .filter(SubscriptionPlan.is_active == True)
+        .filter(
+            SubscriptionPlan.is_active == True, SubscriptionPlan.is_deleted == False
+        )
         .order_by(SubscriptionPlan.price_monthly)
         .all()
     )
@@ -174,12 +177,38 @@ def activate_subscription(
     if not plan:
         raise ValueError(f"Plan {plan_id} not found")
 
-    # Activate subscription for 30 days
+    # Check if there is an active subscription
     today = date.today()
+    if subscription.status == SubscriptionStatus.ACTIVE:
+        if (
+            subscription.subscription_end_date
+            and subscription.subscription_end_date >= today
+        ):
+            # Active subscription exists, queue this one
+            queue_item = SubscriptionQueue(
+                tenant_id=tenant_id,
+                plan_id=plan_id,
+                payment_id=payment_id,
+                status=QueueStatus.PENDING,
+            )
+            db.add(queue_item)
+            db.commit()
+            db.refresh(queue_item)
+
+            logger.info(f"⏳ Queued {plan.name} subscription for tenant {tenant_id}")
+            return subscription
+
+    # Determine duration based on plan name
+    duration_days = 30
+    if "quarterly" in plan.name.lower():
+        duration_days = 90
+    elif "yearly" in plan.name.lower():
+        duration_days = 365
+
     subscription.plan_id = plan_id
     subscription.status = SubscriptionStatus.ACTIVE
     subscription.subscription_start_date = today
-    subscription.subscription_end_date = today + timedelta(days=30)
+    subscription.subscription_end_date = today + timedelta(days=duration_days)
     subscription.auto_renew = True
 
     db.commit()
@@ -189,6 +218,78 @@ def activate_subscription(
         f"✅ Activated {plan.name} subscription for tenant {tenant_id} (expires: {subscription.subscription_end_date})"
     )
     return subscription
+
+
+def check_and_process_queue(db: Session, tenant_id: int) -> bool:
+    """
+    Check if there are queued subscriptions and activate the next one if current is expired.
+
+    Returns:
+        True if a queued subscription was activated
+    """
+    subscription = get_current_subscription(db, tenant_id)
+    if not subscription:
+        return False
+
+    # Only process if current is expired or trial expired
+    is_active = False
+    if (
+        subscription.status == SubscriptionStatus.ACTIVE
+        and subscription.subscription_end_date
+    ):
+        if date.today() <= subscription.subscription_end_date:
+            is_active = True
+    elif (
+        subscription.status == SubscriptionStatus.TRIAL and subscription.trial_end_date
+    ):
+        if date.today() <= subscription.trial_end_date:
+            is_active = True
+
+    if is_active:
+        return False
+
+    # Check queue
+    next_in_queue = (
+        db.query(SubscriptionQueue)
+        .filter(
+            SubscriptionQueue.tenant_id == tenant_id,
+            SubscriptionQueue.status == QueueStatus.PENDING,
+        )
+        .order_by(SubscriptionQueue.created_at.asc())
+        .first()
+    )
+
+    if not next_in_queue:
+        return False
+
+    # Activate next plan
+    logger.info(
+        f"🚀 Activating queued subscription {next_in_queue.id} for tenant {tenant_id}"
+    )
+
+    # Update current subscription
+    today = date.today()
+    plan = get_subscription_plan(db, next_in_queue.plan_id)
+
+    # Determine duration based on plan name
+    duration_days = 30
+    if "quarterly" in plan.name.lower():
+        duration_days = 90
+    elif "yearly" in plan.name.lower():
+        duration_days = 365
+
+    subscription.plan_id = next_in_queue.plan_id
+    subscription.status = SubscriptionStatus.ACTIVE
+    subscription.subscription_start_date = today
+    subscription.subscription_end_date = today + timedelta(days=duration_days)
+    subscription.auto_renew = True
+
+    # Mark queue item as active/completed
+    next_in_queue.status = QueueStatus.ACTIVE
+    next_in_queue.activated_at = datetime.now()
+
+    db.commit()
+    return True
 
 
 def cancel_subscription(db: Session, tenant_id: int) -> bool:
@@ -229,7 +330,13 @@ def get_current_limits(db: Session, tenant_id: int) -> dict:
 
     staff_count = (
         db.query(func.count(User.id))
-        .filter(and_(User.tenant_id == tenant_id, User.is_active == True))
+        .filter(
+            and_(
+                User.tenant_id == tenant_id,
+                User.is_active == True,
+                User.role == "gym_staff",
+            )
+        )
         .scalar()
         or 0
     )
@@ -267,7 +374,11 @@ def get_plan_limits(db: Session, tenant_id: int) -> dict:
     if not subscription:
         # No subscription record - return Trial limits (Pro plan features)
         pro_plan = (
-            db.query(SubscriptionPlan).filter(SubscriptionPlan.name == "Pro").first()
+            db.query(SubscriptionPlan)
+            .filter(
+                SubscriptionPlan.name == "Pro", SubscriptionPlan.is_deleted == False
+            )
+            .first()
         )
 
         if pro_plan:
@@ -275,15 +386,25 @@ def get_plan_limits(db: Session, tenant_id: int) -> dict:
                 "max_members": pro_plan.max_members,
                 "max_staff": pro_plan.max_staff,
                 "max_plans": pro_plan.max_plans,
+                "max_diet_templates": pro_plan.max_diet_templates,
             }
 
         # Fallback if Pro plan doesn't exist
-        return {"max_members": -1, "max_staff": 5, "max_plans": -1}
+        return {
+            "max_members": -1,
+            "max_staff": 5,
+            "max_plans": -1,
+            "max_diet_templates": -1,
+        }
 
-    # During trial: Pro plan limits
+    # During trial: Pro plan limits (unlimited templates)
     if subscription.status == SubscriptionStatus.TRIAL:
         pro_plan = (
-            db.query(SubscriptionPlan).filter(SubscriptionPlan.name == "Pro").first()
+            db.query(SubscriptionPlan)
+            .filter(
+                SubscriptionPlan.name == "Pro", SubscriptionPlan.is_deleted == False
+            )
+            .first()
         )
 
         if pro_plan:
@@ -291,6 +412,7 @@ def get_plan_limits(db: Session, tenant_id: int) -> dict:
                 "max_members": pro_plan.max_members,
                 "max_staff": pro_plan.max_staff,
                 "max_plans": pro_plan.max_plans,
+                "max_diet_templates": pro_plan.max_diet_templates,
             }
 
     # Active subscription: Use plan limits
@@ -301,10 +423,11 @@ def get_plan_limits(db: Session, tenant_id: int) -> dict:
                 "max_members": plan.max_members,
                 "max_staff": plan.max_staff,
                 "max_plans": plan.max_plans,
+                "max_diet_templates": plan.max_diet_templates,
             }
 
     # Expired/suspended: Return 0 limits
-    return {"max_members": 0, "max_staff": 0, "max_plans": 0}
+    return {"max_members": 0, "max_staff": 0, "max_plans": 0, "max_diet_templates": 0}
 
 
 def check_member_limit(db: Session, tenant_id: int) -> Tuple[bool, str]:
@@ -389,7 +512,7 @@ def check_feature_access(db: Session, tenant_id: int, feature: str) -> bool:
     """
     Check if tenant has access to a specific feature.
 
-    Features: "whatsapp", "advanced_analytics"
+    Features: "whatsapp", "advanced_analytics", "diet_plans"
 
     Returns:
         True if feature is available, False otherwise
@@ -399,12 +522,12 @@ def check_feature_access(db: Session, tenant_id: int, feature: str) -> bool:
     if not subscription:
         return False
 
-    # During trial: WhatsApp is disabled, analytics available
+    # During trial: WhatsApp disabled, Diet Plans and Analytics available
     if subscription.status == SubscriptionStatus.TRIAL:
         if feature == "whatsapp":
-            return False  # WhatsApp disabled during trial
-        if feature == "advanced_analytics":
-            return True  # Analytics available during trial (Pro features)
+            return True  # Enabled during trial for testing
+        if feature in ["advanced_analytics", "diet_plans"]:
+            return True  # Available during trial
 
     # Active subscription: Check plan features
     if subscription.plan_id and subscription.status == SubscriptionStatus.ACTIVE:
@@ -414,6 +537,11 @@ def check_feature_access(db: Session, tenant_id: int, feature: str) -> bool:
                 return plan.whatsapp_enabled
             if feature == "advanced_analytics":
                 return plan.advanced_analytics
+            if feature == "store":
+                return plan.store_enabled
+            if feature == "diet_plans":
+                # Both Starter and Pro have diet plans, but limits differ (handled in get_plan_limits)
+                return True
 
     return False
 
@@ -437,12 +565,26 @@ def is_subscription_active(db: Session, tenant_id: int) -> bool:
 
     # Trial active?
     if subscription.status == SubscriptionStatus.TRIAL:
-        if subscription.trial_end_date and date.today() <= subscription.trial_end_date:
+        # Use Tenant.created_at to determine precise trial end (7 full days)
+        if subscription.tenant and subscription.tenant.created_at:
+            # Convert to date for comparison if needed, or use datetime
+            trial_end_dt = subscription.tenant.created_at + timedelta(days=7)
+            if datetime.now(trial_end_dt.tzinfo) <= trial_end_dt:
+                return True
+        elif (
+            subscription.trial_end_date and date.today() <= subscription.trial_end_date
+        ):
             return True
-        else:
-            # Trial expired, update status
-            expire_trial(db, tenant_id)
-            return False
+
+        # Trial expired, update status
+        expire_trial(db, tenant_id)
+
+        # Also mark tenant as inactive
+        if subscription.tenant:
+            subscription.tenant.is_active = False
+            db.commit()
+
+        return False
 
     # Subscription active?
     if subscription.status == SubscriptionStatus.ACTIVE:
@@ -453,6 +595,10 @@ def is_subscription_active(db: Session, tenant_id: int) -> bool:
             return True
         else:
             # Subscription expired
+            # Try to activate queued subscription
+            if check_and_process_queue(db, tenant_id):
+                return True
+
             subscription.status = SubscriptionStatus.EXPIRED
             db.commit()
             logger.info(f"Subscription expired for tenant {tenant_id}")
@@ -502,7 +648,11 @@ def get_subscription_status_detail(db: Session, tenant_id: int) -> dict:
     if not subscription:
         # Get Pro plan limits for Trial users
         pro_plan = (
-            db.query(SubscriptionPlan).filter(SubscriptionPlan.name == "Pro").first()
+            db.query(SubscriptionPlan)
+            .filter(
+                SubscriptionPlan.name == "Pro", SubscriptionPlan.is_deleted == False
+            )
+            .first()
         )
 
         trial_limits = {
@@ -513,18 +663,31 @@ def get_subscription_status_detail(db: Session, tenant_id: int) -> dict:
 
         current_usage = get_current_limits(db, tenant_id)
 
+        # Calculate expires_at for this automatic trial
+        from app.services.tenant_service import get_tenant_by_id
+
+        tenant = get_tenant_by_id(db, tenant_id)
+        expires_at = None
+        if tenant and tenant.created_at:
+            expires_at = tenant.created_at + timedelta(days=7)
+
         return {
             "has_subscription": False,
             "is_active": True,  # Trial is considered active
             "status": "trial",
             "is_trial": True,
-            "days_remaining": 7,  # Default trial period
+            "days_remaining": (
+                max(0, (expires_at.date() - date.today()).days) if expires_at else 0
+            ),
+            "expires_at": expires_at,
             "plan_name": "Trial",
             "current_usage": current_usage,
             "plan_limits": trial_limits,
             "features": {
                 "whatsapp_enabled": True,  # Trial gets all features
                 "analytics_enabled": True,
+                "store_enabled": True,
+                "diet_plans_enabled": True,
             },
         }
 
@@ -555,21 +718,102 @@ def get_subscription_status_detail(db: Session, tenant_id: int) -> dict:
                 "price": float(plan.price_monthly),
             }
 
+    # Determine exact expiration timestamp for countdown
+    expires_at = None
+    if subscription.status == SubscriptionStatus.TRIAL:
+        # Priority 1: Tenant.created_at + 7 days (exact to the second)
+        if subscription.tenant and subscription.tenant.created_at:
+            expires_at = subscription.tenant.created_at + timedelta(days=7)
+        # Priority 2: subscription.created_at + 7 days
+        elif subscription.created_at:
+            expires_at = subscription.created_at + timedelta(days=7)
+        # Priority 3: trial_end_date (at end of day)
+        elif subscription.trial_end_date:
+            expires_at = datetime.combine(
+                subscription.trial_end_date, datetime.max.time()
+            )
+    elif (
+        subscription.status == SubscriptionStatus.ACTIVE
+        and subscription.subscription_end_date
+    ):
+        # Priority 1: subscription_end_date (at end of day)
+        expires_at = datetime.combine(
+            subscription.subscription_end_date, datetime.max.time()
+        )
+
+    # Ensure expires_at is definitely sent if the subscription is active
+    if not expires_at and is_active:
+        # Ultimate fallback: Current time + days_remaining
+        expires_at = datetime.now() + timedelta(days=days_remaining or 0)
+
+    # Get queued subscriptions
+    queued_subscriptions = (
+        db.query(SubscriptionQueue)
+        .filter(
+            SubscriptionQueue.tenant_id == tenant_id,
+            SubscriptionQueue.status == QueueStatus.PENDING,
+        )
+        .order_by(SubscriptionQueue.created_at.asc())
+        .all()
+    )
+
+    queued_list = []
+    for q in queued_subscriptions:
+        q_plan = get_subscription_plan(db, q.plan_id)
+        if q_plan:
+            queued_list.append(
+                {
+                    "id": q.id,
+                    "plan_name": q_plan.name,
+                    "plan_id": q.plan_id,
+                    "created_at": q.created_at,
+                }
+            )
+
     return {
         "has_subscription": True,
         "is_active": is_active,
         "status": subscription.status.value,
         "is_trial": subscription.status == SubscriptionStatus.TRIAL,
         "days_remaining": days_remaining,
+        "expires_at": expires_at,
         "plan_name": plan_name,
         "plan": plan_details,
         "current_usage": current_limits,
         "plan_limits": plan_limits,
+        "queued_subscriptions": queued_list,
         "features": {
             "whatsapp_enabled": check_feature_access(db, tenant_id, "whatsapp"),
             "analytics_enabled": check_feature_access(
                 db, tenant_id, "advanced_analytics"
             ),
+            "store_enabled": check_feature_access(db, tenant_id, "store"),
+            "diet_plans_enabled": check_feature_access(db, tenant_id, "diet_plans"),
         },
         "auto_renew": subscription.auto_renew,
     }
+
+
+def get_payment_history(
+    db: Session, tenant_id: int, limit: int = 50
+) -> list[SubscriptionPayment]:
+    """
+    Get payment history for a tenant.
+
+    Args:
+        db: Database session
+        tenant_id: Tenant ID
+        limit: Maximum number of payments to return
+
+    Returns:
+        List of SubscriptionPayment records
+    """
+    payments = (
+        db.query(SubscriptionPayment)
+        .filter(SubscriptionPayment.tenant_id == tenant_id)
+        .order_by(SubscriptionPayment.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return payments

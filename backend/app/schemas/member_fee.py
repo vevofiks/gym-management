@@ -7,6 +7,7 @@ from enum import Enum
 
 class PaymentMethod(str, Enum):
     """Payment method enum"""
+
     CASH = "cash"
     UPI = "upi"
     CARD = "card"
@@ -15,6 +16,7 @@ class PaymentMethod(str, Enum):
 
 class PaymentStatus(str, Enum):
     """Payment status enum"""
+
     PAID = "paid"
     PENDING = "pending"
     REFUNDED = "refunded"
@@ -22,13 +24,19 @@ class PaymentStatus(str, Enum):
 
 class FeeBase(BaseModel):
     """Base schema for member fees"""
+
     amount: Decimal = Field(..., gt=0, description="Payment amount")
     payment_method: PaymentMethod = Field(..., description="Payment method")
     payment_date: date = Field(..., description="Payment date")
-    transaction_id: Optional[str] = Field(None, max_length=100, description="Transaction ID")
+    transaction_id: Optional[str] = Field(
+        None, max_length=100, description="Transaction ID"
+    )
+    payment_screenshot_url: Optional[str] = Field(
+        None, description="URL to payment proof screenshot"
+    )
     notes: Optional[str] = Field(None, description="Additional notes")
-    
-    @field_validator('amount')
+
+    @field_validator("amount")
     @classmethod
     def validate_amount(cls, v: Decimal) -> Decimal:
         """Ensure amount has max 2 decimal places"""
@@ -39,11 +47,13 @@ class FeeBase(BaseModel):
 
 class FeeCreate(FeeBase):
     """Schema for creating a fee record"""
+
     plan_id: Optional[int] = Field(None, description="Associated plan ID")
 
 
 class FeeResponse(FeeBase):
     """Schema for fee response"""
+
     id: int
     member_id: int
     tenant_id: int
@@ -51,13 +61,14 @@ class FeeResponse(FeeBase):
     payment_status: PaymentStatus
     created_by: Optional[int]
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class FeeListResponse(BaseModel):
     """Schema for paginated fee list"""
+
     fees: List[FeeResponse]
     total: int
     total_amount: Decimal
@@ -68,17 +79,19 @@ class FeeListResponse(BaseModel):
 
 class FeeStats(BaseModel):
     """Schema for fee statistics"""
+
     total_collected: Decimal
     total_pending: Decimal
     total_refunded: Decimal
     payment_count: int
-    
+
     class Config:
         from_attributes = True
 
 
 class FinancialReport(BaseModel):
     """Schema for financial report"""
+
     start_date: date
     end_date: date
     total_revenue: Decimal
@@ -88,6 +101,6 @@ class FinancialReport(BaseModel):
     bank_transfer_payments: Decimal
     payment_count: int
     member_count: int
-    
+
     class Config:
         from_attributes = True

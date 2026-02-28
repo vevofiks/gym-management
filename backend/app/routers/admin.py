@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, func
 from typing import Optional
 from math import ceil
 
@@ -15,6 +15,9 @@ from app.services.user_service import (
     delete_user,
     update_user_role,
     create_user,
+    get_trashed_users,
+    restore_user,
+    permanent_delete_user,
 )
 from app.services.tenant_service import (
     create_tenant,
@@ -24,8 +27,11 @@ from app.services.tenant_service import (
     delete_tenant,
     update_subscription,
     get_tenant_stats,
+    get_trashed_tenants,
+    restore_tenant,
+    permanent_delete_tenant,
 )
-from app.schemas.users import UserResponse, UserUpdate, UserListResponse, UserCreate
+from app.services.subscription_service import start_trial
 from app.schemas.tenant import (
     TenantCreate,
     TenantResponse,
@@ -33,6 +39,14 @@ from app.schemas.tenant import (
     UpdateSubscription,
     TenantStats,
     TenantListResponse,
+)
+from app.schemas.users import (
+    UserResponse,
+    UserUpdate,
+    UserListResponse,
+    UserCreate,
+    UniquenessCheckRequest,
+    UniquenessCheckResponse,
 )
 from app.core.exceptions import UserAlreadyExistsException, TenantAlreadyExistsException
 from loguru import logger
@@ -91,8 +105,11 @@ def admin_create_tenant(
     """
     try:
         new_tenant = create_tenant(db, tenant)
+        # Initialize 7-day trial
+        start_trial(db, new_tenant.id)
+
         logger.info(
-            f"Admin {current_user.username} created tenant: {new_tenant.name} (ID: {new_tenant.id})"
+            f"Admin {current_user.username} created tenant: {new_tenant.name} (ID: {new_tenant.id}) with initial trial"
         )
         return new_tenant
 
@@ -239,6 +256,45 @@ def admin_get_tenant_stats(
 
 
 # ==================== GYM OWNER & STAFF MANAGEMENT ====================
+
+
+@router.post(
+    "/validate-uniqueness",
+    response_model=UniquenessCheckResponse,
+    status_code=status.HTTP_200_OK,
+)
+def admin_validate_uniqueness(
+    request: UniquenessCheckRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Check if username, email, or phone number already exists (SUPERADMIN only).
+    """
+    errors = {}
+
+    if request.username:
+        query = db.query(User).filter(User.username == request.username)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["username"] = "Username is already taken"
+
+    if request.email:
+        query = db.query(User).filter(User.email == request.email)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["email"] = "Email is already registered"
+
+    if request.phone_number:
+        query = db.query(User).filter(User.phone_number == request.phone_number)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["phone"] = "Phone number is already registered"
+
+    return UniquenessCheckResponse(is_unique=len(errors) == 0, errors=errors)
 
 
 @router.get(
@@ -462,6 +518,117 @@ def admin_update_gym_owner_role(
     return updated_user
 
 
+# ==================== TRASH MANAGEMENT ====================
+
+
+@router.get("/trash/tenants", response_model=TenantListResponse)
+def admin_get_trashed_tenants_route(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    List all soft-deleted gyms.
+    """
+    tenants, total = get_trashed_tenants(db, skip=skip, limit=limit, search=search)
+    return {
+        "tenants": tenants,
+        "total": total,
+        "page": (skip // limit) + 1,
+        "page_size": limit,
+        "total_pages": ceil(total / limit) if limit > 0 else 0,
+    }
+
+
+@router.post("/tenants/{tenant_id}/restore", response_model=TenantResponse)
+def admin_restore_tenant_route(
+    tenant_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Restore a soft-deleted gym.
+    """
+    tenant = restore_tenant(db, tenant_id)
+    if not tenant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
+        )
+    return tenant
+
+
+@router.delete("/tenants/{tenant_id}/permanent")
+def admin_permanent_delete_tenant_route(
+    tenant_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Permanently delete a gym.
+    """
+    if not permanent_delete_tenant(db, tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found"
+        )
+    return {"message": "Gym permanently deleted"}
+
+
+@router.get("/trash/gym-owners", response_model=UserListResponse)
+def admin_get_trashed_users_route(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    List all soft-deleted gym owners.
+    """
+    users, total = get_trashed_users(db, skip=skip, limit=limit, search=search)
+    return {
+        "users": users,
+        "total": total,
+        "page": (skip // limit) + 1,
+        "page_size": limit,
+        "total_pages": ceil(total / limit) if limit > 0 else 0,
+    }
+
+
+@router.post("/gym-owners/{user_id}/restore", response_model=UserResponse)
+def admin_restore_user_route(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Restore a soft-deleted gym owner.
+    """
+    user = restore_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
+
+
+@router.delete("/gym-owners/{user_id}/permanent")
+def admin_permanent_delete_user_route(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    """
+    Permanently delete a gym owner.
+    """
+    if not permanent_delete_user(db, user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return {"message": "User permanently deleted"}
+
+
 # ==================== SYSTEM STATISTICS ====================
 
 
@@ -474,12 +641,17 @@ def admin_get_system_stats(
     """
     from app.models.tenant import Tenant
     from app.models.member import Member
-    from sqlalchemy import func
 
     total_tenants = (
-        db.query(func.count(Tenant.id)).filter(Tenant.is_active == True).scalar()
+        db.query(func.count(Tenant.id))
+        .filter(and_(Tenant.is_active == True, Tenant.name != "System Admin"))
+        .scalar()
     )
-    total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
+    total_users = (
+        db.query(func.count(User.id))
+        .filter(and_(User.is_active == True, User.role != UserRole.SUPERADMIN.value))
+        .scalar()
+    )
     total_members = (
         db.query(func.count(Member.id)).filter(Member.is_active == True).scalar()
     )

@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 from typing import List, Optional
+import io
 
 from app.core.database import get_db
 from app.models.users import User
@@ -13,8 +15,114 @@ from app.schemas.reports import (
     FinancialSummary,
 )
 from app.services.report_service import report_service
+from app.services.exporter_service import exporter_service
 
 router = APIRouter(prefix="/reports", tags=["Advanced Analytics"])
+
+
+@router.get("/export")
+def export_report(
+    report_type: str = Query(
+        ..., description="Type of report: financial, members, dues"
+    ),
+    format: str = Query("csv", description="File format: csv, excel, pdf"),
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(check_feature_access("advanced_analytics")),
+):
+    """
+    Export reports in various formats.
+    """
+    if not start_date:
+        start_date = date.today().replace(day=1)
+    if not end_date:
+        end_date = date.today()
+
+    data = []
+    filename = f"{report_type}_report_{start_date}_to_{end_date}"
+
+    if report_type == "all":
+        # Handle Mega Export
+        reports_data = {
+            "Financials": report_service.get_raw_member_fees(
+                db, current_user.tenant_id, start_date, end_date
+            )
+            + report_service.get_raw_expenses(
+                db, current_user.tenant_id, start_date, end_date
+            ),
+            "Members": report_service.get_raw_member_data(db, current_user.tenant_id),
+            "Outstanding Dues": [
+                d.dict()
+                for d in report_service.get_outstanding_dues(db, current_user.tenant_id)
+            ],
+        }
+
+        if format == "csv":
+            output = exporter_service.export_bulk_to_zip(reports_data)
+            media_type = "application/zip"
+            extension = "zip"
+        elif format == "excel":
+            output = exporter_service.export_bulk_to_excel(reports_data)
+            media_type = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            extension = "xlsx"
+        elif format == "pdf":
+            output = exporter_service.export_bulk_to_pdf(
+                reports_data, title=f"Mega Report ({start_date} to {end_date})"
+            )
+            media_type = "application/pdf"
+            extension = "pdf"
+        else:
+            raise HTTPException(status_code=400, detail="Invalid format")
+    else:
+        # Handle individual reports
+        if report_type == "financial":
+            # Get raw financial data (fees and expenses)
+            fees = report_service.get_raw_member_fees(
+                db, current_user.tenant_id, start_date, end_date
+            )
+            expenses = report_service.get_raw_expenses(
+                db, current_user.tenant_id, start_date, end_date
+            )
+            data = fees + expenses
+        elif report_type == "members":
+            data = report_service.get_raw_member_data(db, current_user.tenant_id)
+        elif report_type == "dues":
+            dues = report_service.get_outstanding_dues(db, current_user.tenant_id)
+            data = [d.dict() for d in dues]
+        else:
+            raise HTTPException(status_code=400, detail="Invalid report type")
+
+    # Validate format early (Format Check)
+    if format not in ["csv", "excel", "pdf"]:
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {format}")
+
+    # Determine media type and extension
+    if format == "csv":
+        media_type = "text/csv"
+        extension = "csv"
+    elif format == "excel":
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        extension = "xlsx"
+    else:  # pdf
+        media_type = "application/pdf"
+        extension = "pdf"
+
+    # Export using centralized service (Format Check implementation)
+    title = f"{report_type.replace('_', ' ').title()} Report"
+    output = exporter_service.export(data, format, title=title)
+
+    return Response(
+        content=output.getvalue(),
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}.{extension}"',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
 
 
 # ENFORCE PRO PLAN ACCESS

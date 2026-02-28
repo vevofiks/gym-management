@@ -29,7 +29,7 @@ class ReportService:
         Calculate generic financial stats for a given period.
         """
         # Total Revenue (Sum of MemberFees paid)
-        revenue_q = db.query(func.sum(MemberFee.amount_paid)).filter(
+        revenue_q = db.query(func.sum(MemberFee.amount)).filter(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
@@ -58,7 +58,7 @@ class ReportService:
         # Outstanding Dues (Total of member.outstanding_dues)
         # This is a snapshot of CURRENT outstanding, not historical
         outstanding_q = db.query(func.sum(Member.outstanding_dues)).filter(
-            Member.tenant_id == tenant_id, Member.is_active == True
+            Member.tenant_id == tenant_id, Member.is_deleted == False
         )
         outstanding_dues = outstanding_q.scalar() or Decimal(0)
 
@@ -94,7 +94,7 @@ class ReportService:
             label = m_start.strftime("%b %Y")  # e.g. "Jan 2024"
 
             # Query Month Revenue
-            m_rev = db.query(func.sum(MemberFee.amount_paid)).filter(
+            m_rev = db.query(func.sum(MemberFee.amount)).filter(
                 MemberFee.tenant_id == tenant_id,
                 MemberFee.payment_date >= m_start,
                 MemberFee.payment_date <= m_end,
@@ -156,7 +156,7 @@ class ReportService:
         Breakdown of revenue by payment method.
         """
         results = (
-            db.query(MemberFee.payment_method, func.sum(MemberFee.amount_paid))
+            db.query(MemberFee.payment_method, func.sum(MemberFee.amount))
             .filter(
                 MemberFee.tenant_id == tenant_id, MemberFee.payment_status == "paid"
             )
@@ -193,7 +193,7 @@ class ReportService:
             .filter(
                 Member.tenant_id == tenant_id,
                 Member.status == MemberStatus.ACTIVE,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
             .scalar()
             or 0
@@ -205,7 +205,7 @@ class ReportService:
             .filter(
                 Member.tenant_id == tenant_id,
                 Member.joining_date >= first_of_month,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
             .scalar()
             or 0
@@ -217,7 +217,7 @@ class ReportService:
             .filter(
                 Member.tenant_id == tenant_id,
                 Member.status == MemberStatus.EXPIRED,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
             .scalar()
             or 0
@@ -232,7 +232,9 @@ class ReportService:
                 Member.status == MemberStatus.ACTIVE,
                 Member.membership_expiry_date <= seven_days_later,
                 Member.membership_expiry_date >= today,
-                Member.is_active == True,
+                Member.is_active
+                == True,  # Keep is_active check for expiring SOON active members
+                Member.is_deleted == False,
             )
             .scalar()
             or 0
@@ -260,7 +262,7 @@ class ReportService:
             .filter(
                 Member.tenant_id == tenant_id,
                 Member.status == MemberStatus.ACTIVE,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
             .group_by(MembershipPlan.name)
             .all()
@@ -290,7 +292,7 @@ class ReportService:
             .filter(
                 Member.tenant_id == tenant_id,
                 Member.outstanding_dues > 0,
-                Member.is_active == True,
+                Member.is_deleted == False,
             )
             .order_by(desc(Member.outstanding_dues))
             .all()
@@ -318,6 +320,110 @@ class ReportService:
             )
 
         return report
+
+    def get_raw_member_fees(
+        self, db: Session, tenant_id: int, start_date: date, end_date: date
+    ) -> List[Dict]:
+        """Get raw member fee records for export."""
+        fees = (
+            db.query(
+                MemberFee,
+                Member.first_name,
+                Member.last_name,
+                MembershipPlan.name.label("plan_name"),
+            )
+            .join(Member, MemberFee.member_id == Member.id)
+            .outerjoin(MembershipPlan, MemberFee.plan_id == MembershipPlan.id)
+            .filter(
+                MemberFee.tenant_id == tenant_id,
+                MemberFee.payment_date >= start_date,
+                MemberFee.payment_date <= end_date,
+                MemberFee.payment_status == "paid",
+            )
+            .all()
+        )
+        return [
+            {
+                "Date": (
+                    f.MemberFee.payment_date.strftime("%d %b %Y")
+                    if f.MemberFee.payment_date
+                    else ""
+                ),
+                "Member Name": f"{f.first_name} {f.last_name}",
+                "Type": "Revenue (Fee)",
+                "Plan": f.plan_name if hasattr(f, "plan_name") else "",
+                "Amount": float(f.MemberFee.amount),
+                "Payment Method": (
+                    f.MemberFee.payment_method.replace("_", " ").title()
+                    if f.MemberFee.payment_method
+                    else ""
+                ),
+                "Transaction ID": f.MemberFee.transaction_id or "",
+                "Notes": f.MemberFee.notes or "",
+            }
+            for f in fees
+        ]
+
+    def get_raw_expenses(
+        self, db: Session, tenant_id: int, start_date: date, end_date: date
+    ) -> List[Dict]:
+        """Get raw expense records for export."""
+        expenses = (
+            db.query(Expense)
+            .filter(
+                Expense.tenant_id == tenant_id,
+                Expense.expense_date >= start_date,
+                Expense.expense_date <= end_date,
+                Expense.is_deleted == False,
+            )
+            .all()
+        )
+        return [
+            {
+                "Date": e.expense_date.strftime("%d %b %Y") if e.expense_date else "",
+                "Member Name": "",
+                "Type": f"Expense ({e.category.value.title()})",
+                "Amount": -float(e.amount),  # Negative for expenses
+                "Payment Method": (
+                    e.payment_method.value.replace("_", " ").title()
+                    if e.payment_method
+                    else ""
+                ),
+                "Notes": e.description or "",
+            }
+            for e in expenses
+        ]
+
+    def get_raw_member_data(self, db: Session, tenant_id: int) -> List[Dict]:
+        """Get raw member records for export."""
+        members = (
+            db.query(Member, MembershipPlan.name)
+            .outerjoin(MembershipPlan, Member.plan_id == MembershipPlan.id)
+            .filter(Member.tenant_id == tenant_id, Member.is_deleted == False)
+            .all()
+        )
+        return [
+            {
+                "Member Name": f"{m.Member.first_name} {m.Member.last_name}",
+                "Phone": m.Member.phone_number,
+                "Email": m.Member.email or "",
+                "Plan": m.name or "No Plan",
+                "Status": m.Member.status.value.title() if m.Member.status else "",
+                "Joining Date": (
+                    m.Member.joining_date.strftime("%d %b %Y")
+                    if m.Member.joining_date
+                    else ""
+                ),
+                "Expiry Date": (
+                    m.Member.membership_expiry_date.strftime("%d %b %Y")
+                    if m.Member.membership_expiry_date
+                    else ""
+                ),
+                "Total Paid": float(m.Member.total_fees_paid or 0),
+                "Outstanding Dues": float(m.Member.outstanding_dues or 0),
+            }
+            for m in members
+        ]
 
 
 report_service = ReportService()

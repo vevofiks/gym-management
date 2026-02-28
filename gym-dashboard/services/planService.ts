@@ -1,5 +1,5 @@
 import { api } from '@/store/AuthStore';
-import { MembershipPlan, PlanCreate, PlanUpdate, PlanListResponse, PlanStats } from '@/types/plan';
+import { MembershipPlan, PlanCreate, PlanUpdate, PlanListResponse, PlanStats } from '@/types';
 
 /**
  * Get all membership plans for the current tenant

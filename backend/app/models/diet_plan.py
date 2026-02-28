@@ -33,6 +33,7 @@ class DietPlanTemplate(Base):
     instructions = Column(Text, nullable=True)  # General instructions
 
     is_active = Column(Boolean, default=True)
+    is_deleted = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

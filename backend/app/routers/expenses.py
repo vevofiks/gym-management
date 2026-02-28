@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from math import ceil
 from datetime import date, datetime
+import io
+import csv
+from fastapi.responses import StreamingResponse
 
 from app.core.database import get_db
 from app.models.users import User
@@ -25,6 +28,7 @@ from app.services.expense_service import (
     get_expense_summary,
     get_monthly_expenses,
     get_category_breakdown,
+    get_all_expenses_for_export,
 )
 from loguru import logger
 
@@ -67,6 +71,92 @@ def create_new_expense(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while creating the expense",
         )
+
+
+@router.get("/summary", response_model=ExpenseSummary, status_code=status.HTTP_200_OK)
+def get_expenses_summary(
+    start_date: date = Query(..., description="Start date for summary"),
+    end_date: date = Query(..., description="End date for summary"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_owner),
+):
+    """
+    Get expense summary for a date range.
+
+    Returns:
+    - Total expenses
+    - Breakdown by category
+    - Breakdown by payment method
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    if start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="start_date must be before or equal to end_date",
+        )
+
+    summary = get_expense_summary(db, current_user.tenant_id, start_date, end_date)  # type: ignore
+    return summary
+
+
+@router.get(
+    "/monthly", response_model=list[MonthlyExpense], status_code=status.HTTP_200_OK
+)
+def get_monthly_expense_report(
+    year: int = Query(..., description="Year for the report"),
+    month: Optional[int] = Query(
+        None, ge=1, le=12, description="Optional specific month"
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_owner),
+):
+    """
+    Get monthly expense totals.
+
+    If month is provided, returns data for that specific month.
+    If month is not provided, returns data for all months in the year.
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    monthly_data = get_monthly_expenses(db, current_user.tenant_id, year, month)  # type: ignore
+    return monthly_data
+
+
+@router.get("/by-category", response_model=list[dict], status_code=status.HTTP_200_OK)
+def get_expenses_by_category(
+    start_date: Optional[date] = Query(None, description="Optional start date filter"),
+    end_date: Optional[date] = Query(None, description="Optional end date filter"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_owner),
+):
+    """
+    Get expenses grouped by category with totals and averages.
+
+    Optionally filter by date range.
+    """
+    if current_user.tenant_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="start_date must be before or equal to end_date",
+        )
+
+    category_data = get_category_breakdown(db, current_user.tenant_id, start_date, end_date)  # type: ignore
+    return category_data
 
 
 @router.get(
@@ -212,20 +302,13 @@ def delete_expense_by_id(
     return None
 
 
-@router.get("/summary", response_model=ExpenseSummary, status_code=status.HTTP_200_OK)
-def get_expenses_summary(
-    start_date: date = Query(..., description="Start date for summary"),
-    end_date: date = Query(..., description="End date for summary"),
+@router.get("/export/csv")
+def export_expenses_to_csv(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_gym_owner),
 ):
     """
-    Get expense summary for a date range.
-
-    Returns:
-    - Total expenses
-    - Breakdown by category
-    - Breakdown by payment method
+    Export all expenses for the tenant to a CSV file.
     """
     if current_user.tenant_id is None:
         raise HTTPException(
@@ -233,66 +316,43 @@ def get_expenses_summary(
             detail="User must be associated with a tenant",
         )
 
-    if start_date > end_date:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="start_date must be before or equal to end_date",
+    expenses = get_all_expenses_for_export(db, current_user.tenant_id)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Header
+    writer.writerow(
+        [
+            "ID",
+            "Category",
+            "Amount",
+            "Payment Method",
+            "Date",
+            "Description",
+            "Created By",
+        ]
+    )
+
+    for e in expenses:
+        writer.writerow(
+            [
+                e.id,
+                e.category,
+                float(e.amount),
+                e.payment_method,
+                e.expense_date,
+                e.description or "",
+                e.created_by,
+            ]
         )
 
-    summary = get_expense_summary(db, current_user.tenant_id, start_date, end_date)  # type: ignore
-    return summary
+    output.seek(0)
 
+    filename = f"expenses_{current_user.tenant_id}_{date.today()}.csv"
 
-@router.get(
-    "/monthly", response_model=list[MonthlyExpense], status_code=status.HTTP_200_OK
-)
-def get_monthly_expense_report(
-    year: int = Query(..., description="Year for the report"),
-    month: Optional[int] = Query(
-        None, ge=1, le=12, description="Optional specific month"
-    ),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
-):
-    """
-    Get monthly expense totals.
-
-    If month is provided, returns data for that specific month.
-    If month is not provided, returns data for all months in the year.
-    """
-    if current_user.tenant_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User must be associated with a tenant",
-        )
-
-    monthly_data = get_monthly_expenses(db, current_user.tenant_id, year, month)  # type: ignore
-    return monthly_data
-
-
-@router.get("/by-category", response_model=list[dict], status_code=status.HTTP_200_OK)
-def get_expenses_by_category(
-    start_date: Optional[date] = Query(None, description="Optional start date filter"),
-    end_date: Optional[date] = Query(None, description="Optional end date filter"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
-):
-    """
-    Get expenses grouped by category with totals and averages.
-
-    Optionally filter by date range.
-    """
-    if current_user.tenant_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User must be associated with a tenant",
-        )
-
-    if start_date and end_date and start_date > end_date:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="start_date must be before or equal to end_date",
-        )
-
-    category_data = get_category_breakdown(db, current_user.tenant_id, start_date, end_date)  # type: ignore
-    return category_data
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

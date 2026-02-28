@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PlanCreate, PlanUpdate } from '@/types/plan';
+import { PlanCreate, PlanUpdate } from '@/types';
 import { Plus, X } from 'lucide-react';
 
 interface PlanFormProps {

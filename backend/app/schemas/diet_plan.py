@@ -66,6 +66,7 @@ class DietPlanAssignmentResponse(BaseModel):
     id: int
     tenant_id: int
     template_id: int
+    template_name: Optional[str] = None
     member_id: int
     assigned_by: int
     assigned_at: datetime

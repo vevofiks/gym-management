@@ -1,16 +1,15 @@
 'use client';
 
-import { MembershipPlan } from '@/types/plan';
+import { MembershipPlan } from '@/types';
 import { Edit2, Trash2, Users } from 'lucide-react';
 
 interface PlanCardProps {
     plan: MembershipPlan;
     onEdit: (plan: MembershipPlan) => void;
     onDelete: (plan: MembershipPlan) => void;
-    memberCount?: number;
 }
 
-export function PlanCard({ plan, onEdit, onDelete, memberCount = 0 }: PlanCardProps) {
+export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
@@ -29,8 +28,8 @@ export function PlanCard({ plan, onEdit, onDelete, memberCount = 0 }: PlanCardPr
 
     return (
         <div className={`relative rounded-2xl border p-6 transition-all ${plan.is_active
-                ? 'border-border bg-card hover:border-primary/50'
-                : 'border-border bg-card opacity-60'
+            ? 'border-border bg-card hover:border-primary/50'
+            : 'border-border bg-card opacity-60'
             }`}>
             {/* Status Badge */}
             {!plan.is_active && (
@@ -66,14 +65,14 @@ export function PlanCard({ plan, onEdit, onDelete, memberCount = 0 }: PlanCardPr
             {/* Member Count */}
             <div className="flex items-center gap-2 mb-4 text-sm text-text-secondary">
                 <Users size={16} />
-                <span>{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
+                <span>{plan.member_count} {plan.member_count === 1 ? 'member' : 'members'}</span>
             </div>
 
             {/* Features */}
             {plan.features && (
                 <div className="mb-4 pb-4 border-b border-border">
                     <p className="text-xs text-text-secondary line-clamp-3">
-                        {plan.features}
+                        {plan.features.join(', ')}
                     </p>
                 </div>
             )}

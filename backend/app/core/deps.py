@@ -84,6 +84,33 @@ def get_current_gym_owner(current_user: User = Depends(get_current_user)) -> Use
     return current_user
 
 
+def get_current_gym_user(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Verify that current user has either GYMOWNER or GYMSTAFF role.
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        User object if user is GYMOWNER or GYMSTAFF
+
+    Raises:
+        HTTPException: If user is not active or has insufficient role
+    """
+    if not current_user.is_active:
+        logger.warning(f"Inactive user attempted access: {current_user.username}")
+        raise InactiveUserException()
+
+    allowed_roles = [UserRole.GYMOWNER.value, UserRole.GYMSTAFF.value]
+    if str(current_user.role) not in allowed_roles:
+        logger.warning(
+            f"User with role {current_user.role} attempted gym user action: {current_user.username}"
+        )
+        raise InsufficientPermissionsException("GYMOWNER or GYMSTAFF role required")
+
+    return current_user
+
+
 def get_current_superuser(current_user: User = Depends(get_current_user)) -> User:
     """
     Verify that current user has SUPERADMIN role.
@@ -114,7 +141,7 @@ def get_current_superuser(current_user: User = Depends(get_current_user)) -> Use
 
 
 def check_subscription_active(
-    current_user: User = Depends(get_current_gym_owner), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_gym_user), db: Session = Depends(get_db)
 ) -> User:
     """
     Check if tenant's subscription is active (trial or paid).
@@ -139,7 +166,7 @@ def check_subscription_active(
 
 
 def check_member_limit(
-    current_user: User = Depends(get_current_gym_owner), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_gym_user), db: Session = Depends(get_db)
 ) -> None:
     """
     Check if tenant can add more members.
@@ -215,7 +242,7 @@ def check_feature_access(feature: str):
     """
 
     def _check_feature(
-        current_user: User = Depends(get_current_gym_owner),
+        current_user: User = Depends(get_current_gym_user),
         db: Session = Depends(get_db),
     ) -> None:
         from app.services.subscription_service import (

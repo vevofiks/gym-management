@@ -17,8 +17,18 @@ from app.routers import (
     subscriptions,
     diet_plans,
     reports,
+    analytics,
+    dashboard,
+    whatsapp,
+    whatsapp_settings,
+    progress,
+    marketing,
+    audit,
+    store,
 )
 from app.core.config import settings
+from fastapi.staticfiles import StaticFiles
+import os
 
 
 app = FastAPI(
@@ -40,6 +50,20 @@ app.include_router(expenses.router, prefix="/api")
 app.include_router(subscriptions.router, prefix="/api")
 app.include_router(diet_plans.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
+app.include_router(analytics.router)
+app.include_router(dashboard.router, prefix="/api")
+app.include_router(whatsapp.router, prefix="/api")
+app.include_router(whatsapp_settings.router, prefix="/api")
+app.include_router(progress.router, prefix="/api")
+app.include_router(marketing.router, prefix="/api")
+app.include_router(audit.router, prefix="/api")
+app.include_router(store.router, prefix="/api")
+
+# Static Files
+UPLOAD_DIR = "/home/amraz/My Works/vevofiks/gym-management/backend/uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # CORS Configuration
 app.add_middleware(
@@ -48,6 +72,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],
 )
 
 

@@ -5,12 +5,16 @@ from app.models.users import User, UserRole
 from app.schemas.users import UserCreate, UserUpdate
 from app.core.security import hash_password, pwd_context
 from app.core.exceptions import UserAlreadyExistsException
+from app.core.validators import validate_password_strength
 from loguru import logger
 
 
 def create_user(
     db: Session, user_create: UserCreate, tenant_id: Optional[int] = None
 ) -> User:
+    # Validate password strength
+    validate_password_strength(user_create.password)
+
     hashed_password = hash_password(user_create.password)
 
     final_tenant_id = (
@@ -42,7 +46,7 @@ def create_user(
 def get_user_by_id(
     db: Session, user_id: int, tenant_id: Optional[int] = None
 ) -> Optional[User]:
-    query = db.query(User).filter(User.id == user_id, User.is_active == True)
+    query = db.query(User).filter(User.id == user_id, User.is_deleted == False)
 
     if tenant_id is not None:
         query = query.filter(User.tenant_id == tenant_id)
@@ -52,7 +56,9 @@ def get_user_by_id(
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     return (
-        db.query(User).filter(User.username == username, User.is_active == True).first()
+        db.query(User)
+        .filter(User.username == username, User.is_deleted == False)
+        .first()
     )
 
 
@@ -65,7 +71,7 @@ def get_users_by_tenant(
     role: Optional[UserRole] = None,
 ) -> tuple[list[User], int]:
     query = db.query(User).filter(
-        and_(User.tenant_id == tenant_id, User.is_active == True)
+        and_(User.tenant_id == tenant_id, User.is_deleted == False)
     )
 
     # Apply search filter
@@ -100,13 +106,9 @@ def get_all_users(
     search: Optional[str] = None,
     role: Optional[UserRole] = None,
 ) -> tuple[list[User], int]:
-    """
-    Get all users (superadmin only) with pagination and filtering.
-
-    Returns:
-        Tuple of (users list, total count)
-    """
-    query = db.query(User).filter(User.is_active == True)
+    query = db.query(User).filter(
+        and_(User.is_deleted == False, User.role != UserRole.SUPERADMIN.value)
+    )
 
     # Apply search filter
     if search:
@@ -133,6 +135,35 @@ def get_all_users(
     return users, total
 
 
+def get_trashed_users(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None,
+) -> tuple[list[User], int]:
+    """
+    Get all deleted (trashed) users (excluding superadmins) across all tenants.
+    """
+    query = db.query(User).filter(
+        and_(User.is_deleted == True, User.role != UserRole.SUPERADMIN.value)
+    )
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            or_(
+                User.name.ilike(search_term),
+                User.username.ilike(search_term),
+                User.email.ilike(search_term),
+            )
+        )
+
+    total = query.count()
+    users = query.order_by(User.updated_at.desc()).offset(skip).limit(limit).all()
+
+    return users, total
+
+
 def update_user(
     db: Session, user_id: int, user_update: UserUpdate, tenant_id: Optional[int] = None
 ) -> Optional[User]:
@@ -148,7 +179,7 @@ def update_user(
             db.query(User)
             .filter(
                 User.username == update_data["username"],
-                User.is_active == True,
+                User.is_deleted == False,
                 User.id != user_id,
             )
             .first()
@@ -161,7 +192,7 @@ def update_user(
             db.query(User)
             .filter(
                 User.email == update_data["email"],
-                User.is_active == True,
+                User.is_deleted == False,
                 User.id != user_id,
             )
             .first()
@@ -177,7 +208,7 @@ def update_user(
             db.query(User)
             .filter(
                 User.phone_number == update_data["phone_number"],
-                User.is_active == True,
+                User.is_deleted == False,
                 User.id != user_id,
             )
             .first()
@@ -215,6 +246,7 @@ def delete_user(db: Session, user_id: int, tenant_id: Optional[int] = None) -> b
     if not user:
         return False
 
+    user.is_deleted = True
     user.is_active = False
     db.commit()
 
@@ -252,6 +284,9 @@ def change_password(
             f"Failed password change attempt for user {user.username}: incorrect old password"
         )
         return False
+
+    # Validate new password strength
+    validate_password_strength(new_password)
 
     # Set new password
     user.hashed_password = hash_password(new_password)
@@ -291,3 +326,43 @@ def update_user_role(
         f"Role updated for user {user.username} (ID: {user.id}) to {role_value}"
     )
     return user
+
+
+def restore_user(db: Session, user_id: int) -> Optional[User]:
+    """
+    Restore a soft-deleted user.
+    """
+    user = (
+        db.query(User)
+        .filter(User.id == user_id, User.role != UserRole.SUPERADMIN.value)
+        .first()
+    )
+    if not user:
+        return None
+
+    user.is_deleted = False
+    user.is_active = True
+    db.commit()
+    db.refresh(user)
+
+    logger.info(f"User restored: {user.username} (ID: {user.id})")
+    return user
+
+
+def permanent_delete_user(db: Session, user_id: int) -> bool:
+    """
+    Permanently delete a user from the database.
+    """
+    user = (
+        db.query(User)
+        .filter(User.id == user_id, User.role != UserRole.SUPERADMIN.value)
+        .first()
+    )
+    if not user:
+        return False
+
+    db.delete(user)
+    db.commit()
+
+    logger.info(f"User permanently deleted: ID {user_id}")
+    return True

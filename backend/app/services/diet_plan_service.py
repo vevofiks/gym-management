@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from app.models.diet_plan import DietPlanTemplate, DietPlanAssignment
 from app.models.member import Member
 from app.schemas.diet_plan import (
@@ -17,28 +18,41 @@ class DietPlanService:
         self, db: Session, tenant_id: int, user_id: int, data: DietPlanTemplateCreate
     ) -> DietPlanTemplate:
         """Create a new diet plan template"""
-        # Check subscription limits
-        from app.services.subscription_service import get_current_subscription
+        from app.services.subscription_service import (
+            get_plan_limits,
+            get_current_subscription,
+            check_feature_access,
+        )
 
         subscription = get_current_subscription(db, tenant_id)
-        if not subscription or not subscription.plan:
-            raise ValueError("No active subscription found")
+        if not subscription:
+            raise ValueError("No active subscription or trial found")
+
+        # Check if feature is enabled (e.g., disabled during trial)
+        if not check_feature_access(db, tenant_id, "diet_plans"):
+            raise ValueError(
+                "Diet Plans are not available in your current plan/trial. Please upgrade to access this feature."
+            )
 
         # Count existing active templates
         template_count = (
             db.query(DietPlanTemplate)
             .filter(
                 DietPlanTemplate.tenant_id == tenant_id,
+                DietPlanTemplate.is_deleted == False,
                 DietPlanTemplate.is_active == True,
             )
             .count()
         )
 
         # Check limit (skip if unlimited)
-        max_templates = subscription.plan.max_diet_templates
+        limits = get_plan_limits(db, tenant_id)
+        max_templates = limits.get("max_diet_templates", 0)
+
         if max_templates != -1 and template_count >= max_templates:
+            plan_name = getattr(subscription.plan, "name", "Trial")
             raise ValueError(
-                f"Template limit reached. Your {subscription.plan.name} plan "
+                f"Template limit reached. Your {plan_name} plan "
                 f"allows {max_templates} diet plan template(s). "
                 f"Upgrade to Pro for unlimited templates."
             )
@@ -69,7 +83,10 @@ class DietPlanService:
     ) -> List[DietPlanTemplate]:
         """List all diet plan templates for a gym"""
         query = db.query(DietPlanTemplate).filter(
-            DietPlanTemplate.tenant_id == tenant_id
+            and_(
+                DietPlanTemplate.tenant_id == tenant_id,
+                DietPlanTemplate.is_deleted == False,
+            )
         )
 
         if active_only:
@@ -89,6 +106,7 @@ class DietPlanService:
             .filter(
                 DietPlanTemplate.id == template_id,
                 DietPlanTemplate.tenant_id == tenant_id,
+                DietPlanTemplate.is_deleted == False,
             )
             .first()
         )
@@ -125,12 +143,18 @@ class DietPlanService:
         if not template:
             return False
 
+        template.is_deleted = True
         template.is_active = False
         db.commit()
         return True
 
     def assign_to_member(
-        self, db: Session, tenant_id: int, user_id: int, data: DietPlanAssignmentCreate
+        self,
+        db: Session,
+        tenant_id: int,
+        user_id: int,
+        data: DietPlanAssignmentCreate,
+        background_tasks: Optional[any] = None,
     ) -> DietPlanAssignment:
         """Assign a diet plan to a member"""
         assignment = DietPlanAssignment(
@@ -143,14 +167,31 @@ class DietPlanService:
         db.add(assignment)
         db.commit()
 
-        # Send via WhatsApp if requested
+        # Send via WhatsApp if requested AND feature is available
         if data.send_whatsapp:
-            self.send_diet_plan_whatsapp(db, assignment)
+            from app.services.subscription_service import check_feature_access
+
+            if check_feature_access(db, tenant_id, "whatsapp"):
+                self.send_diet_plan_whatsapp(db, assignment, background_tasks)
+            else:
+                from loguru import logger
+
+                logger.warning(
+                    f"Tenant {tenant_id} attempted WhatsApp assign without feature access"
+                )
 
         db.refresh(assignment)
+        # Attach template name for the response
+        if assignment.template:
+            setattr(assignment, "template_name", assignment.template.name)
         return assignment
 
-    def send_diet_plan_whatsapp(self, db: Session, assignment: DietPlanAssignment):
+    def send_diet_plan_whatsapp(
+        self,
+        db: Session,
+        assignment: DietPlanAssignment,
+        background_tasks: Optional[any] = None,
+    ):
         """Send diet plan to member via WhatsApp"""
         from app.services.whatsapp_service import whatsapp_service
         from loguru import logger
@@ -165,8 +206,9 @@ class DietPlanService:
 
         # Send via WhatsApp (non-blocking)
         try:
-            asyncio.create_task(
-                whatsapp_service.send_diet_plan(
+            if background_tasks:
+                background_tasks.add_task(
+                    whatsapp_service.send_diet_plan,
                     db=db,
                     tenant_id=gym.id,
                     phone_number=member.phone_number,
@@ -175,7 +217,25 @@ class DietPlanService:
                     diet_plan_content=message,
                     gym_name=gym.name,
                 )
-            )
+            else:
+                import asyncio
+
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(
+                            whatsapp_service.send_diet_plan(
+                                db=db,
+                                tenant_id=gym.id,
+                                phone_number=member.phone_number,
+                                member_name=f"{member.first_name} {member.last_name}",
+                                diet_plan_name=template.name,
+                                diet_plan_content=message,
+                                gym_name=gym.name,
+                            )
+                        )
+                except Exception:
+                    pass
 
             # Update assignment
             assignment.sent_via_whatsapp = True
@@ -227,7 +287,7 @@ Your personalized diet plan is ready:
         self, db: Session, tenant_id: int, member_id: int
     ) -> List[DietPlanAssignment]:
         """Get all diet plans assigned to a member"""
-        return (
+        assignments = (
             db.query(DietPlanAssignment)
             .filter(
                 DietPlanAssignment.tenant_id == tenant_id,
@@ -236,6 +296,12 @@ Your personalized diet plan is ready:
             .order_by(DietPlanAssignment.assigned_at.desc())
             .all()
         )
+
+        for assignment in assignments:
+            if assignment.template:
+                setattr(assignment, "template_name", assignment.template.name)
+
+        return assignments
 
 
 # Create singleton instance

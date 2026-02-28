@@ -1,6 +1,7 @@
 from pydantic import BaseModel, field_validator, Field
 from datetime import date, datetime
 from typing import Optional
+from decimal import Decimal
 from app.models.member import MemberStatus
 from app.core.validators import validate_email, validate_phone_number
 
@@ -52,6 +53,46 @@ class MemberCreate(MemberBase):
         None, description="URL to member's before photo"
     )
 
+    # Health and Personal Information
+    weight: Optional[float] = Field(None, description="Weight in kg")
+    height: Optional[float] = Field(None, description="Height in cm")
+    blood_group: Optional[str] = Field(
+        None, description="Blood group (A+, B+, O+, AB+, etc.)"
+    )
+    medical_conditions: Optional[str] = Field(
+        None, description="Any medical conditions"
+    )
+    emergency_contact_name: Optional[str] = Field(
+        None, max_length=100, description="Emergency contact name"
+    )
+    emergency_contact_phone: Optional[str] = Field(
+        None, description="Emergency contact phone"
+    )
+    date_of_birth: Optional[date] = Field(None, description="Date of birth")
+    gender: Optional[str] = Field(None, description="Gender (Male, Female, Other)")
+    address: Optional[str] = Field(None, description="Address")
+
+    # Initial Payment Information
+    payment_method: Optional[str] = Field(
+        None, description="Initial payment method (cash, upi, card, bank_transfer)"
+    )
+    payment_amount: Optional[Decimal] = Field(
+        None, description="Initial payment amount"
+    )
+    joining_fee: Optional[Decimal] = Field(
+        Decimal("0.0"), description="One-time registration fee"
+    )
+    discount: Optional[Decimal] = Field(
+        Decimal("0.0"), description="Discount applied at registration"
+    )
+    transaction_id: Optional[str] = Field(
+        None, description="Initial payment transaction ID"
+    )
+    payment_screenshot_url: Optional[str] = Field(
+        None, description="Initial payment screenshot URL"
+    )
+    payment_notes: Optional[str] = Field(None, description="Initial payment notes")
+
     @field_validator("joining_date")
     @classmethod
     def validate_joining_date(cls, v: date) -> date:
@@ -86,6 +127,17 @@ class MemberUpdate(BaseModel):
     after_photo_url: Optional[str] = Field(
         None, description="URL to member's after photo"
     )
+
+    # Health and Personal Information
+    weight: Optional[float] = Field(None)
+    height: Optional[float] = Field(None)
+    blood_group: Optional[str] = Field(None)
+    medical_conditions: Optional[str] = Field(None)
+    emergency_contact_name: Optional[str] = Field(None, max_length=100)
+    emergency_contact_phone: Optional[str] = Field(None)
+    date_of_birth: Optional[date] = Field(None)
+    gender: Optional[str] = Field(None)
+    address: Optional[str] = Field(None)
 
     @field_validator("first_name", "last_name")
     @classmethod
@@ -132,6 +184,14 @@ class MemberRenew(BaseModel):
     renewal_date: Optional[date] = Field(
         None, description="Renewal date (defaults to today)"
     )
+    # Payment Information
+    payment_method: str = Field(..., description="Payment method")
+    payment_amount: Decimal = Field(..., description="Amount paid")
+    joining_fee: Optional[Decimal] = Field(Decimal("0.0"), description="One-time fee")
+    discount: Optional[Decimal] = Field(Decimal("0.0"), description="Discount applied")
+    transaction_id: Optional[str] = Field(None, description="Transaction ID")
+    payment_screenshot_url: Optional[str] = Field(None, description="Payment proof URL")
+    payment_notes: Optional[str] = Field(None, description="Renewal notes")
 
     @field_validator("membership_type")
     @classmethod
@@ -158,6 +218,18 @@ class MemberResponse(MemberBase):
     outstanding_dues: Optional[float]
     before_photo_url: Optional[str]
     after_photo_url: Optional[str]
+
+    # Health and Personal Information
+    weight: Optional[float]
+    height: Optional[float]
+    blood_group: Optional[str]
+    medical_conditions: Optional[str]
+    emergency_contact_name: Optional[str]
+    emergency_contact_phone: Optional[str]
+    date_of_birth: Optional[date]
+    gender: Optional[str]
+    address: Optional[str]
+
     status: MemberStatus
     is_active: bool
     created_at: datetime
@@ -213,8 +285,19 @@ class MemberProfileResponse(BaseModel):
     joining_date: date
     membership_expiry_date: date
     status: MemberStatus
-    before_photo_url: Optional[str]
-    after_photo_url: Optional[str]
+    before_photo_url: Optional[str] = None
+    after_photo_url: Optional[str] = None
+
+    # Health and Personal Information
+    weight: Optional[float] = None
+    height: Optional[float] = None
+    blood_group: Optional[str] = None
+    medical_conditions: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[str] = None
+    address: Optional[str] = None
 
     # Plan information
     plan: Optional[MemberPlanDetail]
@@ -235,3 +318,14 @@ class MemberProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MemberUniquenessCheckRequest(BaseModel):
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    exclude_member_id: Optional[int] = None
+
+
+class MemberUniquenessCheckResponse(BaseModel):
+    is_unique: bool
+    errors: dict[str, str] = {}

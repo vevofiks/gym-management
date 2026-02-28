@@ -1,18 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from typing import List
+from datetime import datetime
 
 from app.core.database import get_db
 from app.models.users import User
-from app.core.deps import get_current_gym_owner, get_current_superuser
+from app.core.deps import (
+    get_current_gym_owner,
+    get_current_superuser,
+    get_current_gym_user,
+)
 from app.schemas.subscriptions import (
     SubscriptionPlanResponse,
     TenantSubscriptionResponse,
     SubscriptionUpgradeRequest,
     SubscriptionPaymentResponse,
     PaymentHistoryResponse,
-    DummyPaymentInitiateRequest,
-    DummyPaymentCompleteRequest,
+    PaymentInitiateRequest,
+    PaymentVerifyRequest,
 )
 from app.services.subscription_service import (
     get_all_plans,
@@ -20,11 +26,25 @@ from app.services.subscription_service import (
     get_subscription_status_detail,
     cancel_subscription,
     activate_subscription,
+    get_payment_history,
 )
 from loguru import logger
 
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
+
+
+# Import Razorpay service
+from app.services.razorpay_service import (
+    create_razorpay_order,
+    verify_razorpay_signature,
+)
+from app.services.subscription_service import (
+    get_subscription_plan,
+    activate_subscription,
+)
+from app.models.subscription_payment import SubscriptionPayment, PaymentStatus
+from app.models.tenant_subscription import TenantSubscription
 
 
 @router.get(
@@ -68,7 +88,7 @@ def get_my_subscription(
 
 @router.get("/me/status", response_model=dict, status_code=status.HTTP_200_OK)
 def get_subscription_status(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_gym_owner)
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_gym_user)
 ):
     """
     Get detailed subscription status with usage limits and features.
@@ -85,6 +105,10 @@ def get_subscription_status(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User must be associated with a tenant",
         )
+
+    from app.services.subscription_service import check_and_process_queue
+
+    check_and_process_queue(db, current_user.tenant_id)
 
     status_detail = get_subscription_status_detail(db, current_user.tenant_id)
     return status_detail
@@ -158,177 +182,6 @@ def subscribe_to_plan(
         )
 
 
-# ============================================================================
-# DUMMY PAYMENT GATEWAY ENDPOINTS
-# ============================================================================
-
-
-@router.post(
-    "/payment/dummy/initiate",
-    response_model=dict,
-    status_code=status.HTTP_200_OK,
-)
-def initiate_dummy_payment_endpoint(
-    request: DummyPaymentInitiateRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
-):
-    """
-    Initiate a dummy payment for subscription.
-
-    This is a DUMMY payment gateway for testing purposes.
-    In production, replace with actual payment gateway (Razorpay, Stripe, etc.)
-
-    Steps:
-    1. Creates a payment record with PENDING status
-    2. Returns dummy order details
-    3. Frontend simulates payment and calls /payment/dummy/complete
-
-    Returns:
-        Payment initiation details with dummy order ID
-    """
-    from app.services.dummy_payment_service import initiate_dummy_payment
-
-    if not current_user.tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User must be associated with a tenant",
-        )
-
-    try:
-        payment, order_id = initiate_dummy_payment(
-            db=db,
-            tenant_id=current_user.tenant_id,
-            plan_id=request.plan_id,
-            payment_method=request.payment_method,
-            notes=request.notes,
-        )
-
-        # Get plan details
-        from app.services.subscription_service import get_subscription_plan
-
-        plan = get_subscription_plan(db, request.plan_id)
-
-        if not plan:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Plan {request.plan_id} not found",
-            )
-
-        return {
-            "payment_id": payment.id,
-            "order_id": order_id,
-            "amount": float(payment.amount),
-            "currency": payment.currency,
-            "plan_name": plan.name,
-            "status": "pending",
-            "message": (
-                "Dummy payment initiated. In production, this would redirect to payment gateway. "
-                "For testing, call /payment/dummy/complete with this payment_id."
-            ),
-        }
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    except Exception as e:
-        logger.error(f"Error initiating dummy payment: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to initiate payment",
-        )
-
-
-@router.post(
-    "/payment/dummy/complete",
-    response_model=dict,
-    status_code=status.HTTP_200_OK,
-)
-def complete_dummy_payment_endpoint(
-    request: DummyPaymentCompleteRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_gym_owner),
-):
-    """
-    Complete/verify a dummy payment.
-
-    This simulates payment verification.
-    In production, this would verify payment gateway signature.
-
-    Steps:
-    1. Verifies payment exists and is pending
-    2. Marks payment as SUCCESS or FAILED
-    3. If successful, activates subscription
-    4. Returns subscription status
-
-    Returns:
-        Payment completion status and subscription details
-    """
-    from app.services.dummy_payment_service import complete_dummy_payment
-    from app.services.subscription_service import (
-        get_current_subscription,
-        get_subscription_plan,
-    )
-
-    if not current_user.tenant_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User must be associated with a tenant",
-        )
-
-    try:
-        # Complete payment
-        payment = complete_dummy_payment(
-            db=db,
-            payment_id=request.payment_id,
-            dummy_transaction_id=request.dummy_transaction_id,
-            payment_status=request.payment_status,
-        )
-
-        # Get updated subscription
-        subscription = get_current_subscription(db, current_user.tenant_id)
-        plan = get_subscription_plan(db, payment.plan_id) if payment.plan_id else None
-
-        if request.payment_status.lower() == "success":
-            return {
-                "success": True,
-                "message": f"Payment successful! {plan.name if plan else 'Subscription'} activated.",
-                "payment_id": payment.id,
-                "subscription_status": (
-                    subscription.status.value if subscription else "unknown"
-                ),
-                "subscription_end_date": (
-                    subscription.subscription_end_date if subscription else None
-                ),
-                "plan_name": plan.name if plan else "Unknown",
-            }
-        else:
-            return {
-                "success": False,
-                "message": "Payment failed. Please try again.",
-                "payment_id": payment.id,
-                "subscription_status": (
-                    subscription.status.value if subscription else "unknown"
-                ),
-                "subscription_end_date": None,
-                "plan_name": plan.name if plan else "Unknown",
-            }
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    except Exception as e:
-        logger.error(f"Error completing dummy payment: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to complete payment",
-        )
-
-
 @router.get(
     "/payment/history",
     response_model=PaymentHistoryResponse,
@@ -343,7 +196,6 @@ def get_payment_history_endpoint(
 
     Returns list of all subscription payments (successful, failed, pending).
     """
-    from app.services.dummy_payment_service import get_payment_history
 
     if not current_user.tenant_id:
         raise HTTPException(
@@ -363,43 +215,183 @@ def get_payment_history_endpoint(
 # PAYMENT ENDPOINTS (Structure ready for Razorpay implementation)
 # ============================================================================
 
-# @router.post("/payment/initiate", response_model=dict, status_code=status.HTTP_200_OK)
-# def initiate_payment(
-#     request: PaymentInitiateRequest,
-#     db: Session = Depends(get_db),
-#     current_user: User = Depends(get_current_gym_owner)
-# ):
-#     """
-#     Initiate payment for subscription.
-#
-#     TO BE IMPLEMENTED BY USER with Razorpay integration.
-#
-#     Steps:
-#     1. Create Razorpay order
-#     2. Create SubscriptionPayment record with PENDING status
-#     3. Return order details to frontend
-#     """
-#     pass
+
+@router.post(
+    "/payment/razorpay/initiate", response_model=dict, status_code=status.HTTP_200_OK
+)
+def initiate_razorpay_payment(
+    request: PaymentInitiateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_owner),
+):
+    """
+    Initiate payment for subscription using Razorpay.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    plan = get_subscription_plan(db, request.plan_id)
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Plan {request.plan_id} not found",
+        )
+
+    # Get current subscription to link payment
+    subscription = (
+        db.query(TenantSubscription)
+        .filter(TenantSubscription.tenant_id == current_user.tenant_id)
+        .first()
+    )
+    if not subscription:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No subscription found for tenant",
+        )
+
+    # Create Razorpay order
+    receipt_str = f"pay_{current_user.tenant_id}_{request.plan_id}_{int(datetime.now().timestamp())}"
+    order = create_razorpay_order(float(plan.price_monthly), receipt_str)
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create Razorpay order",
+        )
+
+    # Create internal payment record
+    payment = SubscriptionPayment(
+        tenant_id=current_user.tenant_id,
+        subscription_id=subscription.id,
+        plan_id=plan.id,
+        amount=plan.price_monthly,
+        currency="INR",
+        payment_method="razorpay",
+        razorpay_order_id=order["id"],
+        status=PaymentStatus.PENDING,
+        notes=f"Razorpay subscription for {plan.name}",
+    )
+
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+
+    from app.core.config import settings
+
+    return {
+        "payment_id": payment.id,
+        "razorpay_order_id": order["id"],
+        "amount": float(payment.amount),
+        "currency": payment.currency,
+        "key_id": settings.RAZORPAY_KEY_ID,
+        "plan_name": plan.name,
+        "gym_name": current_user.tenant.name if current_user.tenant else "Your Gym",
+        "user_name": current_user.name,
+        "user_email": current_user.email,
+        "user_phone": current_user.phone_number,
+    }
 
 
-# @router.post("/payment/verify", response_model=dict, status_code=status.HTTP_200_OK)
-# def verify_payment(
-#     request: PaymentVerifyRequest,
-#     db: Session = Depends(get_db),
-#     current_user: User = Depends(get_current_gym_owner)
-# ):
-#     """
-#     Verify payment and activate subscription.
-#
-#     TO BE IMPLEMENTED BY USER with Razorpay integration.
-#
-#     Steps:
-#     1. Verify Razorpay signature
-#     2. Update SubscriptionPayment status to SUCCESS
-#     3. Activate subscription using activate_subscription()
-#     4. Return success response
-#     """
-#     pass
+@router.post(
+    "/payment/razorpay/verify", response_model=dict, status_code=status.HTTP_200_OK
+)
+def verify_razorpay_payment(
+    request: PaymentVerifyRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_gym_owner),
+):
+    """
+    Verify Razorpay payment and activate subscription.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    # Check internal payment record
+    payment = (
+        db.query(SubscriptionPayment)
+        .filter(
+            and_(
+                SubscriptionPayment.id == request.payment_id,
+                SubscriptionPayment.tenant_id == current_user.tenant_id,
+            )
+        )
+        .first()
+    )
+
+    if not payment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment record not found",
+        )
+
+    # Verify signature
+    is_valid = verify_razorpay_signature(
+        request.razorpay_order_id,
+        request.razorpay_payment_id,
+        request.razorpay_signature,
+    )
+
+    if not is_valid:
+        payment.status = PaymentStatus.FAILED
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid payment signature",
+        )
+
+    # Update payment record
+    import json
+
+    payment.status = PaymentStatus.SUCCESS
+    payment.razorpay_payment_id = request.razorpay_payment_id
+    payment.razorpay_signature = request.razorpay_signature
+    payment.payment_date = datetime.now()
+    payment.payment_metadata = json.dumps(
+        {
+            "razorpay_order_id": request.razorpay_order_id,
+            "razorpay_payment_id": request.razorpay_payment_id,
+            "razorpay_signature": request.razorpay_signature,
+            "invoice_url": request.invoice_url,
+        }
+    )
+
+    logger.info(
+        f"💰 Payment {payment.id} verified successfully. Metadata saved. Order: {request.razorpay_order_id}"
+    )
+
+    if request.invoice_url:
+        payment.invoice_url = request.invoice_url
+
+    # Commit payment success first to avoid data loss if activation fails
+    db.commit()
+
+    try:
+        # Activate subscription
+        activate_subscription(db, current_user.tenant_id, payment.plan_id, payment.id)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Failed to activate subscription after payment {payment.id}: {e}")
+        # We don't rollback payment status because the payment WAS successful.
+        # Admin or user will need to contact support, or we can have a reconciliation job.
+        # But we return success to the frontend so they see "Payment Successful".
+        return {
+            "success": True,
+            "message": "Payment verified. Subscription activation pending (contact support if not active within 5 minutes).",
+            "payment_id": payment.id,
+            "activation_error": str(e),
+        }
+
+    return {
+        "success": True,
+        "message": "Payment verified and subscription activated successfully",
+        "payment_id": payment.id,
+    }
 
 
 # @router.get("/payment/history", response_model=PaymentHistoryResponse, status_code=status.HTTP_200_OK)

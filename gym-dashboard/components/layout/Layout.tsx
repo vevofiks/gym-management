@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { usePathname } from 'next/navigation';
 import SubscriptionBanner from '../SubscriptionBanner';
+import { useAuthStore } from '@/store/AuthStore';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -12,13 +13,23 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuthStore();
 
   const getPageTitle = (path: string) => {
     switch (path) {
-      case '/': return { title: 'Dashboard', subtitle: 'Start managing your gym today!' };
-      case '/members': return { title: 'Member Management', subtitle: 'Manage your members' };
-      case '/finances': return { title: 'Financials', subtitle: 'Manage your finances' };
-      case '/analytics': return { title: 'Analytics', subtitle: 'Analyze your gym' };
+      case '/': return { title: 'Dashboard', subtitle: 'Welcome back! Here\'s what\'s happening with your gym.' };
+      case '/members': return { title: 'Member Management', subtitle: 'Manage members, track attendance, and view detailed profiles.' };
+      case '/members/insights': return { title: 'Member Insights', subtitle: 'Get insights into your members' };
+      case '/plans': return { title: 'Plan Management', subtitle: 'Create and manage membership plans, track payments, and handle renewals.' };
+      case '/settings/staff': return { title: 'Staff Management', subtitle: 'Manage your gym staff and their application access' };
+      case '/finances': return { title: 'Financials', subtitle: 'Track revenue, expenses, and manage payments.' };
+      case '/expenses': return { title: 'Gym Expenses', subtitle: 'Manage and track your operational costs' };
+      case '/store': return { title: 'Gym Store', subtitle: 'Manage products, inventory, and track your daily sales.' };
+      case '/diet-plans': return { title: 'Diet Plans', subtitle: 'Create and manage personalized nutritional plans for your members.' };
+      case '/analytics': return { title: 'Analytics', subtitle: 'Growth, retention & engagement insights' };
+      case '/settings/whatsapp': return { title: 'WhatsApp Settings', subtitle: 'Connect your gym\'s WhatsApp for automated notifications' };
+      case '/marketing/whatsapp': return { title: 'WhatsApp Broadcast', subtitle: 'Send bulk messages to your members for marketing or announcements.' };
+      case '/settings': return { title: 'Settings', subtitle: 'Manage your gym settings' };
       default: return { title: 'Dashboard', subtitle: 'Start managing your gym today!' };
     }
   };
@@ -28,8 +39,8 @@ export const Layout = ({ children }: LayoutProps) => {
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
-        {/* Full-width banner */}
-        <SubscriptionBanner />
+        {/* Full-width banner - Hidden for staff */}
+        {user?.role !== 'gym_staff' && <SubscriptionBanner />}
 
         <div className="px-6 lg:px-10">
           {pathname === "/subscription" ? null : (

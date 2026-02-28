@@ -93,3 +93,34 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
+
+/* Select & Option Styling for Dark Mode Visibility */
+select option {
+  background-color: #ffffff;
+  color: #1E293B;
+}
+
+.dark select option {
+  background-color: #1E293B;
+  color: #F8FAFC;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-secondary) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--text-secondary);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}

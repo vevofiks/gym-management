@@ -10,9 +10,10 @@ interface StatsCardProps {
   isLoading?: boolean;
   icon?: React.ReactNode;
   variant?: 'default' | 'primary' | 'dark';
+  onClick?: () => void;
 }
 
-export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'default' }: StatsCardProps) => {
+export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'default', onClick }: StatsCardProps) => {
   const isPositive = change >= 0;
 
   if (isLoading) {
@@ -20,12 +21,15 @@ export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'de
   }
 
   return (
-    <div className={cn(
-      "group relative flex flex-col justify-between rounded-4xl p-6 transition-all duration-300 hover:shadow-lg",
-      variant === 'default' && "bg-card shadow-soft border border-border",
-      variant === 'primary' && "bg-primary text-white shadow-glow border border-primary",
-      variant === 'dark' && "bg-slate-900 text-white shadow-xl"
-    )}>
+    <div
+      onClick={onClick}
+      className={cn(
+        "group relative flex flex-col justify-between rounded-4xl p-6 transition-all duration-300 hover:shadow-lg",
+        variant === 'default' && "bg-card shadow-soft border border-border",
+        variant === 'primary' && "bg-primary text-white shadow-glow border border-primary",
+        variant === 'dark' && "bg-slate-900 text-white shadow-xl",
+        onClick && "cursor-pointer active:scale-95"
+      )}>
       <div className="flex items-start justify-between">
         <div className={cn(
           "flex h-12 w-12 items-center justify-center rounded-2xl transition-transform group-hover:scale-110",

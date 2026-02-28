@@ -6,30 +6,33 @@ from app.core.validators import validate_upi_id, validate_url
 
 class TenantBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, description="Gym/Tenant name")
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("Tenant name cannot be empty")
-        return v
-
-
-class TenantCreate(TenantBase):
+    address: Optional[str] = Field(None, max_length=500, description="Physical address")
+    contact_email: Optional[str] = Field(
+        None, max_length=100, description="Gym contact email"
+    )
+    contact_phone: Optional[str] = Field(
+        None, max_length=20, description="Gym contact phone"
+    )
+    city: Optional[str] = Field(None, max_length=100, description="City")
+    state: Optional[str] = Field(None, max_length=100, description="State/Province")
+    zip_code: Optional[str] = Field(None, max_length=20, description="Zip/Postal code")
+    logo_url: Optional[str] = Field(None, max_length=500, description="Gym logo URL")
     google_map: Optional[str] = Field(
         None, max_length=500, description="Google Maps URL"
     )
     upi_id: Optional[str] = Field(
         None, max_length=100, description="UPI ID for payments"
     )
-    whatsapp_access_token: Optional[str] = Field(
-        None, max_length=500, description="WhatsApp API access token"
-    )
-    whatsapp_phone_id: Optional[str] = Field(
-        None, max_length=50, description="WhatsApp phone ID"
-    )
-    address: Optional[str] = Field(None, max_length=500, description="Physical address")
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if v is None:
+            return v
+        v = v.strip()
+        if not v:
+            raise ValueError("Tenant name cannot be empty")
+        return v
 
     @field_validator("google_map")
     @classmethod
@@ -46,12 +49,21 @@ class TenantCreate(TenantBase):
         return v
 
 
+class TenantCreate(TenantBase):
+    whatsapp_access_token: Optional[str] = Field(
+        None, max_length=500, description="WhatsApp API access token"
+    )
+    whatsapp_phone_id: Optional[str] = Field(
+        None, max_length=50, description="WhatsApp phone ID"
+    )
+
+
 class TenantResponse(TenantBase):
     id: int
     is_active: bool
     paid_until: Optional[date] = None
-    upi_id: Optional[str] = None
     payment_qr_code_url: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -64,7 +76,14 @@ class TenantUpdate(BaseModel):
     upi_id: str | None = Field(None, max_length=100)
     whatsapp_access_token: str | None = Field(None, max_length=500)
     whatsapp_phone_id: str | None = Field(None, max_length=50)
+    contact_email: str | None = Field(None, max_length=100)
+    contact_phone: str | None = Field(None, max_length=20)
+    city: str | None = Field(None, max_length=100)
+    state: str | None = Field(None, max_length=100)
+    zip_code: str | None = Field(None, max_length=20)
+    logo_url: str | None = Field(None, max_length=500)
     payment_qr_code_url: str | None = Field(None, max_length=500)
+    is_active: bool | None = Field(None, description="Active status of the gym")
 
     @field_validator("name")
     @classmethod
@@ -103,6 +122,7 @@ class TenantStats(BaseModel):
     expired_members: int
     is_active: bool
     paid_until: Optional[date] = None
+    total_revenue: float = 0.0
 
 
 class TenantListResponse(BaseModel):

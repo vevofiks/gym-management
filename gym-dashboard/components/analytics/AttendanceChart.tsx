@@ -1,55 +1,29 @@
 'use client';
 
-import React from 'react';
-import { Card } from '@/components/ui/Card';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Calendar } from 'lucide-react';
 
 interface AttendanceChartProps {
-    data: any[] | undefined;
-    isLoading: boolean;
+    data?: any[];
+    isLoading?: boolean;
 }
 
 export const AttendanceChart = ({ data, isLoading }: AttendanceChartProps) => {
-    if (isLoading) {
-        return (
-            <Card title="Weekly Attendance" subtitle="Daily check-in patterns">
-                <Skeleton className="h-80 w-full" />
-            </Card>
-        );
-    }
-
     return (
-        <Card title="Weekly Attendance" subtitle="Daily check-in patterns">
-            <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis
-                        dataKey="day"
-                        stroke="var(--text-secondary)"
-                        style={{ fontSize: '12px' }}
-                    />
-                    <YAxis
-                        stroke="var(--text-secondary)"
-                        style={{ fontSize: '12px' }}
-                    />
-                    <Tooltip
-                        contentStyle={{
-                            backgroundColor: 'var(--card)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '12px',
-                            color: 'var(--text-primary)'
-                        }}
-                        cursor={{ fill: 'var(--background)' }}
-                    />
-                    <Bar
-                        dataKey="count"
-                        fill="var(--primary)"
-                        radius={[8, 8, 0, 0]}
-                        name="Check-ins"
-                    />
-                </BarChart>
-            </ResponsiveContainer>
-        </Card>
+        <div className="h-[400px] w-full rounded-3xl bg-card border border-border p-6 flex flex-col items-center justify-center shadow-soft">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Calendar size={40} className="text-primary" />
+            </div>
+            <div className="text-center max-w-md">
+                <h3 className="text-xl font-black text-text-primary uppercase tracking-tight mb-2">
+                    Attendance Tracking
+                </h3>
+                <p className="text-text-secondary font-bold uppercase tracking-wider text-xs mb-4">
+                    Coming Soon
+                </p>
+                <p className="text-text-secondary text-sm">
+                    Attendance tracking and analytics will be available in a future update. Track daily check-ins, peak hours, and member engagement patterns.
+                </p>
+            </div>
+        </div>
     );
 };

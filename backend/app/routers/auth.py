@@ -1,20 +1,33 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from datetime import timedelta
 
 from app.core.database import get_db
-from app.core.security import create_access_token
+from app.core.security import create_access_token, ACCESS_TOKEN_EXPIRE_DAYS
 from app.core.deps import get_current_user
 from app.services.auth_service import authenticate_user
 from app.services.user_service import change_password
 from app.schemas.token import Token
-from app.schemas.users import ChangePassword
+from app.schemas.users import (
+    ChangePassword,
+    ForgotPasswordRequest,
+    VerifyOTPRequest,
+    ResetPasswordRequest,
+)
 from app.models.users import User
 from app.services.subscription_service import (
     get_current_subscription,
     get_subscription_plan,
 )
+from app.services.auth_service import (
+    authenticate_user,
+    request_password_reset,
+    verify_reset_otp,
+    reset_password_with_otp,
+)
 from loguru import logger
+import datetime
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -55,7 +68,8 @@ def login_for_access_token(
             "tenant_id": user.tenant_id,
             "plan_name": plan_name,
             "subscription_status": subscription_status,
-        }
+        },
+        expires_delta=timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS),
     )
 
     logger.info(f"User {user.username} logged in successfully with plan {plan_name}")
@@ -84,3 +98,54 @@ def change_password_endpoint(
         )
 
     return {"message": "Password changed successfully"}
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+def forgot_password_endpoint(
+    request: ForgotPasswordRequest, db: Session = Depends(get_db)
+):
+    """
+    Request a password reset OTP.
+    """
+    success = request_password_reset(db, request.email)
+    if not success:
+        # We return 200 even if user not found for security reasons
+        # but in this case, since it's a private system, maybe it's fine to be more explicit.
+        # However, the requirement is "send a opt to the registered email".
+        pass
+
+    return {"message": "If the email is registered, an OTP has been sent."}
+
+
+@router.post("/verify-otp", status_code=status.HTTP_200_OK)
+def verify_otp_endpoint(request: VerifyOTPRequest, db: Session = Depends(get_db)):
+    """
+    Verify the 6-digit OTP sent to the user.
+    """
+    is_valid = verify_reset_otp(db, request.email, request.otp)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OTP",
+        )
+
+    return {"message": "OTP verified successfully"}
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+def reset_password_endpoint(
+    request: ResetPasswordRequest, db: Session = Depends(get_db)
+):
+    """
+    Reset password using a valid OTP.
+    """
+    success = reset_password_with_otp(
+        db, request.email, request.otp, request.new_password
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to reset password. OTP may be invalid or expired.",
+        )
+
+    return {"message": "Password reset successfully. You can now login."}

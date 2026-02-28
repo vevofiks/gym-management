@@ -20,6 +20,8 @@ from app.schemas.users import (
     UserUpdate,
     ChangePassword,
     UserListResponse,
+    UniquenessCheckRequest,
+    UniquenessCheckResponse,
 )
 from app.core.deps import get_current_user, check_staff_limit
 from app.core.exceptions import UserAlreadyExistsException
@@ -27,6 +29,54 @@ from loguru import logger
 
 
 router = APIRouter(prefix="/gym-owners", tags=["Gym Owners & Staff"])
+
+
+@router.post("/validate-uniqueness", response_model=UniquenessCheckResponse)
+def validate_staff_uniqueness(
+    request: UniquenessCheckRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Check if staff with same username, email or phone exists (Gym Owner access).
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User must be associated with a tenant",
+        )
+
+    # Only gym owners can check staff uniqueness
+    if current_user.role != UserRole.GYMOWNER.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only gym owners can perform this check",
+        )
+
+    errors = {}
+
+    if request.username:
+        query = db.query(User).filter(User.username == request.username)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["username"] = "Username is already taken"
+
+    if request.email:
+        query = db.query(User).filter(User.email == request.email)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["email"] = "Email is already registered"
+
+    if request.phone_number:
+        query = db.query(User).filter(User.phone_number == request.phone_number)
+        if request.exclude_user_id:
+            query = query.filter(User.id != request.exclude_user_id)
+        if query.first():
+            errors["phone_number"] = "Phone number is already registered"
+
+    return UniquenessCheckResponse(is_unique=len(errors) == 0, errors=errors)
 
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -52,6 +102,39 @@ def change_own_password(
         )
 
     return {"message": "Password changed successfully"}
+
+
+@router.put("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+def update_user_me(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Update own profile information.
+    """
+    try:
+        updated_user = update_user(db, current_user.id, user_update)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+
+        logger.info(f"User {current_user.username} updated their own profile")
+        return updated_user
+
+    except UserAlreadyExistsException as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error updating own profile: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while updating the profile",
+        )
 
 
 @router.get("/", response_model=UserListResponse, status_code=status.HTTP_200_OK)
@@ -112,14 +195,14 @@ def create_new_staff(
         )
 
     # Only gym owners can create staff
-    if current_user.role != UserRole.GYM_OWNER.value:
+    if current_user.role != UserRole.GYMOWNER.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only gym owners can create staff members",
         )
 
     # Gym owners can only create gym_staff, not other gym_owners
-    if user.role == UserRole.GYM_OWNER:
+    if user.role == UserRole.GYMOWNER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Gym owners cannot create other gym owners. Contact superadmin.",

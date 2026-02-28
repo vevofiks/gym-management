@@ -1,11 +1,57 @@
 'use client';
 
 import { useSubscription } from '@/hooks/useSubscription';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function SubscriptionBanner() {
-    const { subscription, isTrial, isActive, daysRemaining } = useSubscription();
+    const { subscription, isTrial, isActive, refetch } = useSubscription();
+    const [timeLeft, setTimeLeft] = useState<{
+        days: number;
+        hours: number;
+        minutes: number;
+        seconds: number;
+    } | null>(null);
+
+
+    useEffect(() => {
+        if (!isActive || !subscription?.expires_at) {
+            setTimeLeft(null);
+            return;
+        }
+
+        const calculateTimeLeft = () => {
+            const expiryStr = subscription.expires_at as string;
+            const expiryDate = new Date(expiryStr);
+            const now = new Date();
+            const difference = expiryDate.getTime() - now.getTime();
+
+            if (difference <= 0) return null;
+
+            return {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60),
+            };
+        };
+
+        // Initial update
+        setTimeLeft(calculateTimeLeft());
+
+        const timer = setInterval(() => {
+            const nextTime = calculateTimeLeft();
+            if (!nextTime) {
+                setTimeLeft(null);
+                clearInterval(timer);
+            } else {
+                setTimeLeft(nextTime);
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [subscription?.expires_at, isActive]);
 
     // Only show during trial period
     if (!subscription || !isTrial || !isActive) {
@@ -20,13 +66,19 @@ export default function SubscriptionBanner() {
                     <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <Sparkles className="w-4 h-4 text-primary" />
                     </div>
-                    <p className="text-sm text-text-primary">
-                        You are currently on a trial with{' '}
-                        <span className="font-semibold text-primary">
-                            {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
-                        </span>
-                        {' '}remaining.
-                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <p className="text-sm text-text-primary">
+                            You are currently on a trial.
+                        </p>
+                        {timeLeft && (
+                            <div className="flex items-center gap-1.5 text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                                <Clock className="w-3 h-3" />
+                                <span>
+                                    {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Subscribe Button */}

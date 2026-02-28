@@ -26,10 +26,10 @@ export const DiscountChart: React.FC = () => {
     <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
         <defs>
-          <linearGradient id="colorDiscount" x1="0" y1="0" x2="0" y2="1">
+          <linearlinear id="colorDiscount" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
             <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
-          </linearGradient>
+          </linearlinear>
         </defs>
         <CartesianGrid vertical={false} stroke={isDark ? "#374151" : "#e5e7eb"} strokeDasharray="3 3" opacity={0.3} />
         <XAxis

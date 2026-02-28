@@ -24,6 +24,7 @@ interface PricingCardProps {
         originalPrice: number;
         savings: number;
     };
+    isLoading?: boolean;
 }
 
 export default function PricingCard({
@@ -36,6 +37,7 @@ export default function PricingCard({
     onSubscribe,
     isCurrentPlan = false,
     discount,
+    isLoading = false,
 }: PricingCardProps) {
     const isPopular = badge === 'popular';
     const isBestValue = badge === 'best-value';
@@ -76,6 +78,16 @@ export default function PricingCard({
 
             {/* Price */}
             <div className="mb-6">
+                {discount && (
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-medium text-text-secondary line-through italic">
+                            ₹{discount.originalPrice.toLocaleString('en-IN')}
+                        </span>
+                        <span className="text-xs font-bold bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            Save ₹{discount.savings.toLocaleString('en-IN')}
+                        </span>
+                    </div>
+                )}
                 <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-extrabold text-text-primary">
                         ₹{price.toLocaleString('en-IN')}
@@ -142,18 +154,20 @@ export default function PricingCard({
                 ))}
             </ul>
 
-            {/* Subscribe Button */}
             <button
                 onClick={onSubscribe}
-                disabled={isCurrentPlan}
-                className={`w-full py-3 rounded-xl font-semibold transition-all cursor-pointer ${isCurrentPlan
-                        ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed'
-                        : isPopular || isBestValue
-                            ? 'bg-primary text-white hover:bg-primary/90 shadow-lg'
-                            : 'bg-white dark:bg-white text-black dark:text-black hover:bg-gray-100 dark:hover:bg-gray-200 border border-border shadow-sm'
-                    }`}
+                disabled={isCurrentPlan || isLoading}
+                className={`w-full py-3 rounded-xl font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${isCurrentPlan
+                    ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed'
+                    : isPopular || isBestValue
+                        ? 'bg-primary text-white hover:bg-primary/90 shadow-lg'
+                        : 'bg-white dark:bg-white text-black dark:text-black hover:bg-gray-100 dark:hover:bg-gray-200 border border-border shadow-sm'
+                    } ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
             >
-                {isCurrentPlan ? 'Current Plan' : 'Subscribe Now'}
+                {isLoading && (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                )}
+                {isCurrentPlan ? 'Current Plan' : isLoading ? 'Processing...' : 'Subscribe Now'}
             </button>
         </div>
     );

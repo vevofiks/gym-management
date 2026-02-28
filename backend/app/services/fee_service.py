@@ -10,11 +10,17 @@ from app.models.member import Member
 from app.models.membership_plan import MembershipPlan
 from app.schemas.member_fee import PaymentMethod, PaymentStatus
 from app.services.whatsapp_service import whatsapp_service
+from app.services.audit_service import log_activity
 from loguru import logger
 
 
 def record_fee(
-    db: Session, member_id: int, tenant_id: int, fee_data, user_id: int
+    db: Session,
+    member_id: int,
+    tenant_id: int,
+    fee_data,
+    user_id: int,
+    background_tasks: Optional[any] = None,
 ) -> MemberFee:
     # Verify member exists and belongs to tenant
     member = (
@@ -76,16 +82,40 @@ def record_fee(
     db.commit()
     db.refresh(db_fee)
 
-    logger.info(f"Recorded fee: ₹{fee_data.amount} for member {member_id} by user {user_id}")
+    # Log activity
+    log_activity(
+        db,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        type="payment",
+        description=f"Payment of ₹{fee_data.amount} received from {member.first_name} {member.last_name}",
+        meta={
+            "member_id": member_id,
+            "amount": float(fee_data.amount),
+            "fee_id": db_fee.id,
+        },
+    )
+
+    logger.info(
+        f"Recorded fee: ₹{fee_data.amount} for member {member_id} by user {user_id}"
+    )
 
     # Get plan details for original amount
-    plan = db.query(MembershipPlan).filter(MembershipPlan.id == fee_data.plan_id).first() if fee_data.plan_id else None
+    plan = (
+        db.query(MembershipPlan).filter(MembershipPlan.id == fee_data.plan_id).first()
+        if fee_data.plan_id
+        else None
+    )
     original_amount = float(plan.price) if plan else float(fee_data.amount)
+
+    # Get gym name
+    gym_name = member.tenant.name if member.tenant else "Our Gym"
 
     # Send WhatsApp payment confirmation (non-blocking)
     try:
-        asyncio.create_task(
-            whatsapp_service.send_payment_confirmation(
+        if background_tasks:
+            background_tasks.add_task(
+                whatsapp_service.send_payment_confirmation,
                 db=db,
                 tenant_id=tenant_id,
                 phone_number=member.phone_number,
@@ -93,15 +123,34 @@ def record_fee(
                 amount=float(fee_data.amount),
                 payment_method=fee_data.payment_method.value,
                 payment_date=fee_data.payment_date,
+                gym_name=gym_name,
             )
-        )
+        else:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(
+                        whatsapp_service.send_payment_confirmation(
+                            db=db,
+                            tenant_id=tenant_id,
+                            phone_number=member.phone_number,
+                            member_name=f"{member.first_name} {member.last_name}",
+                            amount=float(fee_data.amount),
+                            payment_method=fee_data.payment_method.value,
+                            payment_date=fee_data.payment_date,
+                            gym_name=gym_name,
+                        )
+                    )
+            except Exception:
+                pass
     except Exception as e:
         logger.warning(f"Failed to send WhatsApp payment confirmation: {e}")
 
     # Send detailed payment receipt (non-blocking)
     try:
-        asyncio.create_task(
-            whatsapp_service.send_payment_receipt(
+        if background_tasks:
+            background_tasks.add_task(
+                whatsapp_service.send_payment_receipt,
                 db=db,
                 tenant_id=tenant_id,
                 phone_number=member.phone_number,
@@ -112,8 +161,29 @@ def record_fee(
                 payment_method=fee_data.payment_method.value,
                 payment_date=fee_data.payment_date,
                 transaction_id=fee_data.transaction_id,
+                gym_name=gym_name,
             )
-        )
+        else:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(
+                        whatsapp_service.send_payment_receipt(
+                            db=db,
+                            tenant_id=tenant_id,
+                            phone_number=member.phone_number,
+                            member_name=f"{member.first_name} {member.last_name}",
+                            amount_paid=float(fee_data.amount),
+                            original_amount=original_amount,
+                            outstanding_dues=float(member.outstanding_dues),
+                            payment_method=fee_data.payment_method.value,
+                            payment_date=fee_data.payment_date,
+                            transaction_id=fee_data.transaction_id,
+                            gym_name=gym_name,
+                        )
+                    )
+            except Exception:
+                pass
     except Exception as e:
         logger.warning(f"Failed to send WhatsApp payment receipt: {e}")
 
@@ -121,7 +191,13 @@ def record_fee(
 
 
 def get_member_fees(
-    db: Session, member_id: int, tenant_id: int, skip: int = 0, limit: int = 100
+    db: Session,
+    member_id: int,
+    tenant_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
 ) -> Tuple[List[MemberFee], int, Decimal]:
     """Get all fee payments for a member."""
     # Verify member belongs to tenant
@@ -143,6 +219,12 @@ def get_member_fees(
     query = db.query(MemberFee).filter(
         and_(MemberFee.member_id == member_id, MemberFee.tenant_id == tenant_id)
     )
+
+    # Apply date filters
+    if start_date:
+        query = query.filter(MemberFee.payment_date >= start_date)
+    if end_date:
+        query = query.filter(MemberFee.payment_date <= end_date)
 
     total = query.count()
     fees = query.order_by(MemberFee.payment_date.desc()).offset(skip).limit(limit).all()
@@ -185,9 +267,14 @@ def get_tenant_fees(
     fees = query.order_by(MemberFee.payment_date.desc()).offset(skip).limit(limit).all()
 
     # Calculate total amount for paid fees
-    amount_query = db.query(func.sum(MemberFee.amount)).filter(
-        MemberFee.tenant_id == tenant_id,
-        MemberFee.payment_status == PaymentStatus.PAID.value,
+    amount_query = (
+        db.query(func.sum(MemberFee.amount))
+        .join(Member, MemberFee.member_id == Member.id)
+        .filter(
+            MemberFee.tenant_id == tenant_id,
+            MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
+        )
     )
 
     if start_date:
@@ -229,65 +316,92 @@ def get_financial_report(
 ) -> dict:
     """Generate financial report for a tenant."""
     # Total revenue
-    total_revenue = db.query(func.sum(MemberFee.amount)).filter(
+    total_revenue = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
     # Revenue by payment method
-    cash_payments = db.query(func.sum(MemberFee.amount)).filter(
+    cash_payments = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
             MemberFee.payment_method == PaymentMethod.CASH.value,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
-    upi_payments = db.query(func.sum(MemberFee.amount)).filter(
+    upi_payments = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
             MemberFee.payment_method == PaymentMethod.UPI.value,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
-    card_payments = db.query(func.sum(MemberFee.amount)).filter(
+    card_payments = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
             MemberFee.payment_method == PaymentMethod.CARD.value,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
-    bank_transfer_payments = db.query(func.sum(MemberFee.amount)).filter(
+    bank_transfer_payments = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_date >= start_date,
             MemberFee.payment_date <= end_date,
             MemberFee.payment_method == PaymentMethod.BANK_TRANSFER.value,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
     # Payment count
     payment_count = (
         db.query(func.count(MemberFee.id))
+        .join(Member, MemberFee.member_id == Member.id)
         .filter(
             and_(
                 MemberFee.tenant_id == tenant_id,
                 MemberFee.payment_date >= start_date,
                 MemberFee.payment_date <= end_date,
                 MemberFee.payment_status == PaymentStatus.PAID.value,
+                Member.is_deleted == False,
             )
         )
         .scalar()
@@ -297,12 +411,14 @@ def get_financial_report(
     # Unique members who paid
     member_count = (
         db.query(func.count(func.distinct(MemberFee.member_id)))
+        .join(Member, MemberFee.member_id == Member.id)
         .filter(
             and_(
                 MemberFee.tenant_id == tenant_id,
                 MemberFee.payment_date >= start_date,
                 MemberFee.payment_date <= end_date,
                 MemberFee.payment_status == PaymentStatus.PAID.value,
+                Member.is_deleted == False,
             )
         )
         .scalar()
@@ -325,12 +441,17 @@ def get_financial_report(
 def get_fee_statistics(db: Session, tenant_id: int) -> dict:
     """Get fee statistics for a tenant."""
     # Total collected
-    total_collected = db.query(func.sum(MemberFee.amount)).filter(
+    total_collected = db.query(func.sum(MemberFee.amount)).join(
+        Member, MemberFee.member_id == Member.id
+    ).filter(
         and_(
             MemberFee.tenant_id == tenant_id,
             MemberFee.payment_status == PaymentStatus.PAID.value,
+            Member.is_deleted == False,
         )
-    ).scalar() or Decimal(0)
+    ).scalar() or Decimal(
+        0
+    )
 
     # Total pending
     total_pending = db.query(func.sum(MemberFee.amount)).filter(
@@ -351,10 +472,12 @@ def get_fee_statistics(db: Session, tenant_id: int) -> dict:
     # Payment count
     payment_count = (
         db.query(func.count(MemberFee.id))
+        .join(Member, MemberFee.member_id == Member.id)
         .filter(
             and_(
                 MemberFee.tenant_id == tenant_id,
                 MemberFee.payment_status == PaymentStatus.PAID.value,
+                Member.is_deleted == False,
             )
         )
         .scalar()
@@ -367,3 +490,22 @@ def get_fee_statistics(db: Session, tenant_id: int) -> dict:
         "total_refunded": total_refunded,
         "payment_count": payment_count,
     }
+
+
+def get_all_fees_for_export(db: Session, tenant_id: int):
+    """
+    Get all fee records for a tenant for CSV export.
+    Includes member information.
+    """
+    return (
+        db.query(MemberFee)
+        .join(Member, MemberFee.member_id == Member.id)
+        .filter(
+            and_(
+                MemberFee.tenant_id == tenant_id,
+                Member.is_deleted == False,
+            )
+        )
+        .order_by(MemberFee.payment_date.desc())
+        .all()
+    )

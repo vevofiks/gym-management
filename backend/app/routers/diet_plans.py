@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.core.deps import get_current_user, get_db
@@ -26,7 +26,6 @@ def create_diet_plan_template(
     data: DietPlanTemplateCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-    _: None = Depends(check_feature_access("whatsapp")),
 ):
     """
     Create a new diet plan template (Pro plan feature).
@@ -113,9 +112,9 @@ def delete_diet_plan_template(
 )
 def assign_diet_plan_to_member(
     data: DietPlanAssignmentCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-    _: None = Depends(check_feature_access("whatsapp")),
 ):
     """
     Assign a diet plan to a member and optionally send via WhatsApp.
@@ -124,7 +123,7 @@ def assign_diet_plan_to_member(
     if send_whatsapp is True.
     """
     assignment = diet_plan_service.assign_to_member(
-        db, current_user.tenant_id, current_user.id, data
+        db, current_user.tenant_id, current_user.id, data, background_tasks
     )
     return assignment
 

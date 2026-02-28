@@ -4,7 +4,7 @@ from loguru import logger
 
 
 def create_subscription_plans(db: Session):
-    
+
     existing_plans = db.query(SubscriptionPlan).count()
     if existing_plans > 0:
         logger.info(
@@ -17,7 +17,7 @@ def create_subscription_plans(db: Session):
             name="Starter",
             price_monthly=1499.00,
             max_members=100,
-            max_staff=2,
+            max_staff=1,
             max_plans=5,
             whatsapp_enabled=False,
             advanced_analytics=False,

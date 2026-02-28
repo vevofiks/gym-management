@@ -1,13 +1,39 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RevenueChart } from './charts/RevenueChart';
 import { ActivityChart } from './charts/ActivityChart';
 import { SalesBarChart } from './charts/SalesBarChart';
 import { RecentActivity } from './RecentActivity';
 import { DiscountChart } from './charts/DiscountChart';
-import { TrendingUp, TrendingDown, Building2, Users, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Building2, Users, ArrowRight, Loader2 } from 'lucide-react';
+import { tenantService } from '../services/tenantService';
 
 export const Dashboard = () => {
+    const [stats, setStats] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const data = await tenantService.getSystemStats();
+                setStats(data);
+            } catch (error) {
+                console.error('Failed to fetch system stats:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex h-[400px] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-12 gap-4 md:gap-6 2xl:gap-7.5">
 
@@ -55,11 +81,11 @@ export const Dashboard = () => {
             {/* Widget 2: New Gym Onboarding (Bar) */}
             <div className="col-span-12 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151C2C] lg:col-span-4">
                 <div className="mb-2">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">24</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{stats?.total_tenants || 0}</h3>
                     <span className="flex items-center gap-1 text-sm font-medium text-green-500">
                         <TrendingUp size={16} /> 5.2%
                     </span>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">New Gyms this Week</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Active Gyms on Platform</p>
                 </div>
                 <div className="h-[200px] w-full">
                     <SalesBarChart />
@@ -99,9 +125,9 @@ export const Dashboard = () => {
             <div className="col-span-12 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151C2C] md:col-span-6 lg:col-span-4">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">842</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stats?.total_tenants || 0}</h3>
                         <span className="flex items-center gap-1 text-sm font-medium text-green-500 mt-1">
-                            <TrendingUp size={16} /> 12 new
+                            <TrendingUp size={16} /> Active
                         </span>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total Active Gyms</p>
                     </div>
@@ -111,11 +137,11 @@ export const Dashboard = () => {
                 </div>
                 <div className="mt-6">
                     <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">158 to Q3 Goal</span>
-                        <span className="text-gray-900 dark:text-white font-medium">84%</span>
+                        <span className="text-gray-500">Progress to Goal</span>
+                        <span className="text-gray-900 dark:text-white font-medium">75%</span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-                        <div className="h-2 rounded-full bg-indigo-500" style={{ width: '84%' }}></div>
+                        <div className="h-2 rounded-full bg-indigo-500" style={{ width: '75%' }}></div>
                     </div>
                 </div>
             </div>
@@ -124,7 +150,7 @@ export const Dashboard = () => {
             <div className="col-span-12 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151C2C] md:col-span-6 lg:col-span-4">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">125k</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{(stats?.total_members || 0).toLocaleString()}</h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total Members Managed</p>
                     </div>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
@@ -133,7 +159,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="mt-6">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-3">Top Performing Gyms</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-3">System-wide Users: {stats?.total_users || 0}</p>
                     <div className="flex -space-x-3">
                         {[1, 2, 3, 4].map((i) => (
                             <img
@@ -141,12 +167,9 @@ export const Dashboard = () => {
                                 className="h-10 w-10 rounded-full border-2 border-white dark:border-[#151C2C] object-cover"
                                 src={`https://picsum.photos/100/100?random=${i + 10}`}
                                 alt={`Gym Logo ${i}`}
-                                title="Top Gym"
+                                title="Recent Gym"
                             />
                         ))}
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-xs font-medium text-gray-600 dark:border-[#151C2C] dark:bg-gray-700 dark:text-white">
-                            +120
-                        </div>
                     </div>
                 </div>
             </div>
@@ -156,10 +179,10 @@ export const Dashboard = () => {
                 <div className="h-full w-full rounded-xl border border-indigo-100 bg-linear-to-br from-indigo-600 to-violet-700 p-6 shadow-sm text-white flex flex-col justify-between">
                     <div>
                         <h3 className="text-lg font-bold mb-2">Deploy New Feature</h3>
-                        <p className="text-indigo-100 text-sm">Roll out the new AI Coaching Module to all Enterprise gyms.</p>
+                        <p className="text-indigo-100 text-sm">Roll out new modules to all active gym tenants.</p>
                     </div>
                     <button className="mt-4 flex w-fit items-center gap-2 rounded-lg bg-white/20 px-4 py-2 text-sm font-medium backdrop-blur-sm hover:bg-white/30">
-                        Start Deployment <ArrowRight size={16} />
+                        Manage Rollout <ArrowRight size={16} />
                     </button>
                 </div>
             </div>

@@ -6,7 +6,7 @@ from .config import settings
 
 SECRET_KEY = str(settings.SECRET_KEY)
 ALGORITHM = str(settings.ALGORITHM)
-ACCESS_TOKEN_EXPIRE_MINUTES = int(str(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+ACCESS_TOKEN_EXPIRE_DAYS = int(str(settings.ACCESS_TOKEN_EXPIRE_DAYS))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,6 +29,3 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
-
-

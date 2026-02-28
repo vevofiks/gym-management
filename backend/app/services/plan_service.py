@@ -19,7 +19,7 @@ def create_plan(db: Session, plan_data, tenant_id: int) -> MembershipPlan:
             and_(
                 MembershipPlan.tenant_id == tenant_id,
                 MembershipPlan.name == plan_data.name,
-                MembershipPlan.is_active == True,
+                MembershipPlan.is_deleted == False,
             )
         )
         .first()
@@ -72,10 +72,20 @@ def get_plan_by_id(
             and_(
                 MembershipPlan.id == plan_id,
                 MembershipPlan.tenant_id == tenant_id,
+                MembershipPlan.is_deleted == False,
             )
         )
         .first()
     )
+
+    if plan:
+        # Fetch member count
+        plan.member_count = (
+            db.query(func.count(Member.id))
+            .filter(and_(Member.plan_id == plan_id, Member.is_deleted == False))
+            .scalar()
+            or 0
+        )
 
     # Parse features JSON if exists
     if plan and plan.features:
@@ -95,18 +105,31 @@ def get_plans_by_tenant(
     active_only: bool = True,
 ) -> Tuple[List[MembershipPlan], int]:
     """Get all plans for a tenant with pagination."""
-    query = db.query(MembershipPlan).filter(MembershipPlan.tenant_id == tenant_id)
+    query = db.query(MembershipPlan).filter(
+        and_(MembershipPlan.tenant_id == tenant_id, MembershipPlan.is_deleted == False)
+    )
 
     if active_only:
         query = query.filter(MembershipPlan.is_active == True)
 
     total = query.count()
+
+    # Get counts for all plans of this tenant
+    member_counts = (
+        db.query(Member.plan_id, func.count(Member.id))
+        .filter(and_(Member.tenant_id == tenant_id, Member.is_deleted == False))
+        .group_by(Member.plan_id)
+        .all()
+    )
+    counts_map = {p_id: count for p_id, count in member_counts if p_id is not None}
+
     plans = (
         query.order_by(MembershipPlan.created_at.desc()).offset(skip).limit(limit).all()
     )
 
-    # Parse features JSON for all plans
+    # Parse features JSON for all plans and attach member counts
     for plan in plans:
+        plan.member_count = counts_map.get(plan.id, 0)
         if plan.features:
             try:
                 plan.features = json.loads(plan.features)
@@ -136,7 +159,7 @@ def update_plan(
                 and_(
                     MembershipPlan.tenant_id == tenant_id,
                     MembershipPlan.name == plan_update.name,
-                    MembershipPlan.is_active == plan_update.is_active,
+                    MembershipPlan.is_deleted == False,
                     MembershipPlan.id != plan_id,
                 )
             )
@@ -181,8 +204,9 @@ def delete_plan(db: Session, plan_id: int, tenant_id: int) -> bool:
     # Check if any members are using this plan
     members_count = (
         db.query(func.count(Member.id))
-        .filter(and_(Member.plan_id == plan_id, Member.is_active == True))
+        .filter(and_(Member.plan_id == plan_id, Member.is_deleted == False))
         .scalar()
+        or 0
     )
 
     if members_count > 0:
@@ -190,8 +214,8 @@ def delete_plan(db: Session, plan_id: int, tenant_id: int) -> bool:
             f"Cannot delete plan. {members_count} active members are using this plan."
         )
 
-    db.delete(plan)
-    db.refresh(plan)
+    plan.is_deleted = True
+    plan.is_active = False
     db.commit()
 
     logger.info(f"Deleted plan: {plan.name} (ID: {plan.id})")
@@ -218,7 +242,7 @@ def get_plan_statistics(db: Session, plan_id: int, tenant_id: int) -> Optional[d
         .filter(
             and_(
                 Member.plan_id == plan_id,
-                Member.is_active == True,
+                Member.is_deleted == False,
                 Member.status == "active",
             )
         )
