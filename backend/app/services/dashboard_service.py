@@ -111,7 +111,7 @@ def get_dashboard_stats(db: Session, tenant_id: int) -> DashboardStats:
     )
 
     # Monthly revenue (current month)
-    monthly_revenue = (
+    monthly_revenue = float(
         db.query(func.sum(MemberFee.amount))
         .join(Member, MemberFee.member_id == Member.id)
         .filter(
@@ -127,7 +127,7 @@ def get_dashboard_stats(db: Session, tenant_id: int) -> DashboardStats:
     )
 
     # Monthly revenue (previous month)
-    monthly_revenue_prev = (
+    monthly_revenue_prev = float(
         db.query(func.sum(MemberFee.amount))
         .join(Member, MemberFee.member_id == Member.id)
         .filter(

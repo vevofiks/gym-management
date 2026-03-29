@@ -60,7 +60,9 @@ app.include_router(audit.router, prefix="/api")
 app.include_router(store.router, prefix="/api")
 
 # Static Files
-UPLOAD_DIR = "/home/amraz/My Works/vevofiks/gym-management/backend/uploads"
+UPLOAD_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads"
+)
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")

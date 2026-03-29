@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
 
                         <div className="space-y-12">
                             {/* Section 1 */}
-                            <div className="glass-panel p-8 md:p-12 rounded-4xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
+                            <div className="glass-panel p-8 md:p-12 rounded-xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <Shield size={120} />
                                 </div>
@@ -62,7 +62,7 @@ export default function PrivacyPolicy() {
                             </div>
 
                             {/* Section 2 */}
-                            <div className="glass-panel p-8 md:p-12 rounded-4xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
+                            <div className="glass-panel p-8 md:p-12 rounded-xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <Lock size={120} />
                                 </div>
@@ -83,7 +83,7 @@ export default function PrivacyPolicy() {
                             </div>
 
                             {/* Section 3 */}
-                            <div className="glass-panel p-8 md:p-12 rounded-4xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
+                            <div className="glass-panel p-8 md:p-12 rounded-xl border-white/5 relative overflow-hidden group hover:border-primary/20 transition-colors">
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <FileText size={120} />
                                 </div>

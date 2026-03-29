@@ -29,14 +29,7 @@ def create_tenant(db: Session, tenant: TenantCreate) -> Tenant:
     if existing:
         raise TenantAlreadyExistsException("Tenant name already exists")
 
-    db_tenant = Tenant(
-        name=tenant.name,
-        address=tenant.address,
-        google_map=tenant.google_map,
-        upi_id=tenant.upi_id,
-        whatsapp_access_token=tenant.whatsapp_access_token,
-        whatsapp_phone_id=tenant.whatsapp_phone_id,
-    )
+    db_tenant = Tenant(**tenant.model_dump())
     db.add(db_tenant)
     db.commit()
     db.refresh(db_tenant)

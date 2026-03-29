@@ -233,16 +233,19 @@ def check_and_process_queue(db: Session, tenant_id: int) -> bool:
 
     # Only process if current is expired or trial expired
     is_active = False
+    now = datetime.now()
+    today = date.today()
+
     if (
         subscription.status == SubscriptionStatus.ACTIVE
         and subscription.subscription_end_date
     ):
-        if date.today() <= subscription.subscription_end_date:
+        if today <= subscription.subscription_end_date:
             is_active = True
     elif (
         subscription.status == SubscriptionStatus.TRIAL and subscription.trial_end_date
     ):
-        if date.today() <= subscription.trial_end_date:
+        if today <= subscription.trial_end_date:
             is_active = True
 
     if is_active:
@@ -565,16 +568,9 @@ def is_subscription_active(db: Session, tenant_id: int) -> bool:
 
     # Trial active?
     if subscription.status == SubscriptionStatus.TRIAL:
-        # Use Tenant.created_at to determine precise trial end (7 full days)
-        if subscription.tenant and subscription.tenant.created_at:
-            # Convert to date for comparison if needed, or use datetime
-            trial_end_dt = subscription.tenant.created_at + timedelta(days=7)
-            if datetime.now(trial_end_dt.tzinfo) <= trial_end_dt:
+        if subscription.trial_end_date:
+            if date.today() <= subscription.trial_end_date:
                 return True
-        elif (
-            subscription.trial_end_date and date.today() <= subscription.trial_end_date
-        ):
-            return True
 
         # Trial expired, update status
         expire_trial(db, tenant_id)
@@ -721,17 +717,10 @@ def get_subscription_status_detail(db: Session, tenant_id: int) -> dict:
     # Determine exact expiration timestamp for countdown
     expires_at = None
     if subscription.status == SubscriptionStatus.TRIAL:
-        # Priority 1: Tenant.created_at + 7 days (exact to the second)
-        if subscription.tenant and subscription.tenant.created_at:
-            expires_at = subscription.tenant.created_at + timedelta(days=7)
-        # Priority 2: subscription.created_at + 7 days
-        elif subscription.created_at:
-            expires_at = subscription.created_at + timedelta(days=7)
-        # Priority 3: trial_end_date (at end of day)
-        elif subscription.trial_end_date:
-            expires_at = datetime.combine(
-                subscription.trial_end_date, datetime.max.time()
-            )
+        if subscription.trial_end_date:
+            expires_at = subscription.trial_end_date
+            if not isinstance(expires_at, datetime):
+                expires_at = datetime.combine(expires_at, datetime.max.time())
     elif (
         subscription.status == SubscriptionStatus.ACTIVE
         and subscription.subscription_end_date

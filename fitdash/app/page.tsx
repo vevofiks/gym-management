@@ -25,7 +25,7 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="glass-panel p-10 md:p-20 rounded-4xl md:rounded-[3rem] border-white/5 text-center relative overflow-hidden"
+            className="glass-panel p-10 md:p-20 rounded-xl md:rounded-[3rem] border-white/5 text-center relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-linear-to-tr from-primary/10 via-transparent to-transparent opacity-50" />
             <h2 className="text-4xl md:text-7xl font-bold mb-6 md:mb-8 italic tracking-tighter leading-none">

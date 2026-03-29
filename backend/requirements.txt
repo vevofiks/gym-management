@@ -2,7 +2,8 @@ alembic
 bcrypt==4.0.1             
 black
 fastapi[standard]
-httpxrazorpay==2.0.0
+httpx
+razorpay==2.0.0
 loguru
 passlib[bcrypt]
 psycopg2-binary
@@ -15,3 +16,4 @@ SQLAlchemy
 uvicorn
 pandas
 openpyxl
+reportlab

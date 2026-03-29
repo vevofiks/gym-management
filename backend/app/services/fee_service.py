@@ -21,6 +21,7 @@ def record_fee(
     fee_data,
     user_id: int,
     background_tasks: Optional[any] = None,
+    send_receipt: bool = True,
 ) -> MemberFee:
     # Verify member exists and belongs to tenant
     member = (
@@ -111,81 +112,47 @@ def record_fee(
     # Get gym name
     gym_name = member.tenant.name if member.tenant else "Our Gym"
 
-    # Send WhatsApp payment confirmation (non-blocking)
-    try:
-        if background_tasks:
-            background_tasks.add_task(
-                whatsapp_service.send_payment_confirmation,
-                db=db,
-                tenant_id=tenant_id,
-                phone_number=member.phone_number,
-                member_name=f"{member.first_name} {member.last_name}",
-                amount=float(fee_data.amount),
-                payment_method=fee_data.payment_method.value,
-                payment_date=fee_data.payment_date,
-                gym_name=gym_name,
-            )
-        else:
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    loop.create_task(
-                        whatsapp_service.send_payment_confirmation(
-                            db=db,
-                            tenant_id=tenant_id,
-                            phone_number=member.phone_number,
-                            member_name=f"{member.first_name} {member.last_name}",
-                            amount=float(fee_data.amount),
-                            payment_method=fee_data.payment_method.value,
-                            payment_date=fee_data.payment_date,
-                            gym_name=gym_name,
-                        )
-                    )
-            except Exception:
-                pass
-    except Exception as e:
-        logger.warning(f"Failed to send WhatsApp payment confirmation: {e}")
-
     # Send detailed payment receipt (non-blocking)
-    try:
-        if background_tasks:
-            background_tasks.add_task(
-                whatsapp_service.send_payment_receipt,
-                db=db,
-                tenant_id=tenant_id,
-                phone_number=member.phone_number,
-                member_name=f"{member.first_name} {member.last_name}",
-                amount_paid=float(fee_data.amount),
-                original_amount=original_amount,
-                outstanding_dues=float(member.outstanding_dues),
-                payment_method=fee_data.payment_method.value,
-                payment_date=fee_data.payment_date,
-                transaction_id=fee_data.transaction_id,
-                gym_name=gym_name,
-            )
-        else:
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    loop.create_task(
-                        whatsapp_service.send_payment_receipt(
-                            db=db,
-                            tenant_id=tenant_id,
-                            phone_number=member.phone_number,
-                            member_name=f"{member.first_name} {member.last_name}",
-                            amount_paid=float(fee_data.amount),
-                            original_amount=original_amount,
-                            outstanding_dues=float(member.outstanding_dues),
-                            payment_method=fee_data.payment_method.value,
-                            payment_date=fee_data.payment_date,
-                            transaction_id=fee_data.transaction_id,
-                            gym_name=gym_name,
+    if send_receipt:
+        try:
+            if background_tasks:
+                background_tasks.add_task(
+                    whatsapp_service.send_payment_receipt,
+                    db=db,
+                    tenant_id=tenant_id,
+                    phone_number=member.phone_number,
+                    member_name=f"{member.first_name} {member.last_name}",
+                    amount_paid=float(fee_data.amount),
+                    original_amount=original_amount,
+                    outstanding_dues=float(member.outstanding_dues),
+                    payment_method=fee_data.payment_method.value,
+                    payment_date=fee_data.payment_date,
+                    transaction_id=fee_data.transaction_id,
+                    gym_name=gym_name,
+                )
+            else:
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(
+                            whatsapp_service.send_payment_receipt(
+                                db=db,
+                                tenant_id=tenant_id,
+                                phone_number=member.phone_number,
+                                member_name=f"{member.first_name} {member.last_name}",
+                                amount_paid=float(fee_data.amount),
+                                original_amount=original_amount,
+                                outstanding_dues=float(member.outstanding_dues),
+                                payment_method=fee_data.payment_method.value,
+                                payment_date=fee_data.payment_date,
+                                transaction_id=fee_data.transaction_id,
+                                gym_name=gym_name,
+                            )
                         )
-                    )
-            except Exception:
-                pass
-    except Exception as e:
-        logger.warning(f"Failed to send WhatsApp payment receipt: {e}")
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.warning(f"Failed to send WhatsApp payment receipt: {e}")
 
     return db_fee
 

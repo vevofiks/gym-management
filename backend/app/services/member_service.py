@@ -506,6 +506,7 @@ def renew_membership(
             fee_data,
             user_id,
             background_tasks=background_tasks,
+            send_receipt=False,
         )
     except Exception as e:
         logger.error(f"Failed to record renewal payment for member {member.id}: {e}")
@@ -533,6 +534,8 @@ def renew_membership(
                 member_name=f"{member.first_name} {member.last_name}",
                 membership_type=plan_name or "Gym Membership",
                 new_expiry_date=new_expiry,
+                amount_paid=float(renewal.payment_amount),
+                payment_method=renewal.payment_method,
                 gym_name=gym_name,
             )
         else:
@@ -549,6 +552,8 @@ def renew_membership(
                             member_name=f"{member.first_name} {member.last_name}",
                             membership_type=plan_name or "Gym Membership",
                             new_expiry_date=new_expiry,
+                            amount_paid=float(renewal.payment_amount),
+                            payment_method=renewal.payment_method,
                             gym_name=gym_name,
                         )
                     )

@@ -404,9 +404,7 @@ Hello {member_name}! 👋 Welcome to the {gym_name} family! 💪
 • Valid Until: {expiry_date.strftime('%d %B %Y')}
 
 Your fitness journey starts now! Our team is here to support you every step of the way.
-
 If you have any questions, feel free to reach out to us.
-
 Let's achieve your fitness goals together! 🏋️‍♂️
 
 Best regards,
@@ -422,6 +420,8 @@ Best regards,
         member_name: str,
         membership_type: str,
         new_expiry_date: date,
+        amount_paid: float,
+        payment_method: str,
         gym_name: str,
     ) -> Dict[str, Any]:
 
@@ -435,36 +435,11 @@ Your membership has been renewed. Thank you for continuing your fitness journey 
 • Plan: {membership_type}
 • Valid Until: {new_expiry_date.strftime('%d %B %Y')}
 
+💰 *Payment Details:*
+• Amount Paid: ₹{amount_paid:.2f}
+• Payment Method: {payment_method.capitalize()}
+
 Keep up the great work! We're excited to see you achieve your fitness goals.
-
-Best regards,
-{gym_name} Team"""
-
-        return await self.send_text_message(db, tenant_id, phone_number, message)
-
-    async def send_payment_confirmation(
-        self,
-        db,
-        tenant_id: int,
-        phone_number: str,
-        member_name: str,
-        amount: float,
-        payment_method: str,
-        payment_date: date,
-        gym_name: str,
-    ) -> Dict[str, Any]:
-        message = f"""💰 *Payment Received* 💰
-
-Hello {member_name}! 👋
-
-We have received your payment. Thank you! 🙏
-
-📋 *Payment Details:*
-• Amount: ₹{amount:.2f}
-• Method: {payment_method}
-• Date: {payment_date.strftime('%d %B %Y')}
-
-This is your payment confirmation. Please keep this for your records.
 
 Best regards,
 {gym_name} Team"""
@@ -513,9 +488,16 @@ Best regards,
         payment_date: date,
         gym_name: str,
         transaction_id: Optional[str] = None,
+        membership_amount: float = 0.0,
     ) -> Dict[str, Any]:
         payment_status = (
             "✅ *PAID IN FULL*" if outstanding_dues == 0 else "⚠️ *PARTIAL PAYMENT*"
+        )
+
+        membership_line = (
+            f"\n• Membership Amount: ₹{membership_amount:.2f}"
+            if membership_amount > 0
+            else ""
         )
 
         message = f"""📄 *PAYMENT RECEIPT* 📄
@@ -527,7 +509,7 @@ Thank you for your payment! Here are your payment details:
 {payment_status}
 
 💰 *Payment Breakdown:*
-• Original Amount: ₹{original_amount:.2f}
+• Fee Amount: ₹{original_amount:.2f}{membership_line}
 • Amount Paid: ₹{amount_paid:.2f}
 • Outstanding Dues: ₹{outstanding_dues:.2f}
 

@@ -32,7 +32,7 @@ const GlassDashboard = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                        className="absolute inset-0 glass-panel rounded-4xl border-white/5 shadow-2xl overflow-hidden group"
+                        className="absolute inset-0 glass-panel rounded-xl border-white/5 shadow-2xl overflow-hidden group"
                     >
                         <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/5 font-black text-[6rem] sm:text-[8rem] md:text-[12rem] whitespace-nowrap pointer-events-none select-none">
