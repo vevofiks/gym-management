@@ -142,43 +142,43 @@ export default function Members() {
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-4 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-xl text-primary"><Users size={20} /></div>
+                        <div className="p-2 bg-primary/10 rounded-xl text-primary"><Users size={18} /></div>
                         <span className="text-[10px] font-bold text-green-500 uppercase">+12%</span>
                     </div>
-                    <div className="text-3xl font-black text-text-primary">{stats?.total_members ?? members.length}</div>
+                    <div className="text-2xl font-black text-text-primary">{stats?.total_members ?? members.length}</div>
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Members</div>
                 </div>
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-4 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500"><UserCheck size={20} /></div>
+                        <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500"><UserCheck size={18} /></div>
                         <span className="text-[10px] font-bold text-blue-500 uppercase">88%</span>
                     </div>
-                    <div className="text-3xl font-black text-text-primary">
+                    <div className="text-2xl font-black text-text-primary">
                         {stats?.active_members ?? members.filter(m => m.status === MemberStatus.ACTIVE).length}
                     </div>
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Active Now</div>
                 </div>
                 <div
                     onClick={() => router.push('/members/insights?filter=expiring_soon')}
-                    className="bg-card border border-border p-6 rounded-3xl shadow-soft cursor-pointer hover:shadow-lg transition-all active:scale-95 group"
+                    className="bg-card border border-border p-4 rounded-xl shadow-soft cursor-pointer hover:shadow-lg transition-all active:scale-95 group"
                 >
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500 group-hover:scale-110 transition-transform"><AlertCircle size={20} /></div>
+                        <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500 group-hover:scale-110 transition-transform"><AlertCircle size={18} /></div>
                         <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider">Action Required</span>
                     </div>
-                    <div className="text-3xl font-black text-text-primary">
+                    <div className="text-2xl font-black text-text-primary">
                         {stats?.expired_members ?? members.filter(m => m.status === MemberStatus.EXPIRED).length}
                     </div>
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">Expiring Soon</div>
                 </div>
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-4 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-green-500/10 rounded-xl text-green-500"><TrendingUp size={20} /></div>
+                        <div className="p-2 bg-green-500/10 rounded-xl text-green-500"><TrendingUp size={18} /></div>
                         <span className="text-[10px] font-bold text-green-500 uppercase">Live</span>
                     </div>
-                    <div className="text-3xl font-black text-text-primary">
+                    <div className="text-2xl font-black text-text-primary">
                         {formatCurrency(stats?.total_revenue || 0)}
                     </div>
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Revenue</div>
@@ -186,7 +186,7 @@ export default function Members() {
             </div>
 
             {isLoading ? (
-                <div className="w-full rounded-4xl bg-card p-6 shadow-soft border border-border">
+                <div className="w-full rounded-xl bg-card p-6 shadow-soft border border-border">
                     <div className="h-64 flex items-center justify-center">
                         <div className="text-text-secondary font-bold animate-pulse">Loading members...</div>
                     </div>
@@ -221,7 +221,7 @@ export default function Members() {
             {editingMember && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setEditingMember(null)} />
-                    <div className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col bg-card rounded-3xl shadow-2xl border border-border overflow-hidden">
+                    <div className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col bg-card rounded-xl shadow-2xl border border-border overflow-hidden">
                         <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
                             <div>
                                 <h2 className="text-xl font-black text-text-primary uppercase tracking-tight">Edit Member Profile</h2>

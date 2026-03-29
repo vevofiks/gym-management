@@ -5,6 +5,7 @@ import { Header } from './Header';
 import { usePathname } from 'next/navigation';
 import SubscriptionBanner from '../SubscriptionBanner';
 import { useAuthStore } from '@/store/AuthStore';
+import { useSubscriptionStore } from '@/store/SubscriptionStore';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -34,30 +35,35 @@ export const Layout = ({ children }: LayoutProps) => {
     }
   };
 
+  const { isSubscriptionActive } = useSubscriptionStore();
+  const active = isSubscriptionActive();
+
   return (
     <div className="flex min-h-screen bg-background font-sans text-text-primary transition-colors duration-300">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {active && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
 
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+      <div className={`flex-1 flex flex-col min-w-0 ${active ? 'lg:pl-72' : ''} transition-all duration-300`}>
         {/* Full-width banner - Hidden for staff */}
-        {user?.role !== 'gym_staff' && <SubscriptionBanner />}
+        {active && user?.role !== 'gym_staff' && <SubscriptionBanner />}
 
-        <div className="px-6 lg:px-10">
-          {pathname === "/subscription" ? null : (
-            <Header
-              title={getPageTitle(pathname).title}
-              subtitle={getPageTitle(pathname).subtitle}
-              onMenuClick={() => setIsSidebarOpen(true)}
-            />
-          )}
-        </div>
+        {active && (
+          <div className="px-6 lg:px-10">
+            {pathname === "/subscription" ? null : (
+              <Header
+                title={getPageTitle(pathname).title}
+                subtitle={getPageTitle(pathname).subtitle}
+                onMenuClick={() => setIsSidebarOpen(true)}
+              />
+            )}
+          </div>
+        )}
 
-        <main className="flex-1 px-6 pb-6 lg:px-10 lg:pb-10 overflow-x-hidden">
+        <main className={`flex-1 ${active ? 'px-6 pb-6 lg:px-10 lg:pb-10' : ''} overflow-x-hidden`}>
           {children}
         </main>
       </div>
 
-      {isSidebarOpen && (
+      {active && isSidebarOpen && (
         <div
           className="fixed inset-0 z-0 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsSidebarOpen(false)}

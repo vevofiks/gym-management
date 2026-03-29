@@ -42,7 +42,7 @@ export const BirthdayCalendarModal: React.FC<BirthdayCalendarModalProps> = ({
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-card border border-border rounded-4xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between">
                     <div>
@@ -56,13 +56,13 @@ export const BirthdayCalendarModal: React.FC<BirthdayCalendarModalProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="flex items-center bg-background border border-border rounded-xl p-1 mr-4">
-                            <button onClick={prevMonth} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                            <button onClick={prevMonth} className="p-1.5 hover:bg-muted rounded-xl transition-colors">
                                 <ChevronLeft size={18} />
                             </button>
                             <span className="px-3 text-xs font-black text-text-primary uppercase min-w-[120px] text-center">
                                 {format(currentDate, dateFormat)}
                             </span>
-                            <button onClick={nextMonth} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                            <button onClick={nextMonth} className="p-1.5 hover:bg-muted rounded-xl transition-colors">
                                 <ChevronRight size={18} />
                             </button>
                         </div>
@@ -90,7 +90,7 @@ export const BirthdayCalendarModal: React.FC<BirthdayCalendarModalProps> = ({
                             return (
                                 <div
                                     key={i}
-                                    className={`min-h-[80px] p-2 border border-border/30 rounded-2xl transition-all relative ${isCurrentMonth ? 'bg-background/20' : 'bg-background/5 opacity-40'
+                                    className={`min-h-[80px] p-2 border border-border/30 rounded-xl transition-all relative ${isCurrentMonth ? 'bg-background/20' : 'bg-background/5 opacity-40'
                                         } ${isToday ? 'ring-2 ring-primary/30 ring-inset' : ''} ${dayBirthdays.length > 0 ? 'bg-pink-500/5 border-pink-500/20' : ''}`}
                                 >
                                     <span className={`text-[10px] font-bold ${isToday ? 'text-primary' : 'text-text-secondary'}`}>

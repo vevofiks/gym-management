@@ -54,13 +54,13 @@ export const ExpiringWidget = ({ members, isLoading }: Props) => {
   };
 
   if (isLoading) {
-    return <Skeleton className="h-[400px] w-full rounded-4xl" />;
+    return <Skeleton className="h-[400px] w-full rounded-xl" />;
   }
 
   const memberCount = members?.length || 0;
 
   return (
-    <div className="flex h-full flex-col rounded-4xl bg-card p-6 shadow-soft border border-border">
+    <div className="flex h-full flex-col rounded-xl bg-card p-6 shadow-soft border border-border">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
@@ -83,7 +83,7 @@ export const ExpiringWidget = ({ members, isLoading }: Props) => {
 
       <div className="flex-1 space-y-4 overflow-y-auto pr-2">
         {members?.map((member) => (
-          <div key={member.id} className="flex items-center justify-between rounded-2xl bg-background p-4 transition-colors hover:bg-background/80 border border-transparent hover:border-border">
+          <div key={member.id} className="flex items-center justify-between rounded-xl bg-background p-4 transition-colors hover:bg-background/80 border border-transparent hover:border-border">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
                 {member.first_name[0]}{member.last_name[0]}

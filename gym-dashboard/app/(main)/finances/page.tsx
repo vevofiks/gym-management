@@ -158,7 +158,7 @@ export default function FinancesPage() {
         .filter(item => item.amount > 0) : [];
 
     // Advanced analytics and charts for Pro only
-    const isPro = subscription?.plan_name.toLowerCase() === 'pro' || subscription?.is_trial;
+    const isPro = subscription?.plan_name.toLowerCase().includes('pro') || subscription?.is_trial;
 
     // Upgrade prompt for non-pro users (only if they don't even have basic access, which should be handled by hasAccess)
     if (!hasAccess) {
@@ -235,7 +235,7 @@ export default function FinancesPage() {
             </div>
 
             {/* Date Range Filter */}
-            <div className="bg-card border border-border p-4 rounded-3xl shadow-soft flex flex-wrap items-center gap-6">
+            <div className="bg-card border border-border p-4 rounded-xl shadow-soft flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-3">
                     <Calendar size={18} className="text-text-secondary" />
                     <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">Custom Range:</span>
@@ -247,7 +247,7 @@ export default function FinancesPage() {
                             type="date"
                             value={startDate}
                             onChange={(e) => { setStartDate(e.target.value); setQuickFilter('custom'); }}
-                            className="bg-background px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-background px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                     <div className="flex items-center gap-3">
@@ -256,7 +256,7 @@ export default function FinancesPage() {
                             type="date"
                             value={endDate}
                             onChange={(e) => { setEndDate(e.target.value); setQuickFilter('custom'); }}
-                            className="bg-background px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-background px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                 </div>
@@ -273,7 +273,7 @@ export default function FinancesPage() {
                 <>
                     {/* Summary Stats with Growth */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
                                     <TrendingUp size={20} />
@@ -292,7 +292,7 @@ export default function FinancesPage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Revenue</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-red-500/10 rounded-xl text-red-500">
                                     <TrendingDown size={20} />
@@ -311,7 +311,7 @@ export default function FinancesPage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Expenses</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className={cn(
                                     "p-2 rounded-xl",
@@ -336,7 +336,7 @@ export default function FinancesPage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Net Profit</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
                                     <Users size={20} />
@@ -353,7 +353,7 @@ export default function FinancesPage() {
                     {isPro ? (
                         <RevenueVsExpensesChart data={trendData} isLoading={isRefreshing} />
                     ) : (
-                        <div className="bg-card border border-border p-8 rounded-3xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[300px]">
+                        <div className="bg-card border border-border p-8 rounded-xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[300px]">
                             <div className="p-4 bg-primary/10 rounded-full text-primary">
                                 <Lock size={24} />
                             </div>
@@ -373,11 +373,11 @@ export default function FinancesPage() {
                             </>
                         ) : (
                             <>
-                                <div className="bg-card border border-border p-8 rounded-3xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[250px]">
+                                <div className="bg-card border border-border p-8 rounded-xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[250px]">
                                     <Lock size={20} className="text-text-secondary" />
                                     <p className="text-xs text-text-secondary font-bold uppercase tracking-wider">Expense Breakdown Locked</p>
                                 </div>
-                                <div className="bg-card border border-border p-8 rounded-3xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[250px]">
+                                <div className="bg-card border border-border p-8 rounded-xl shadow-soft flex flex-col items-center justify-center gap-4 min-h-[250px]">
                                     <Lock size={20} className="text-text-secondary" />
                                     <p className="text-xs text-text-secondary font-bold uppercase tracking-wider">Payment Analytics Locked</p>
                                 </div>
@@ -387,33 +387,33 @@ export default function FinancesPage() {
 
                     {/* Advanced Metrics */}
                     {isPro && (
-                        <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-3xl">
+                        <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 p-6 rounded-xl">
                             <h3 className="text-sm font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <Zap size={16} />
                                 Advanced Metrics
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Avg Daily Revenue</div>
                                     <div className="text-xl font-black text-text-primary">₹{Math.round(avgDailyRevenue).toLocaleString()}</div>
                                 </div>
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Avg Daily Expenses</div>
                                     <div className="text-xl font-black text-text-primary">₹{Math.round(avgDailyExpenses).toLocaleString()}</div>
                                 </div>
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Revenue/Member</div>
                                     <div className="text-xl font-black text-text-primary">₹{Math.round(avgRevenuePerMember).toLocaleString()}</div>
                                 </div>
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Profit Margin</div>
                                     <div className="text-xl font-black text-text-primary">{profitMargin.toFixed(1)}%</div>
                                 </div>
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Burn Rate</div>
                                     <div className="text-xl font-black text-text-primary">₹{Math.round(burnRate).toLocaleString()}/day</div>
                                 </div>
-                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                                <div className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-border/50">
                                     <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Runway Days</div>
                                     <div className="text-xl font-black text-text-primary">{runwayDays} days</div>
                                 </div>
@@ -424,7 +424,7 @@ export default function FinancesPage() {
                     {/* Top Categories */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {expenseData && expenseData.by_category && expenseData.by_category.length > 0 && (
-                            <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                            <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                                 <h3 className="text-sm font-black text-text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <div className="w-1.5 h-4 bg-red-500 rounded-full" />
                                     Top Expense Categories
@@ -449,7 +449,7 @@ export default function FinancesPage() {
                         )}
 
                         {paymentMethodData && paymentMethodData.length > 0 && (
-                            <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                            <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                                 <h3 className="text-sm font-black text-text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <div className="w-1.5 h-4 bg-green-500 rounded-full" />
                                     Payment Method Performance

@@ -100,7 +100,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         {/* User Profile Header */}
                         <button
                             onClick={() => setIsProfileModalOpen(true)}
-                            className="group flex items-center gap-4 mb-10 text-left hover:bg-primary/5 p-2 -m-2 rounded-2xl transition-all w-full"
+                            className="group flex items-center gap-4 mb-10 text-left hover:bg-primary/5 p-2 -m-2 rounded-xl transition-all w-full"
                         >
                             <div className="relative">
                                 {user?.avatar_url ? (
@@ -128,7 +128,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
                         {/* Balance Card Widget */}
                         {user?.role === 'gym_owner' && (
-                            <div className="relative mb-8 overflow-hidden rounded-3xl bg-sidebar p-5 shadow-soft border border-border group">
+                            <div className="relative mb-8 overflow-hidden rounded-xl bg-sidebar p-5 shadow-soft border border-border group">
                                 <p className="text-xs font-semibold text-text-secondary mb-1 uppercase tracking-wider">Total Revenue</p>
                                 <div className="flex items-baseline gap-0.5 mb-3">
                                     <h3 className="text-2xl font-extrabold text-text-primary">
@@ -145,7 +145,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                     </svg>
                                 </div>
 
-                                {(subscription?.plan_name.toLowerCase() === 'pro' || subscription?.is_trial) && (
+                                {(subscription?.plan_name.toLowerCase().includes('pro') || subscription?.is_trial) && (
                                     <button
                                         onClick={() => {
                                             if (
@@ -182,7 +182,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                                         href={item.path}
                                         onClick={() => onClose()}
                                         className={cn(
-                                            "flex items-center gap-4 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
+                                            "flex items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
                                             isActive
                                                 ? "bg-transparent text-primary font-bold"
                                                 : "text-text-secondary hover:bg-background hover:text-text-primary"

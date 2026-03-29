@@ -135,7 +135,7 @@ export default function DietPlansPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-end">
                 <Button
                     onClick={handleCreate}
-                    className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-6 rounded-2xl shadow-glow transition-all active:scale-95"
+                    className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-6 rounded-xl shadow-glow transition-all active:scale-95"
                 >
                     <Plus className="mr-2 h-5 w-5" />
                     New Template
@@ -150,10 +150,10 @@ export default function DietPlansPage() {
                         placeholder="Search templates by name..."
                         value={searchQuery}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                        className="pl-12 h-12 bg-sidebar border-border rounded-2xl focus:ring-primary/20 transition-all font-medium"
+                        className="pl-12 h-12 bg-sidebar border-border rounded-xl focus:ring-primary/20 transition-all font-medium"
                     />
                 </div>
-                <div className="flex gap-2 p-1.5 bg-sidebar rounded-2xl border border-border overflow-x-auto no-scrollbar">
+                <div className="flex gap-2 p-1.5 bg-sidebar rounded-xl border border-border overflow-x-auto no-scrollbar">
                     {CATEGORIES.map((cat) => (
                         <button
                             key={cat.value}
@@ -175,7 +175,7 @@ export default function DietPlansPage() {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-64 rounded-4xl bg-sidebar/50 animate-pulse border border-border" />
+                        <div key={i} className="h-64 rounded-xl bg-sidebar/50 animate-pulse border border-border" />
                     ))}
                 </div>
             ) : filteredTemplates.length > 0 ? (
@@ -183,7 +183,7 @@ export default function DietPlansPage() {
                     {filteredTemplates.map((template) => (
                         <Card
                             key={template.id}
-                            className="group relative overflow-hidden rounded-4xl bg-sidebar border-border hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 p-6 flex flex-col"
+                            className="group relative overflow-hidden rounded-xl bg-sidebar border-border hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 p-6 flex flex-col"
                         >
                             {/* Decorative background element */}
                             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/5 blur-2xl group-hover:bg-primary/10 transition-all" />
@@ -254,7 +254,7 @@ export default function DietPlansPage() {
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-20 bg-sidebar/30 rounded-4xl border border-dashed border-border mt-10">
+                <div className="flex flex-col items-center justify-center py-20 bg-sidebar/30 rounded-xl border border-dashed border-border mt-10">
                     <div className="p-6 rounded-full bg-primary/5 mb-6">
                         <Apple size={48} className="text-primary/40 animate-pulse" />
                     </div>

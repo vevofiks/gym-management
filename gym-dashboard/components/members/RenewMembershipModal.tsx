@@ -136,7 +136,7 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-card border border-border rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between">
                     <div>
@@ -176,7 +176,7 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
                                             <button
                                                 key={plan.id}
                                                 onClick={() => setSelectedPlan(plan)}
-                                                className={`p-4 rounded-2xl border-2 text-left transition-all relative group ${isSelected
+                                                className={`p-4 rounded-xl border-2 text-left transition-all relative group ${isSelected
                                                     ? 'border-primary bg-primary/5 shadow-md scale-[1.02]'
                                                     : 'border-border bg-card hover:border-primary/30'
                                                     }`}
@@ -206,7 +206,7 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
 
                                 {selectedPlan && (
                                     <div className="space-y-4 mt-6">
-                                        <div className="bg-primary/5 rounded-2xl border border-primary/10 p-5">
+                                        <div className="bg-primary/5 rounded-xl border border-primary/10 p-5">
                                             <div className="flex justify-between items-center mb-4">
                                                 <span className="text-xs font-black text-primary uppercase tracking-wider">Plan Summary</span>
                                                 <span className="px-2 py-0.5 bg-primary text-[10px] font-black text-white rounded-full">
@@ -235,34 +235,7 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
                                         </div>
 
                                         {/* QR Code inside Selection Column (as requested) */}
-                                        {paymentMethod === 'upi' && qrCodeUrl && (
-                                            <div className="bg-white p-4 rounded-2xl border-2 border-primary/20 shadow-sm flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                <div className="text-[10px] font-black text-primary uppercase tracking-widest text-center px-4 py-1 bg-primary/10 rounded-full w-full">
-                                                    Scan & Pay via UPI
-                                                </div>
-                                                <div className="p-3 bg-muted/30 rounded-2xl border border-border/50">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img
-                                                        src={qrCodeUrl}
-                                                        alt="Payment QR"
-                                                        className="w-48 h-48 object-contain rounded-xl shadow-inner bg-white"
-                                                    />
-                                                </div>
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <p className="text-[9px] font-bold text-text-secondary uppercase text-center">
-                                                        Click QR to view full screen
-                                                    </p>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => window.open(qrCodeUrl, '_blank')}
-                                                        className="flex items-center gap-1.5 text-[10px] font-black text-primary hover:underline uppercase"
-                                                    >
-                                                        <QrCode size={14} />
-                                                        Enlarge QR Code
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+                                       
                                     </div>
                                 )}
                             </div>
@@ -327,6 +300,35 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
                                         </div>
                                     </div>
 
+                                     {paymentMethod === 'upi' && qrCodeUrl && (
+                                            <div className="bg-white p-4 rounded-xl border-2 border-primary/20 shadow-sm flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                <div className="text-[10px] font-black text-primary uppercase tracking-widest text-center px-4 py-1 bg-primary/10 rounded-full w-full">
+                                                    Scan & Pay via UPI
+                                                </div>
+                                                <div className="p-3 bg-muted/30 rounded-xl border border-border/50">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={qrCodeUrl}
+                                                        alt="Payment QR"
+                                                        className="w-48 h-48 object-contain rounded-xl shadow-inner bg-white"
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <p className="text-[9px] font-bold text-text-secondary uppercase text-center">
+                                                        Click QR to view full screen
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => window.open(qrCodeUrl, '_blank')}
+                                                        className="flex items-center gap-1.5 text-[10px] font-black text-primary hover:underline uppercase"
+                                                    >
+                                                        <QrCode size={14} />
+                                                        Enlarge QR Code
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
                                     {/* Transaction Info */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
@@ -377,7 +379,7 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
                         </div>
 
                         {error && (
-                            <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold uppercase tracking-wide">
+                            <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 text-xs font-bold uppercase tracking-wide">
                                 <AlertCircle size={20} />
                                 {error}
                             </div>
@@ -389,14 +391,14 @@ export const RenewMembershipModal: React.FC<RenewMembershipModalProps> = ({
                 <div className="p-6 border-t border-border flex gap-4">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-4 px-6 rounded-2xl bg-muted text-text-primary font-black uppercase text-xs tracking-widest hover:bg-border transition-all"
+                        className="flex-1 py-4 px-6 rounded-xl bg-muted text-text-primary font-black uppercase text-xs tracking-widest hover:bg-border transition-all"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleRenew}
                         disabled={isSubmitting || !selectedPlan}
-                        className={`flex-2 py-4 px-6 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all ${isSubmitting || !selectedPlan
+                        className={`flex-2 py-4 px-6 rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all ${isSubmitting || !selectedPlan
                             ? 'bg-muted text-text-secondary cursor-not-allowed'
                             : 'bg-primary text-white shadow-glow hover:bg-primary/90 active:scale-[0.98]'
                             }`}

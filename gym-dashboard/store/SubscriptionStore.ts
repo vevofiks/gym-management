@@ -98,7 +98,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         // Trial includes Pro features (5 staff)
         if (isTrialActive()) {
             maxStaff = 5;
-        } else if (subscription.plan_name.toLowerCase() === 'starter' || subscription.plan_name.toLowerCase() === 'basic') {
+        } else if (subscription.plan_name.toLowerCase().includes('starter') || subscription.plan_name.toLowerCase().includes('basic')) {
             // Force Starter/Basic to 1 staff as requested
             maxStaff = 1;
         }
@@ -119,7 +119,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         const { current_usage, plan_limits } = subscription;
         let maxPlans = plan_limits.max_plans;
 
-        if (subscription.plan_name.toLowerCase() === 'starter' || subscription.plan_name.toLowerCase() === 'basic') {
+        if (subscription.plan_name.toLowerCase().includes('starter') || subscription.plan_name.toLowerCase().includes('basic')) {
             // Force Starter/Basic to 2 plans as requested
             maxPlans = 2;
         }
@@ -140,7 +140,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         const { current_usage, plan_limits } = subscription;
         let maxTemplates = plan_limits.max_diet_templates;
 
-        if (subscription.plan_name.toLowerCase() === 'starter' || subscription.plan_name.toLowerCase() === 'basic') {
+        if (subscription.plan_name.toLowerCase().includes('starter') || subscription.plan_name.toLowerCase().includes('basic')) {
             // Force Starter/Basic to 2 diet templates as requested
             maxTemplates = 2;
         }
@@ -168,8 +168,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
             return (
                 subscription.features.analytics_enabled ||
                 isTrial ||
-                planName === 'starter' ||
-                planName === 'basic'
+                planName.includes('starter') ||
+                planName.includes('basic')
             );
         }
 
@@ -179,7 +179,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
 
         if (feature === 'expenses') {
             // Expenses for Pro (and Trial as it includes Pro features)
-            return planName === 'pro' || isTrial;
+            return planName.includes('pro') || isTrial;
         }
 
         if (feature === 'store') {

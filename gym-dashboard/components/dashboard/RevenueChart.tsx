@@ -12,11 +12,11 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
   const { theme } = useTheme();
 
   if (isLoading) {
-    return <Skeleton className="h-[350px] w-full rounded-4xl" />;
+    return <Skeleton className="h-[350px] w-full rounded-xl" />;
   }
 
   return (
-    <div className="h-full w-full rounded-4xl bg-card p-8 shadow-soft border border-border">
+    <div className="h-full w-full rounded-xl bg-card p-8 shadow-soft border border-border">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h3 className="text-xl font-bold text-text-primary">Revenue Analytics</h3>
@@ -28,14 +28,14 @@ export const RevenueChart = ({ data, isLoading }: Props) => {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
-              <linearlinear id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-              </linearlinear>
-              <linearlinear id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+              </linearGradient>
+              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-              </linearlinear>
+              </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#334155' : '#F1F5F9'} />
             <XAxis

@@ -83,7 +83,7 @@ export default function SubscriptionBanner() {
 
                 {/* Subscribe Button */}
                 <Link href="/subscription">
-                    <button className="shrink-0 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors">
+                    <button className="shrink-0 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors">
                         Subscribe Now
                     </button>
                 </Link>

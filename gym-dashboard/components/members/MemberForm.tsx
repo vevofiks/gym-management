@@ -430,7 +430,7 @@ export function MemberForm({ initialData, onSubmit, onCancel, isLoading = false 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Before Photo */}
                     <div className="flex items-center gap-4">
-                        <div className="w-24 h-24 rounded-2xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative group shrink-0">
+                        <div className="w-24 h-24 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative group shrink-0">
                             {beforePhotoBlob ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={URL.createObjectURL(beforePhotoBlob)} alt="Before Captured" className="w-full h-full object-cover" />
@@ -467,7 +467,7 @@ export function MemberForm({ initialData, onSubmit, onCancel, isLoading = false 
 
                     {/* After Photo */}
                     <div className="flex items-center gap-4">
-                        <div className="w-24 h-24 rounded-2xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative group shrink-0">
+                        <div className="w-24 h-24 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative group shrink-0">
                             {afterPhotoBlob ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={URL.createObjectURL(afterPhotoBlob)} alt="After Captured" className="w-full h-full object-cover" />

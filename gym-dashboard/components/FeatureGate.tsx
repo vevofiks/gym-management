@@ -44,7 +44,7 @@ export default function FeatureGate({
                     <p className="text-text-secondary mb-4">
                         This feature is available on paid plans. Upgrade to unlock.
                     </p>
-                    <button className="px-6 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                    <button className="px-6 py-2 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors">
                         Upgrade Plan
                     </button>
                 </div>
@@ -91,7 +91,7 @@ export function LimitGate({
                     </p>
                     <button
                         onClick={onUpgrade}
-                        className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
                     >
                         Upgrade Plan
                     </button>

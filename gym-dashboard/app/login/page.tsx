@@ -90,7 +90,7 @@ export default function LoginPage() {
 
     const renderHeader = (title: string, subtitle: string) => (
         <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4 cursor-pointer" onClick={() => setView('login')}>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary/10 mb-4 cursor-pointer" onClick={() => setView('login')}>
                 <Dumbbell className="text-primary" size={32} />
             </div>
             <h1 className="text-3xl font-extrabold text-text-primary mb-2">FitDash</h1>
@@ -104,7 +104,7 @@ export default function LoginPage() {
                 {view === 'login' && (
                     <>
                         {renderHeader('FitDash', 'Sign in to your dashboard')}
-                        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8">
+                        <div className="bg-card border border-border rounded-xl shadow-2xl p-8">
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div>
                                     <label htmlFor="username" className="block text-sm font-semibold text-text-primary mb-2">Username</label>
@@ -167,7 +167,7 @@ export default function LoginPage() {
                 {view === 'forgot' && (
                     <>
                         {renderHeader('Recover Password', 'Enter your email to receive an OTP')}
-                        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8">
+                        <div className="bg-card border border-border rounded-xl shadow-2xl p-8">
                             <form onSubmit={handleForgotPassword} className="space-y-6">
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-semibold text-text-primary mb-2">Email Address</label>
@@ -201,7 +201,7 @@ export default function LoginPage() {
                 {view === 'verify' && (
                     <>
                         {renderHeader('Verify OTP', 'Enter the 6-digit code sent to your email')}
-                        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8">
+                        <div className="bg-card border border-border rounded-xl shadow-2xl p-8">
                             <form onSubmit={handleVerifyOtp} className="space-y-6">
                                 <div>
                                     <label htmlFor="otp" className="block text-sm font-semibold text-text-primary mb-2">OTP Code</label>
@@ -235,7 +235,7 @@ export default function LoginPage() {
                 {view === 'reset' && (
                     <>
                         {renderHeader('Set New Password', 'Create a strong password for your account')}
-                        <div className="bg-card border border-border rounded-3xl shadow-2xl p-8">
+                        <div className="bg-card border border-border rounded-xl shadow-2xl p-8">
                             <form onSubmit={handleResetPassword} className="space-y-6">
                                 <div>
                                     <label htmlFor="new-password" className="block text-sm font-semibold text-text-primary mb-2">New Password</label>

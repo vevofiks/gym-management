@@ -133,7 +133,7 @@ export default function MembershipPlanPage() {
                 <div className="flex items-center justify-end mb-8">
                     <button
                         onClick={handleCreateClick}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
                     >
                         <Plus size={20} />
                         Create Plan
@@ -150,10 +150,10 @@ export default function MembershipPlanPage() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search plans..."
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full pl-10 pr-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                 </div>
-                <label className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-background cursor-pointer">
+                <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background cursor-pointer">
                     <input
                         type="checkbox"
                         checked={showInactive}
@@ -168,7 +168,7 @@ export default function MembershipPlanPage() {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-64 rounded-2xl bg-card border border-border animate-pulse" />
+                        <div key={i} className="h-64 rounded-xl bg-card border border-border animate-pulse" />
                     ))}
                 </div>
             ) : filteredPlans.length === 0 ? (
@@ -200,7 +200,7 @@ export default function MembershipPlanPage() {
                             setEditingPlan(null);
                         }}
                     />
-                    <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+                    <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-bold text-text-primary mb-6">
                             {editingPlan ? 'Edit Plan' : 'Create New Plan'}
                         </h2>

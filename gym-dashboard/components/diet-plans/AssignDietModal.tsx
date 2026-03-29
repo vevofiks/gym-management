@@ -130,7 +130,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                 onClick={onClose}
             />
 
-            <div className="bg-background w-full max-w-md rounded-4xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
+            <div className="bg-background w-full max-w-md rounded-xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
                 {/* Header */}
                 <div className="p-6 border-b border-border bg-card flex justify-between items-center">
                     <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                     ) : (
                         <>
                             {error && (
-                                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 text-rose-500 text-sm font-bold">
+                                <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-500 text-sm font-bold">
                                     <AlertCircle size={18} />
                                     {error}
                                 </div>
@@ -190,7 +190,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
 
                                         {/* Dropdown Results */}
                                         {searchTerm.length >= 2 && (
-                                            <div className="absolute top-full left-0 right-0 mt-2 bg-sidebar border border-border rounded-2xl shadow-2xl z-10 overflow-hidden animate-in slide-in-from-top-2">
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-sidebar border border-border rounded-xl shadow-2xl z-10 overflow-hidden animate-in slide-in-from-top-2">
                                                 {isSearching ? (
                                                     <div className="p-4 flex items-center justify-center gap-2 text-xs text-text-secondary uppercase font-black">
                                                         <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -232,7 +232,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-2xl group relative animate-in zoom-in-95">
+                                    <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-xl group relative animate-in zoom-in-95">
                                         <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xl overflow-hidden">
                                             {selectedMember.before_photo_url ? (
                                                 <img src={selectedMember.before_photo_url} className="h-full w-full object-cover" />
@@ -275,7 +275,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                                     <Button
                                         type="button"
                                         onClick={handleCopyPlan}
-                                        className="w-full h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-glow hover:bg-primary/90 transition-all active:scale-95"
+                                        className="w-full h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-glow hover:bg-primary/90 transition-all active:scale-95"
                                     >
                                         <Copy className="mr-2 h-4 w-4" />
                                         Copy Plan & Close
@@ -286,7 +286,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                                             type="button"
                                             variant="outline"
                                             onClick={handleCopyPlan}
-                                            className="flex-1 h-12 rounded-2xl border-border font-black text-[10px] uppercase tracking-widest gap-2"
+                                            className="flex-1 h-12 rounded-xl border-border font-black text-[10px] uppercase tracking-widest gap-2"
                                         >
                                             <Copy size={16} />
                                             Copy
@@ -294,7 +294,7 @@ export const AssignDietModal: React.FC<AssignDietModalProps> = ({
                                         <Button
                                             disabled={!selectedMember || isLoading}
                                             onClick={handleAssign}
-                                            className="flex-[1.5] h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                                            className="flex-[1.5] h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
                                         >
                                             {isLoading ? (
                                                 <Loader2 className="h-5 w-5 animate-spin" />

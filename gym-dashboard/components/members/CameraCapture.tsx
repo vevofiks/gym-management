@@ -83,7 +83,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onCance
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-card w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-border">
+            <div className="bg-card w-full max-w-lg rounded-xl overflow-hidden shadow-2xl border border-border">
                 <div className="p-4 border-b border-border flex justify-between items-center bg-background/50">
                     <h3 className="text-lg font-bold text-text-primary">Capture Member Photo</h3>
                     <button type="button" onClick={onCancel} className="p-2 rounded-full hover:bg-muted transition-colors text-text-secondary">
@@ -98,7 +98,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({ onCapture, onCance
                             <button
                                 type="button"
                                 onClick={startCamera}
-                                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold"
+                                className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold"
                             >
                                 Try Again
                             </button>

@@ -153,7 +153,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-sidebar border border-border w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-sidebar border border-border w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between">
                     <div>
@@ -204,7 +204,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                             {/* Profile Image Section */}
                             <div className="flex flex-col items-center mb-8">
                                 <div className="relative group">
-                                    <div className="h-28 w-28 rounded-3xl bg-primary/20 flex items-center justify-center text-primary overflow-hidden border-4 border-sidebar shadow-xl transition-all group-hover:shadow-glow">
+                                    <div className="h-28 w-28 rounded-xl bg-primary/20 flex items-center justify-center text-primary overflow-hidden border-4 border-sidebar shadow-xl transition-all group-hover:shadow-glow">
                                         {profileForm.avatar_url ? (
                                             <img
                                                 src={profileForm.avatar_url}
@@ -326,7 +326,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
+                                className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
                             >
                                 {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
                                 Update Profile
@@ -335,7 +335,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                     ) : activeTab === 'subscription' ? (
                         <div className="space-y-6">
                             {/* Current Plan Overview */}
-                            <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10">
+                            <div className="p-5 rounded-xl bg-primary/5 border border-primary/10">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
@@ -357,7 +357,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                         {subscription?.plan_name || 'No Plan'}
                                     </span>
                                     {subscription?.is_trial && (
-                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase">
+                                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-xl uppercase">
                                             Free Trial
                                         </span>
                                     )}
@@ -371,7 +371,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
 
                             {/* Expiry / Billing Info */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-2xl bg-sidebar border border-border">
+                                <div className="p-4 rounded-xl bg-sidebar border border-border">
                                     <div className="flex items-center gap-2 text-text-secondary mb-2">
                                         <Calendar size={14} />
                                         <span className="text-[10px] font-bold uppercase tracking-wider">Expiry Date</span>
@@ -382,7 +382,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                             : 'N/A'}
                                     </p>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-sidebar border border-border">
+                                <div className="p-4 rounded-xl bg-sidebar border border-border">
                                     <div className="flex items-center gap-2 text-text-primary mb-2">
                                         <ArrowUpCircle size={14} />
                                         <span className="text-[10px] font-bold uppercase tracking-wider">Days Left</span>
@@ -395,7 +395,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
 
                             {/* Queued Subscriptions */}
                             {subscription?.queued_subscriptions && subscription.queued_subscriptions.length > 0 && (
-                                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                                     <div className="flex items-center gap-2 text-amber-500 mb-3">
                                         <Clock size={16} />
                                         <span className="text-xs font-bold uppercase tracking-wider">Upcoming Plan</span>
@@ -407,7 +407,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                                     <p className="font-bold text-text-primary">{queue.plan_name}</p>
                                                     <p className="text-[10px] text-text-secondary">Purchased on {new Date(queue.created_at).toLocaleDateString()}</p>
                                                 </div>
-                                                <div className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-md uppercase">
+                                                <div className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-xl uppercase">
                                                     Queued
                                                 </div>
                                             </div>
@@ -432,7 +432,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                             <button
                                                 key={status}
                                                 onClick={() => setStatusFilter(status)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${statusFilter === status
+                                                className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${statusFilter === status
                                                     ? 'bg-background shadow-sm text-text-primary'
                                                     : 'text-text-secondary hover:text-text-primary'
                                                     }`}
@@ -443,7 +443,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                     </div>
                                 </div>
 
-                                <div className="border border-border rounded-2xl overflow-hidden">
+                                <div className="border border-border rounded-xl overflow-hidden">
                                     <PaymentHistoryTable payments={filteredPayments} isLoading={isHistoryLoading} />
                                 </div>
                             </div>
@@ -455,7 +455,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                         onClose();
                                         window.location.href = '/subscription';
                                     }}
-                                    className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-bold hover:shadow-glow transition-all"
+                                    className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all"
                                 >
                                     <ArrowUpCircle size={18} />
                                     {needsUpgrade() ? 'Renew Subscription' : 'Upgrade Plan'}
@@ -467,7 +467,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                         </div>
                     ) : (
                         <form onSubmit={handleChangePassword} className="space-y-5">
-                            <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                            <div className="flex items-center gap-4 mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                                 <div className="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500">
                                     <Lock size={24} />
                                 </div>
@@ -530,7 +530,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                             <button
                                 type="submit"
                                 disabled={isChangingPassword}
-                                className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
+                                className="w-full mt-4 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
                             >
                                 {isChangingPassword ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />}
                                 Change Password

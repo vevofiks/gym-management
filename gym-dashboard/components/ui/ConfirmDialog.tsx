@@ -75,7 +75,7 @@ export function ConfirmDialog({
             />
 
             {/* Dialog */}
-            <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
                 {/* Close button */}
                 {!isLoading && (
                     <button
@@ -101,14 +101,14 @@ export function ConfirmDialog({
                     <button
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-4 py-2 rounded-lg font-medium text-text-primary bg-background border border-border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 rounded-xl font-medium text-text-primary bg-background border border-border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {cancelText}
                     </button>
                     <button
                         onClick={handleConfirm}
                         disabled={isLoading}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant].button}`}
+                        className={`px-4 py-2 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant].button}`}
                     >
                         {isLoading ? 'Processing...' : confirmText}
                     </button>

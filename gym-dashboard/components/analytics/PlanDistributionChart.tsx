@@ -22,7 +22,7 @@ export const PlanDistributionChart = ({ data, isLoading }: Props) => {
 
     if (isLoading || !isMounted) {
         return (
-            <div className="h-[400px] w-full rounded-3xl bg-card border border-border p-6 flex items-center justify-center">
+            <div className="h-[400px] w-full rounded-xl bg-card border border-border p-6 flex items-center justify-center">
                 <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
@@ -30,7 +30,7 @@ export const PlanDistributionChart = ({ data, isLoading }: Props) => {
 
     if (data.length === 0) {
         return (
-            <div className="h-[400px] w-full rounded-3xl bg-card border border-border p-6 flex items-center justify-center">
+            <div className="h-[400px] w-full rounded-xl bg-card border border-border p-6 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-text-secondary font-bold uppercase tracking-widest text-xs">
                         No plan data available
@@ -48,7 +48,7 @@ export const PlanDistributionChart = ({ data, isLoading }: Props) => {
     }));
 
     return (
-        <div className="h-full w-full rounded-3xl bg-card p-6 shadow-soft border border-border">
+        <div className="h-full w-full rounded-xl bg-card p-6 shadow-soft border border-border">
             <div className="mb-4">
                 <h3 className="text-lg font-black text-text-primary uppercase tracking-tight flex items-center gap-2">
                     <div className="w-1.5 h-5 bg-blue-500 rounded-full" />

@@ -30,7 +30,7 @@ export const StaffTable = ({
 }: StaffTableProps) => {
     if (isLoading) {
         return (
-            <div className="w-full bg-card rounded-3xl border border-border overflow-hidden min-h-[400px] flex items-center justify-center">
+            <div className="w-full bg-card rounded-xl border border-border overflow-hidden min-h-[400px] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="h-10 w-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                     <p className="text-sm font-medium text-text-secondary">Loading staff members...</p>
@@ -41,7 +41,7 @@ export const StaffTable = ({
 
     if (staff.length === 0) {
         return (
-            <div className="w-full bg-card rounded-3xl border border-border overflow-hidden min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-full bg-card rounded-xl border border-border overflow-hidden min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
                 <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6">
                     <User size={40} />
                 </div>
@@ -54,7 +54,7 @@ export const StaffTable = ({
     }
 
     return (
-        <div className="w-full bg-card rounded-3xl border border-border overflow-hidden shadow-soft">
+        <div className="w-full bg-card rounded-xl border border-border overflow-hidden shadow-soft">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>

@@ -45,7 +45,7 @@ export const OutstandingWidget = ({ payments, isLoading }: OutstandingWidgetProp
                 {payments.map((payment) => (
                     <div
                         key={payment.id}
-                        className="flex items-center justify-between p-4 rounded-2xl bg-background border border-border hover:border-primary/50 transition-all"
+                        className="flex items-center justify-between p-4 rounded-xl bg-background border border-border hover:border-primary/50 transition-all"
                     >
                         <div className="flex items-center gap-3 flex-1">
                             <div className="shrink-0">
@@ -69,7 +69,7 @@ export const OutstandingWidget = ({ payments, isLoading }: OutstandingWidgetProp
                                 </p>
                             </div>
                             <button
-                                className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                                className="p-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
                                 title="Send reminder"
                             >
                                 <Send size={16} />

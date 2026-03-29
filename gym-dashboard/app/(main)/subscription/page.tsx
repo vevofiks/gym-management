@@ -78,7 +78,7 @@ export default function SubscriptionPage() {
                         if (verifyData.success) {
                             toast.success('Subscription activated successfully!');
                             await refetch();
-                            router.push('/');
+                            window.location.href = '/';
                         }
                     } catch (err: any) {
                         console.error('Verification failed:', err);
@@ -135,8 +135,8 @@ export default function SubscriptionPage() {
         <div className="max-w-7xl mx-auto mt-10 px-4">
             {/* Expiration Warning */}
             {isInactive && (
-                <div className="mb-8 p-6 rounded-3xl bg-red-500/10 border border-red-500/20 flex flex-col md:flex-row items-center gap-4 animate-in slide-in-from-top-4 duration-500">
-                    <div className="h-14 w-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
+                <div className="mb-8 p-6 rounded-xl bg-red-500/10 border border-red-500/20 flex flex-col md:flex-row items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+                    <div className="h-14 w-14 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
                         <AlertCircle size={32} />
                     </div>
                     <div className="flex-1 text-center md:text-left">

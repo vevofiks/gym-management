@@ -87,18 +87,6 @@ export default function Dashboard() {
     return (
         <div className="space-y-8 pb-8">
             {/* Header with Refresh Button */}
-            <div className="flex items-center justify-end">
-                <Button
-                    onClick={handleRefresh}
-                    disabled={isRefreshing}
-                    className="bg-background border border-border text-text-primary hover:bg-primary hover:text-white hover:border-primary transition-all font-bold h-11 px-6 rounded-xl"
-                >
-                    <RefreshCw
-                        className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-                    />
-                    Refresh
-                </Button>
-            </div>
 
             {/* Stats Grid */}
             <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 ${user?.role === 'gym_owner' ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>

@@ -9,7 +9,7 @@ interface AttendanceChartProps {
 
 export const AttendanceChart = ({ data, isLoading }: AttendanceChartProps) => {
     return (
-        <div className="h-[400px] w-full rounded-3xl bg-card border border-border p-6 flex flex-col items-center justify-center shadow-soft">
+        <div className="h-[400px] w-full rounded-xl bg-card border border-border p-6 flex flex-col items-center justify-center shadow-soft">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Calendar size={40} className="text-primary" />
             </div>

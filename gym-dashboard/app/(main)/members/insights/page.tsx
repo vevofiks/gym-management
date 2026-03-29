@@ -85,9 +85,9 @@ function InsightsContent() {
         <div className="flex flex-col gap-8 pb-10">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-               
 
-               
+
+
             </div>
 
             {/* Tabs */}
@@ -100,17 +100,17 @@ function InsightsContent() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                "flex flex-col gap-4 p-6 rounded-3xl border transition-all duration-300 text-left",
+                                "flex flex-col gap-4 p-4 rounded-xl border transition-all duration-300 text-left",
                                 isActive
                                     ? "bg-card border-primary shadow-glow scale-[1.02] z-10"
                                     : "bg-card/50 border-border hover:border-primary/50 hover:bg-card"
                             )}
                         >
-                            <div className={cn("p-2 rounded-xl w-fit", tab.bgColor, tab.color)}>
-                                <Icon size={20} />
+                            <div className={cn("p-1.5 rounded-xl w-fit", tab.bgColor, tab.color)}>
+                                <Icon size={18} />
                             </div>
                             <div>
-                                <div className={cn("text-lg font-black uppercase tracking-tight", isActive ? "text-text-primary" : "text-text-secondary")}>
+                                <div className={cn("text-base font-black uppercase tracking-tight", isActive ? "text-text-primary" : "text-text-secondary")}>
                                     {tab.label}
                                 </div>
                                 <div className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mt-1">
@@ -123,30 +123,30 @@ function InsightsContent() {
             </div>
 
             {/* Table Section */}
-            <div className="bg-card rounded-4xl border border-border shadow-soft overflow-hidden">
+            <div className="bg-card rounded-xl border border-border shadow-soft overflow-hidden">
                 <div className="p-6 border-b border-border flex justify-between items-center bg-muted/10">
                     <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider">
                         {tabs.find(t => t.id === activeTab)?.label} List ({members.length})
                     </h2>
-                     <div className="flex items-center gap-3">
-                    <form onSubmit={handleSearch} className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="Search in report..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-11 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full md:w-64 font-medium"
-                        />
-                    </form>
-                    <button
-                        onClick={() => fetchData(activeTab, searchTerm)}
-                        disabled={isRefreshing}
-                        className="p-2.5 rounded-xl bg-card border border-border text-text-secondary hover:text-primary transition-all hover:shadow-soft disabled:opacity-50"
-                    >
-                        <RefreshCw size={20} className={cn(isRefreshing && "animate-spin")} />
-                    </button>
-                </div>
+                    <div className="flex items-center gap-3">
+                        <form onSubmit={handleSearch} className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary group-focus-within:text-primary transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Search in report..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-11 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full md:w-64 font-medium"
+                            />
+                        </form>
+                        <button
+                            onClick={() => fetchData(activeTab, searchTerm)}
+                            disabled={isRefreshing}
+                            className="p-2.5 rounded-xl bg-card border border-border text-text-secondary hover:text-primary transition-all hover:shadow-soft disabled:opacity-50"
+                        >
+                            <RefreshCw size={20} className={cn(isRefreshing && "animate-spin")} />
+                        </button>
+                    </div>
                 </div>
 
                 {isLoading ? (

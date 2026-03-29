@@ -109,7 +109,7 @@ const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) 
 
     if (isLoading) {
         return (
-            <div className="w-full h-48 flex items-center justify-center bg-card rounded-3xl border border-border">
+            <div className="w-full h-48 flex items-center justify-center bg-card rounded-xl border border-border">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         );
@@ -117,8 +117,8 @@ const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) 
 
     if (payments.length === 0) {
         return (
-            <div className="w-full py-12 flex flex-col items-center justify-center bg-card rounded-3xl border border-border text-center px-4">
-                <div className="h-16 w-16 rounded-2xl bg-secondary/50 flex items-center justify-center text-muted-foreground mb-4">
+            <div className="w-full py-12 flex flex-col items-center justify-center bg-card rounded-xl border border-border text-center px-4">
+                <div className="h-16 w-16 rounded-xl bg-secondary/50 flex items-center justify-center text-muted-foreground mb-4">
                     <FileText size={32} />
                 </div>
                 <h3 className="text-lg font-bold text-foreground">No Payment History</h3>
@@ -130,7 +130,7 @@ const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) 
     }
 
     return (
-        <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm">
+        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
             <div className="p-6 border-b border-border">
                 <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                     <FileText className="text-primary" size={24} />
@@ -171,7 +171,7 @@ const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) 
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
                                         onClick={() => handleDownloadInvoice(payment)}
-                                        className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/10"
+                                        className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/10"
                                     >
                                         <Download size={14} />
                                         Download

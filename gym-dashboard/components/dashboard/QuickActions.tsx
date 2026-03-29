@@ -45,7 +45,7 @@ export const QuickActions = () => {
     ].filter(action => !action.roles || action.roles.includes(user?.role || ''));
 
     return (
-        <div className="flex flex-col rounded-4xl bg-card p-6 shadow-soft border border-border h-full">
+        <div className="h-full rounded-xl bg-card p-6 shadow-soft border border-border">
             <h3 className="text-lg font-bold text-text-primary mb-6">Quick Actions</h3>
 
             <div className="grid grid-cols-2 gap-4 flex-1">
@@ -53,9 +53,9 @@ export const QuickActions = () => {
                     <Link
                         key={action.title}
                         href={action.href}
-                        className="flex flex-col items-center justify-center p-4 rounded-3xl bg-background border border-transparent hover:border-border hover:shadow-sm transition-all group"
+                        className="flex flex-col items-center justify-center p-4 rounded-xl bg-background border border-transparent hover:border-border hover:shadow-sm transition-all group"
                     >
-                        <div className={`h-12 w-12 rounded-2xl ${action.bg} ${action.text} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                        <div className={`h-12 w-12 rounded-xl ${action.bg} ${action.text} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                             {action.icon}
                         </div>
                         <span className="text-sm font-bold text-text-primary">{action.title}</span>

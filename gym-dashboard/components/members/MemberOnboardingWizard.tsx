@@ -482,7 +482,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
             case 2:
                 return (
                     <div className="flex flex-col items-center justify-center gap-6 w-full">
-                        <div className="w-56 h-56 rounded-3xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative shadow-inner">
+                        <div className="w-56 h-56 rounded-xl bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden relative shadow-inner">
                             {previewUrl ? (
                                 <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                             ) : (
@@ -497,12 +497,12 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                             <button
                                 type="button"
                                 onClick={() => setIsCameraOpen(true)}
-                                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-glow hover:bg-primary/90 transition-all active:scale-95"
+                                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-glow hover:bg-primary/90 transition-all active:scale-95"
                             >
                                 <Camera size={16} />
                                 {previewUrl ? 'Retake' : 'Camera'}
                             </button>
-                            <label className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-card text-text-primary font-black text-xs uppercase tracking-widest rounded-2xl border-2 border-border hover:border-primary/50 cursor-pointer transition-all active:scale-95">
+                            <label className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-card text-text-primary font-black text-xs uppercase tracking-widest rounded-xl border-2 border-border hover:border-primary/50 cursor-pointer transition-all active:scale-95">
                                 <Upload size={16} />
                                 {previewUrl ? 'Change' : 'Upload'}
                                 <input
@@ -566,7 +566,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
     };
 
     return (
-        <div className="bg-background rounded-md border border-border shadow-2xl flex flex-col max-w-4xl w-full mx-auto max-h-[90vh]">
+        <div className="bg-background rounded-xl border border-border shadow-2xl flex flex-col max-w-4xl w-full mx-auto max-h-[90vh]">
             {/* Header / Stepper */}
             <div className="bg-card border-b border-border p-6 md:p-8">
                 <div className="flex justify-between items-center mb-8">

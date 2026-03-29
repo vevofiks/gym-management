@@ -15,7 +15,7 @@ export const RecentActivityFeed = ({ activities, isLoading }: Props) => {
     const [isLedgerOpen, setIsLedgerOpen] = useState(false);
 
     if (isLoading) {
-        return <Skeleton className="h-[400px] w-full rounded-4xl" />;
+        return <Skeleton className="h-[400px] w-full rounded-xl" />;
     }
 
     const getActivityIcon = (type: string) => {
@@ -49,7 +49,7 @@ export const RecentActivityFeed = ({ activities, isLoading }: Props) => {
     };
 
     return (
-        <div className="flex flex-col rounded-4xl bg-card p-6 shadow-soft border border-border h-full">
+        <div className="flex flex-col rounded-xl bg-card p-6 shadow-soft border border-border h-full">
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600">

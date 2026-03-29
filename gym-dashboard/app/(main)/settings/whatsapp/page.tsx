@@ -342,7 +342,7 @@ export default function WhatsAppSettingsPage() {
 
                             <button
                                 onClick={() => router.push('/marketing/whatsapp')}
-                                className="group flex items-center justify-center gap-3 px-8 py-4 bg-linear-to-r from-primary to-primary/90 text-white rounded-2xl font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300"
+                                className="group flex items-center justify-center gap-3 px-8 py-4 bg-linear-to-r from-primary to-primary/90 text-white rounded-xl font-bold shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-300"
                             >
                                 <MessageSquare size={20} className="group-hover:-rotate-12 transition-transform duration-300" />
                                 <span>Broadcast</span>
@@ -354,14 +354,14 @@ export default function WhatsAppSettingsPage() {
 
             <Card className="p-8 space-y-6 border-2 border-primary/20">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
+                    <div className="p-2 rounded-xl bg-primary/10">
                         <Settings2 className="text-primary" size={20} />
                     </div>
                     <h3 className="text-xl font-bold text-text-primary">Automation Control</h3>
                 </div>
 
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/10">
                         <div className="space-y-0.5">
                             <p className="font-bold text-text-primary">Global WhatsApp Status</p>
                             <p className="text-xs text-text-secondary">Master switch for all automated messages</p>
@@ -433,8 +433,8 @@ export default function WhatsAppSettingsPage() {
                         {/* Left Side: QR Code */}
                         <div className="flex flex-col items-center space-y-8 min-w-fit">
                             <div className="relative group">
-                                <div className="absolute -inset-2 bg-linear-to-r from-primary to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                                <div className="relative p-6 bg-background rounded-2xl border border-border shadow-soft">
+                                <div className="absolute -inset-2 bg-linear-to-r from-primary to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                                <div className="relative p-6 bg-background rounded-xl border border-border shadow-soft">
                                     {qrCode ? (
                                         <img
                                             src={qrCode.startsWith('data:image') ? qrCode : `data:image/png;base64,${qrCode}`}
@@ -494,7 +494,7 @@ export default function WhatsAppSettingsPage() {
                 <>
                     <Card className="p-8 space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className="p-2 rounded-xl bg-primary/10">
                                 <CheckCircle2 className="text-primary" size={20} />
                             </div>
                             <h3 className="text-xl font-bold text-text-primary">Active Features</h3>
@@ -523,7 +523,7 @@ export default function WhatsAppSettingsPage() {
 
                     <Card className="p-8 space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className="p-2 rounded-xl bg-primary/10">
                                 <Send className="text-primary" size={20} />
                             </div>
                             <h3 className="text-xl font-bold text-text-primary">Test Connection</h3>

@@ -155,7 +155,7 @@ export default function StorePage() {
                 <>
                     {/* Stats Overview */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="p-2 w-fit bg-primary/10 rounded-xl text-primary mb-4">
                                 <TrendingUp size={20} />
                             </div>
@@ -165,7 +165,7 @@ export default function StorePage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Sales Revenue</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="p-2 w-fit bg-emerald-500/10 rounded-xl text-emerald-500 mb-4">
                                 <ShoppingBasket size={20} />
                             </div>
@@ -175,7 +175,7 @@ export default function StorePage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Orders</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="p-2 w-fit bg-blue-500/10 rounded-xl text-blue-500 mb-4">
                                 <Package size={20} />
                             </div>
@@ -186,7 +186,7 @@ export default function StorePage() {
                         </div>
 
                         <div className={cn(
-                            "bg-card border p-6 rounded-3xl shadow-soft",
+                            "bg-card border p-6 rounded-xl shadow-soft",
                             (stats?.low_stock_products.length || 0) > 0 ? "border-red-500/50 bg-red-500/5" : "border-border"
                         )}>
                             <div className={cn(
@@ -208,7 +208,7 @@ export default function StorePage() {
                     {/* Main Content Area */}
                     <div className="bg-card border border-border rounded-[2.5rem] shadow-soft overflow-hidden">
                         <div className="p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-6 bg-muted/30">
-                            <div className="flex bg-background p-1.5 rounded-2xl border border-border w-fit">
+                            <div className="flex bg-background p-1.5 rounded-xl border border-border w-fit">
                                 <button
                                     onClick={() => setActiveTab('inventory')}
                                     className={cn(
@@ -250,7 +250,7 @@ export default function StorePage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {filteredProducts.length > 0 ? (
                                         filteredProducts.map((product) => (
-                                            <div key={product.id} className="group bg-background border border-border rounded-3xl overflow-hidden hover:border-primary/50 hover:shadow-xl transition-all duration-300">
+                                            <div key={product.id} className="group bg-background border border-border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-xl transition-all duration-300">
                                                 <div className="aspect-square relative overflow-hidden bg-muted">
                                                     {product.image_url ? (
                                                         <img
@@ -279,7 +279,7 @@ export default function StorePage() {
                                                     </div>
                                                     <div className="absolute bottom-4 left-4">
                                                         <div className={cn(
-                                                            "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                                                            "px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest",
                                                             product.quantity > 10 ? "bg-emerald-500/90 text-white" :
                                                                 product.quantity > 0 ? "bg-orange-500/90 text-white" : "bg-red-500/90 text-white"
                                                         )}>
@@ -356,7 +356,7 @@ export default function StorePage() {
                                                                 {sale.quantity}
                                                             </td>
                                                             <td className="px-4 py-4">
-                                                                <span className="px-2 py-1 rounded-lg bg-muted text-[10px] font-black uppercase tracking-tighter text-text-secondary">
+                                                                <span className="px-2 py-1 rounded-xl bg-muted text-[10px] font-black uppercase tracking-tighter text-text-secondary">
                                                                     {sale.payment_method}
                                                                 </span>
                                                             </td>

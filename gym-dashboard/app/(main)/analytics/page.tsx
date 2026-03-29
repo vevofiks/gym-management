@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Date Range Filter */}
-            <div className="bg-card border border-border p-4 rounded-3xl shadow-soft flex flex-wrap items-center gap-6">
+            <div className="bg-card border border-border p-4 rounded-xl shadow-soft flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-3">
                     <Calendar size={18} className="text-text-secondary" />
                     <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">Custom Range:</span>
@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
                             type="date"
                             value={startDate}
                             onChange={(e) => { setStartDate(e.target.value); setQuickFilter('custom'); }}
-                            className="bg-background px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-background px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                     <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export default function AnalyticsPage() {
                             type="date"
                             value={endDate}
                             onChange={(e) => { setEndDate(e.target.value); setQuickFilter('custom'); }}
-                            className="bg-background px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-background px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                 </div>
@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
                 <>
                     {/* Summary Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-primary/10 rounded-xl text-primary">
                                     <Users size={20} />
@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
                             <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Members</div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-green-500/10 rounded-xl text-green-500">
                                     <UserCheck size={20} />
@@ -211,7 +211,7 @@ export default function AnalyticsPage() {
                             </div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-red-500/10 rounded-xl text-red-500">
                                     <UserX size={20} />
@@ -226,7 +226,7 @@ export default function AnalyticsPage() {
                             </div>
                         </div>
 
-                        <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                        <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
                                     <Clock size={20} />
@@ -249,13 +249,13 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Member Status Breakdown */}
-                    <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                    <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                         <h3 className="text-sm font-black text-text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
                             <div className="w-1.5 h-4 bg-primary rounded-full" />
                             Member Status Breakdown
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-2xl">
+                            <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-text-secondary uppercase">Active</span>
                                     <UserCheck size={16} className="text-green-500" />
@@ -265,7 +265,7 @@ export default function AnalyticsPage() {
                                     {memberStats?.active_rate.toFixed(1)}% of total
                                 </div>
                             </div>
-                            <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-2xl">
+                            <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-text-secondary uppercase">Expired</span>
                                     <TrendingDown size={16} className="text-orange-500" />
@@ -275,7 +275,7 @@ export default function AnalyticsPage() {
                                     {totalMembers > 0 ? ((memberStats?.expired_members || 0) / totalMembers * 100).toFixed(1) : 0}% of total
                                 </div>
                             </div>
-                            <div className="p-4 bg-gray-500/5 border border-gray-500/20 rounded-2xl">
+                            <div className="p-4 bg-gray-500/5 border border-gray-500/20 rounded-xl">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-xs font-bold text-text-secondary uppercase">Inactive</span>
                                     <UserX size={16} className="text-gray-500" />

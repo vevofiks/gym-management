@@ -109,15 +109,8 @@ export default function StaffManagementPage() {
 
                 <div className="flex items-center gap-3">
                     <Button
-                        onClick={fetchStaff}
-                        disabled={isRefreshing}
-                        className="bg-background border border-border text-text-primary hover:bg-border transition-all h-12 px-5 rounded-2xl font-bold"
-                    >
-                        <RefreshCw className={isRefreshing ? 'animate-spin' : ''} size={18} />
-                    </Button>
-                    <Button
                         onClick={handleAddStaff}
-                        className="bg-primary text-white hover:bg-primary/90 shadow-soft h-12 px-6 rounded-2xl font-bold flex items-center gap-2"
+                        className="bg-primary text-white hover:bg-primary/90 shadow-soft h-12 px-6 rounded-xl font-bold flex items-center gap-2"
                     >
                         <Plus size={20} strokeWidth={3} />
                         Add Staff Member
@@ -128,7 +121,7 @@ export default function StaffManagementPage() {
             {/* Plan Limit Info Banner */}
             {maxStaff !== -1 && (
                 <div className={cn(
-                    "flex items-center justify-between p-4 rounded-3xl border animate-in slide-in-from-top-2 duration-300",
+                    "flex items-center justify-between p-4 rounded-xl border animate-in slide-in-from-top-2 duration-300",
                     isLimitReached
                         ? "bg-red-500/5 border-red-500/20 text-red-600"
                         : "bg-primary/5 border-primary/20 text-primary"

@@ -146,7 +146,7 @@ export const StaffModal = ({
         const isValidated = touchedFields[name] && !validationErrors[name] && !isValidating[name] && formData[name];
 
         return cn(
-            "w-full bg-background border rounded-2xl py-3 pl-11 pr-4 text-sm transition-all outline-none",
+            "w-full bg-background border rounded-xl py-3 pl-11 pr-4 text-sm transition-all outline-none",
             isInvalid ? "border-red-500 ring-1 ring-red-500/20" : "border-border focus:ring-2 focus:ring-primary/20 focus:border-primary",
             isValidated && name !== 'password' ? "border-green-500/50" : ""
         );
@@ -154,7 +154,7 @@ export const StaffModal = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-card w-full max-w-lg rounded-3xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-card w-full max-w-lg rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-border">
                     <div>
@@ -318,7 +318,7 @@ export const StaffModal = ({
                                 </div>
                                 <select
                                     disabled
-                                    className="w-full bg-background border border-border rounded-2xl py-3 pl-11 pr-4 text-sm appearance-none opacity-70"
+                                    className="w-full bg-background border border-border rounded-xl py-3 pl-11 pr-4 text-sm appearance-none opacity-70"
                                     value="gym_staff"
                                 >
                                     <option value="gym_staff">Gym Staff</option>
@@ -335,7 +335,7 @@ export const StaffModal = ({
                                     name="is_active"
                                     checked={formData.is_active}
                                     onChange={handleChange}
-                                    className="h-5 w-5 rounded-lg border-border text-primary focus:ring-primary/20 transition-all"
+                                    className="h-5 w-5 rounded-xl border-border text-primary focus:ring-primary/20 transition-all"
                                 />
                                 <label htmlFor="is_active" className="text-sm font-bold text-text-primary select-none">
                                     Active Account
@@ -350,14 +350,14 @@ export const StaffModal = ({
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="flex-1 bg-background border border-border text-text-primary hover:bg-border transition-all h-12 rounded-2xl"
+                            className="flex-1 bg-background border border-border text-text-primary hover:bg-border transition-all h-12 rounded-xl"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={isSubmitting || Object.keys(isValidating).some(k => isValidating[k])}
-                            className="flex-1 bg-primary text-white hover:bg-primary/90 shadow-soft h-12 rounded-2xl font-bold"
+                            className="flex-1 bg-primary text-white hover:bg-primary/90 shadow-soft h-12 rounded-xl font-bold"
                         >
                             {isSubmitting ? (
                                 <Loader2 size={18} className="animate-spin mr-2" />

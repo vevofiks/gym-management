@@ -132,7 +132,7 @@ export default function WhatsAppBroadcastPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
 
                 <div className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-sm",
+                    "flex items-center gap-2 px-4 py-2 rounded-xl border font-bold text-sm",
                     status?.status === 'CONNECTED'
                         ? "bg-green-500/10 text-green-500 border-green-500/20"
                         : "bg-red-500/10 text-red-500 border-red-500/20"
@@ -149,7 +149,7 @@ export default function WhatsAppBroadcastPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left: Message Composition */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-card border border-border rounded-3xl p-6 shadow-soft space-y-6">
+                    <div className="bg-card border border-border rounded-xl p-6 shadow-soft space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-black text-text-primary uppercase tracking-widest">
                                 Your Message
@@ -158,7 +158,7 @@ export default function WhatsAppBroadcastPage() {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type your message here... Use a friendly tone!"
-                                className="w-full h-48 bg-background border border-border rounded-2xl p-4 text-text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none outline-none font-medium text-sm"
+                                className="w-full h-48 bg-background border border-border rounded-xl p-4 text-text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none outline-none font-medium text-sm"
                             />
                             <div className="flex justify-between items-center text-[10px] font-bold text-text-secondary uppercase">
                                 <span>{message.length} characters</span>
@@ -167,7 +167,7 @@ export default function WhatsAppBroadcastPage() {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4">
+                            <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
                                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-2 flex items-center gap-2">
                                     <Flame size={12} /> Pro Tip
                                 </h4>
@@ -179,7 +179,7 @@ export default function WhatsAppBroadcastPage() {
                             <button
                                 onClick={handleSendBroadcast}
                                 disabled={isSending || selectedIds.length === 0}
-                                className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:scale-100"
+                                className="w-full py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:scale-100"
                             >
                                 {isSending ? (
                                     <>
@@ -199,7 +199,7 @@ export default function WhatsAppBroadcastPage() {
 
                 {/* Right: Recipient Selection */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-card border border-border rounded-3xl shadow-soft overflow-hidden flex flex-col max-h-[700px]">
+                    <div className="bg-card border border-border rounded-xl shadow-soft overflow-hidden flex flex-col max-h-[700px]">
                         {/* Filters & Search */}
                         <div className="p-6 border-b border-border space-y-4">
                             <div className="flex flex-col md:flex-row gap-4">

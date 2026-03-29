@@ -11,7 +11,7 @@ interface CardProps {
 export const Card = ({ children, className, title, subtitle }: CardProps) => {
     return (
         <div className={cn(
-            "rounded-3xl bg-card border border-border p-6 shadow-soft",
+            "rounded-xl bg-card border border-border p-6 shadow-soft",
             className
         )}>
             {(title || subtitle) && (

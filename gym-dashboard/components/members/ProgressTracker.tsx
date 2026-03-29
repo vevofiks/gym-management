@@ -157,7 +157,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
 
             {/* Add Form */}
             {showForm && (
-                <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-5 space-y-4">
+                <form onSubmit={handleSubmit} className="bg-card border border-border rounded-xl p-5 space-y-4">
                     <h4 className="font-bold text-text-primary">New Measurement</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <div>
@@ -217,7 +217,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
             )}
 
             {records.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-2xl">
+                <div className="text-center py-12 bg-card border border-border rounded-xl">
                     <Scale size={40} className="mx-auto text-text-secondary mb-3 opacity-50" />
                     <p className="text-text-secondary font-medium">No measurements yet</p>
                     <p className="text-text-secondary text-sm mt-1">Add the first measurement to start tracking progress</p>
@@ -233,7 +233,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
                                 { label: 'Body Fat', value: records[0].body_fat_percentage, unit: '%', trend: getTrend('body_fat_percentage'), lowerIsBetter: true },
                                 { label: 'Waist', value: records[0].waist, unit: 'cm', trend: null, lowerIsBetter: true },
                             ].map(({ label, value, unit, trend, lowerIsBetter }) => (
-                                <div key={label} className="bg-card border border-border rounded-2xl p-4">
+                                <div key={label} className="bg-card border border-border rounded-xl p-4">
                                     <p className="text-xs text-text-secondary mb-1">{label}</p>
                                     <p className="text-xl font-bold text-text-primary">
                                         {value ? `${Number(value).toFixed(1)}${unit}` : '—'}
@@ -246,7 +246,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
 
                     {/* Chart */}
                     {chartData.length > 1 && (
-                        <div className="bg-card border border-border rounded-2xl p-5">
+                        <div className="bg-card border border-border rounded-xl p-5">
                             <div className="flex items-center justify-between mb-4">
                                 <h4 className="font-bold text-text-primary">Progress Chart</h4>
                                 <div className="flex gap-2">
@@ -254,7 +254,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
                                         <button
                                             key={key}
                                             onClick={() => setActiveChart(key)}
-                                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${activeChart === key ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:text-primary'}`}
+                                            className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${activeChart === key ? 'bg-primary text-white' : 'bg-background text-text-secondary hover:text-primary'}`}
                                         >
                                             {key === 'body_fat' ? 'Body Fat' : key.charAt(0).toUpperCase() + key.slice(1)}
                                         </button>
@@ -284,7 +284,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
                     )}
 
                     {/* History Table */}
-                    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                    <div className="bg-card border border-border rounded-xl overflow-hidden">
                         <div className="px-5 py-4 border-b border-border">
                             <h4 className="font-bold text-text-primary">Measurement History</h4>
                         </div>
@@ -315,7 +315,7 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
                                             <td className="px-4 py-3 text-right">
                                                 <button
                                                     onClick={() => handleDelete(r.id)}
-                                                    className="p-1.5 text-text-secondary hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    className="p-1.5 text-text-secondary hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20"
                                                 >
                                                     <Trash2 size={14} />
                                                 </button>

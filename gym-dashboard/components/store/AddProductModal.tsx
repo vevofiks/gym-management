@@ -134,7 +134,7 @@ export function AddProductModal({ isOpen, onClose, onSuccess, productToEdit }: A
                         {/* Image Upload Section */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">Product Image</label>
-                            <div className="relative flex flex-col items-center gap-4 p-4 border-2 border-dashed border-border rounded-2xl bg-muted/20 hover:bg-muted/30 transition-all group">
+                            <div className="relative flex flex-col items-center gap-4 p-4 border-2 border-dashed border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-all group">
                                 {imagePreview ? (
                                     <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/5">
                                         <img
@@ -149,7 +149,7 @@ export function AddProductModal({ isOpen, onClose, onSuccess, productToEdit }: A
                                                 setSelectedFile(null);
                                                 setFormData({ ...formData, image_url: '' });
                                             }}
-                                            className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             <X size={14} />
                                         </button>

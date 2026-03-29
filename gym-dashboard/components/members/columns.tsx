@@ -121,19 +121,19 @@ export const columns: ColumnDef<MemberResponse>[] = [
       return (
         <div className="flex items-center gap-2 lg:opacity-0 transition-opacity lg:group-hover:opacity-100">
           <button
-            className="rounded-lg p-2 text-text-secondary hover:bg-background hover:text-primary"
+            className="rounded-xl p-2 text-text-secondary hover:bg-background hover:text-primary"
             title="View Details"
           >
             <Eye size={16} />
           </button>
           <button
-            className="rounded-lg p-2 text-text-secondary hover:bg-background hover:text-primary"
+            className="rounded-xl p-2 text-text-secondary hover:bg-background hover:text-primary"
             title="Edit Member"
           >
             <Edit size={16} />
           </button>
           <button
-            className="rounded-lg p-2 text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+            className="rounded-xl p-2 text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
             title="Delete Member"
           >
             <Trash2 size={16} />

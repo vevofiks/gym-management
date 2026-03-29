@@ -124,7 +124,7 @@ export const ReportGenerationModal = ({ isOpen, onClose }: ReportGenerationModal
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-sidebar border border-border w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="bg-sidebar border border-border w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between bg-primary/5">
                     <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export const ReportGenerationModal = ({ isOpen, onClose }: ReportGenerationModal
                                 <button
                                     key={type.id}
                                     onClick={() => setReportType(type.id)}
-                                    className={`flex flex-col items-center text-center p-4 rounded-2xl border-2 transition-all group ${reportType === type.id
+                                    className={`flex flex-col items-center text-center p-4 rounded-xl border-2 transition-all group ${reportType === type.id
                                         ? 'border-primary bg-primary/5 shadow-md'
                                         : 'border-border hover:border-primary/50 hover:bg-background'
                                         }`}
@@ -243,7 +243,7 @@ export const ReportGenerationModal = ({ isOpen, onClose }: ReportGenerationModal
                     <button
                         onClick={handleGenerate}
                         disabled={isGenerating}
-                        className="flex-2 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
+                        className="flex-2 flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-xl font-bold hover:shadow-glow transition-all disabled:opacity-50"
                     >
                         {isGenerating ? (
                             <>

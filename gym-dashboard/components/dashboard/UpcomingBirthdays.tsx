@@ -13,13 +13,13 @@ export const UpcomingBirthdays = ({ birthdays, isLoading }: Props) => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     if (isLoading) {
-        return <Skeleton className="h-[250px] w-full rounded-4xl" />;
+        return <Skeleton className="h-[250px] w-full rounded-xl" />;
     }
 
     const hasBirthdays = birthdays && birthdays.length > 0;
 
     return (
-        <div className="flex flex-col rounded-4xl bg-card p-6 shadow-soft border border-border h-full">
+        <div className="flex flex-col rounded-xl bg-card p-6 shadow-soft border border-border h-full">
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-900/30 text-pink-600">
@@ -34,7 +34,7 @@ export const UpcomingBirthdays = ({ birthdays, isLoading }: Props) => {
 
             <div className="flex-1 space-y-4 overflow-y-auto pr-2">
                 {birthdays?.map((birthday) => (
-                    <div key={birthday.id} className="flex items-center justify-between rounded-2xl bg-background/50 p-4 border border-transparent hover:border-border transition-all">
+                    <div key={birthday.id} className="flex items-center justify-between rounded-xl bg-background/50 p-4 border border-transparent hover:border-border transition-all">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-600 font-bold text-xs">
                                 {birthday.name.split(' ').map(n => n[0]).join('')}

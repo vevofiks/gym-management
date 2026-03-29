@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({
               {onView && (
                 <button
                   onClick={() => onView(row.original)}
-                  className="rounded-lg p-2 text-text-secondary hover:bg-background hover:text-primary"
+                  className="rounded-xl p-2 text-text-secondary hover:bg-background hover:text-primary"
                   title="View Details"
                 >
                   <Eye size={16} />
@@ -56,7 +56,7 @@ export function DataTable<TData, TValue>({
               {onEdit && (
                 <button
                   onClick={() => onEdit(row.original)}
-                  className="rounded-lg p-2 text-text-secondary hover:bg-background hover:text-primary"
+                  className="rounded-xl p-2 text-text-secondary hover:bg-background hover:text-primary"
                   title="Edit Member"
                 >
                   <Edit size={16} />
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
               {onDelete && (
                 <button
                   onClick={() => onDelete(row.original)}
-                  className="rounded-lg p-2 text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+                  className="rounded-xl p-2 text-text-secondary hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
                   title="Delete Member"
                 >
                   <Trash2 size={16} />
@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full rounded-4xl bg-card p-6 shadow-soft border border-border">
+    <div className="w-full rounded-xl bg-card p-6 shadow-soft border border-border">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <h3 className="text-xl font-bold text-text-primary">{title}</h3>
         <div className="flex items-center gap-3">
@@ -161,7 +161,7 @@ export function DataTable<TData, TValue>({
 
       <div className="flex items-center justify-end gap-2 py-4">
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-secondary disabled:opacity-50 hover:bg-background"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-text-secondary disabled:opacity-50 hover:bg-background"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
@@ -171,7 +171,7 @@ export function DataTable<TData, TValue>({
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </span>
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-secondary disabled:opacity-50 hover:bg-background"
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-text-secondary disabled:opacity-50 hover:bg-background"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >

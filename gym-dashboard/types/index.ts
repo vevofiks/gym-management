@@ -135,6 +135,8 @@ export interface TenantResponse {
     zip_code?: string;
     payment_qr_code_url?: string;
     logo_url?: string;
+    google_map?: string;
+    upi_id?: string;
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -161,6 +163,8 @@ export interface TenantUpdate {
     zip_code?: string;
     payment_qr_code_url?: string;
     logo_url?: string;
+    google_map?: string;
+    upi_id?: string;
 }
 
 

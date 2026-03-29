@@ -70,7 +70,7 @@ export const MemberPaymentHistoryModal: React.FC<MemberPaymentHistoryModalProps>
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col bg-card rounded-3xl shadow-2xl border border-border overflow-hidden">
+            <div className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col bg-card rounded-xl shadow-2xl border border-border overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
                     <div>
@@ -130,7 +130,7 @@ export const MemberPaymentHistoryModal: React.FC<MemberPaymentHistoryModalProps>
                             <p className="text-sm font-bold text-text-secondary animate-pulse uppercase">Fetching Records...</p>
                         </div>
                     ) : history && history.fees.length > 0 ? (
-                        <div className="rounded-2xl border border-border overflow-hidden">
+                        <div className="rounded-xl border border-border overflow-hidden">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-muted/50 border-b border-border">
                                     <tr>
@@ -153,7 +153,7 @@ export const MemberPaymentHistoryModal: React.FC<MemberPaymentHistoryModalProps>
                                             </td>
                                             <td className="px-6 py-4 lg:py-2">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="px-2 py-1 bg-primary/5 text-primary border border-primary/10 rounded-lg text-[10px] font-black uppercase">
+                                                    <span className="px-2 py-1 bg-primary/5 text-primary border border-primary/10 rounded-xl text-[10px] font-black uppercase">
                                                         {payment.payment_method}
                                                     </span>
                                                 </div>
@@ -181,7 +181,7 @@ export const MemberPaymentHistoryModal: React.FC<MemberPaymentHistoryModalProps>
                             </table>
                         </div>
                     ) : (
-                        <div className="h-64 flex flex-col items-center justify-center text-center p-8 bg-muted/20 rounded-3xl border-2 border-dashed border-border">
+                        <div className="h-64 flex flex-col items-center justify-center text-center p-8 bg-muted/20 rounded-xl border-2 border-dashed border-border">
                             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 text-text-secondary">
                                 <CreditCard size={32} />
                             </div>

@@ -102,7 +102,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="e.g., Weight Loss Plan"
                     disabled={isLoading}
                 />
@@ -116,7 +116,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                 <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                    className="w-full px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     rows={3}
                     placeholder="Brief description of the plan..."
                     disabled={isLoading}
@@ -132,7 +132,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                         type="text"
                         value={formData.duration_days}
                         onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                         placeholder="e.g., 30"
                         disabled={isLoading}
                     />
@@ -147,7 +147,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                         type="text"
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                         placeholder="e.g., 5000"
                         disabled={isLoading}
                     />
@@ -166,7 +166,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                                 type="text"
                                 value={feature}
                                 onChange={(e) => updateFeature(index, e.target.value)}
-                                className="flex-1 px-4 py-2 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="flex-1 px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                                 placeholder={`Feature ${index + 1}`}
                                 disabled={isLoading}
                             />
@@ -174,7 +174,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                                 <button
                                     type="button"
                                     onClick={() => removeFeature(index)}
-                                    className="p-2 rounded-lg text-red-600 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                    className="p-2 rounded-xl text-red-600 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
                                     disabled={isLoading}
                                 >
                                     <X size={20} />
@@ -184,7 +184,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                                 <button
                                     type="button"
                                     onClick={addFeature}
-                                    className="p-2 rounded-lg text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+                                    className="p-2 rounded-xl text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
                                     disabled={isLoading}
                                 >
                                     <Plus size={20} />
@@ -214,14 +214,14 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                     type="button"
                     onClick={onCancel}
                     disabled={isLoading}
-                    className="px-4 py-2 rounded-lg font-medium text-text-primary bg-background border border-border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl font-medium text-text-primary bg-background border border-border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 rounded-lg font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
                     {isLoading ? 'Saving...' : initialData?.id ? 'Update Plan' : 'Create Plan'}
                 </button>

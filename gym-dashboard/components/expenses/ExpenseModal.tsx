@@ -115,11 +115,11 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 onClick={onClose}
             />
 
-            <div className="bg-background w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
+            <div className="bg-background w-full max-w-lg rounded-xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
                 {/* Header */}
                 <div className="p-6 md:p-8 border-b border-border bg-card flex justify-between items-center">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <Receipt size={24} />
                         </div>
                         <div>
@@ -142,14 +142,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-sm font-bold">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 text-sm font-bold">
                             <AlertCircle size={18} />
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-3 text-green-500 text-sm font-bold">
+                        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3 text-green-500 text-sm font-bold">
                             <CheckCircle2 size={18} />
                             Expense saved successfully!
                         </div>
@@ -240,14 +240,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-6 py-3.5 rounded-2xl bg-muted border border-border font-black uppercase text-[10px] tracking-widest text-text-primary hover:bg-border transition-all active:scale-95"
+                            className="flex-1 px-6 py-3.5 rounded-xl bg-muted border border-border font-black uppercase text-[10px] tracking-widest text-text-primary hover:bg-border transition-all active:scale-95"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-2 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                            className="flex-2 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                         >
                             {isLoading ? (
                                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />

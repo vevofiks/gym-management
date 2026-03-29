@@ -44,7 +44,7 @@ export default function PricingCard({
 
     return (
         <div
-            className={`relative rounded-2xl border p-6 transition-all flex flex-col ${isPopular || isBestValue
+            className={`relative rounded-xl border p-6 transition-all flex flex-col ${isPopular || isBestValue
                 ? 'border-primary shadow-glow scale-100'
                 : 'border-border hover:border-primary/50'
                 }`}
@@ -122,7 +122,7 @@ export default function PricingCard({
                     <li
                         key={index}
                         className={`flex items-start gap-3 ${feature.highlighted
-                            ? 'bg-linear-to-r from-primary/10 to-transparent p-2 rounded-lg -mx-2'
+                            ? 'bg-linear-to-r from-primary/10 to-transparent p-2 rounded-xl -mx-2'
                             : ''
                             }`}
                     >

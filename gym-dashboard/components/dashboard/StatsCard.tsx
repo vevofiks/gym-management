@@ -17,14 +17,14 @@ export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'de
   const isPositive = change >= 0;
 
   if (isLoading) {
-    return <Skeleton className="h-[200px] w-full rounded-4xl" />;
+    return <Skeleton className="h-[140px] w-full rounded-xl" />;
   }
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        "group relative flex flex-col justify-between rounded-4xl p-6 transition-all duration-300 hover:shadow-lg",
+        "group relative flex flex-col justify-between rounded-xl p-4 transition-all duration-300 hover:shadow-lg",
         variant === 'default' && "bg-card shadow-soft border border-border",
         variant === 'primary' && "bg-primary text-white shadow-glow border border-primary",
         variant === 'dark' && "bg-slate-900 text-white shadow-xl",
@@ -32,7 +32,7 @@ export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'de
       )}>
       <div className="flex items-start justify-between">
         <div className={cn(
-          "flex h-12 w-12 items-center justify-center rounded-2xl transition-transform group-hover:scale-110",
+          "flex h-10 w-10 items-center justify-center rounded-xl transition-transform group-hover:scale-110",
           variant === 'default' ? "bg-background text-text-primary" : "bg-white/20 text-white backdrop-blur-md"
         )}>
           {icon}
@@ -45,18 +45,18 @@ export const StatsCard = ({ title, value, change, isLoading, icon, variant = 'de
         </button>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <p className={cn(
           "text-sm font-semibold mb-1",
           variant === 'default' ? "text-text-secondary" : "text-white/70"
         )}>{title}</p>
         <h3 className={cn(
-          "text-3xl font-extrabold tracking-tight",
+          "text-2xl font-extrabold tracking-tight",
           variant === 'default' ? "text-text-primary" : "text-white"
         )}>{value}</h3>
       </div>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-2 flex items-center gap-2">
         <div className={cn(
           "flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold",
           isPositive

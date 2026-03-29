@@ -66,7 +66,7 @@ export function RecordSaleModal({ isOpen, onClose, onSuccess, product }: RecordS
 
                 <form onSubmit={handleSubmit} className="p-8 space-y-8">
                     {/* Product Summary */}
-                    <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-2xl border border-border">
+                    <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl border border-border">
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-background border border-border shrink-0">
                             {product.image_url ? (
                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -127,7 +127,7 @@ export function RecordSaleModal({ isOpen, onClose, onSuccess, product }: RecordS
                                         type="button"
                                         onClick={() => setPaymentMethod(method.id as any)}
                                         className={cn(
-                                            "flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all active:scale-95",
+                                            "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all active:scale-95",
                                             paymentMethod === method.id
                                                 ? "bg-primary border-primary text-white shadow-glow-sm"
                                                 : "bg-background border-border text-text-secondary hover:border-primary/30"
@@ -149,7 +149,7 @@ export function RecordSaleModal({ isOpen, onClose, onSuccess, product }: RecordS
                         <button
                             disabled={isLoading || product.quantity <= 0}
                             type="submit"
-                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95"
                         >
                             {isLoading ? (
                                 <RefreshCw size={18} className="animate-spin" />

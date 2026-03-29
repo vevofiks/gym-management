@@ -10,7 +10,7 @@ export default function NotFound() {
                 {/* Decorative Element */}
                 <div className="relative inline-block">
                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
-                    <div className="relative bg-card border border-border rounded-4xl p-8 shadow-glow">
+                    <div className="relative bg-card border border-border rounded-xl p-8 shadow-glow">
                         <h1 className="text-[120px] font-bold text-primary leading-none tracking-tighter opacity-90 select-none">
                             404
                         </h1>
@@ -34,7 +34,7 @@ export default function NotFound() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <Link
                         href="/"
-                        className="group flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:shadow-glow hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto"
+                        className="group flex items-center gap-3 px-8 py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-sm hover:shadow-glow hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto"
                     >
                         <Home size={20} className="group-hover:-translate-y-0.5 transition-transform" />
                         Back to Dashboard
@@ -43,7 +43,7 @@ export default function NotFound() {
 
                 {/* Footer Support-like Text */}
                 <p className="text-[10px] text-center font-bold text-text-secondary uppercase tracking-[0.2em] pt-8 opacity-40">
-                    Gym Management System • 
+                    Gym Management System •
                 </p>
             </div>
         </div>

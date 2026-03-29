@@ -123,7 +123,7 @@ export default function ExpensesPage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-primary/10 rounded-xl text-primary"><DollarSign size={20} /></div>
                     </div>
@@ -133,7 +133,7 @@ export default function ExpensesPage() {
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Total Expenses</div>
                 </div>
 
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500"><Receipt size={20} /></div>
                     </div>
@@ -141,7 +141,7 @@ export default function ExpensesPage() {
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Transaction Count</div>
                 </div>
 
-                {summary?.by_category && summary.by_category.length > 0 && (<div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                {summary?.by_category && summary.by_category.length > 0 && (<div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500"><TrendingUp size={20} /></div>
                     </div>
@@ -151,7 +151,7 @@ export default function ExpensesPage() {
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Top Category</div>
                 </div>)}
 
-                <div className="bg-card border border-border p-6 rounded-3xl shadow-soft">
+                <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-green-500/10 rounded-xl text-green-500"><Calendar size={20} /></div>
                     </div>
@@ -163,7 +163,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Filters Bar */}
-            <div className="bg-card border border-border p-4 rounded-3xl shadow-soft flex flex-wrap items-center gap-6">
+            <div className="bg-card border border-border p-4 rounded-xl shadow-soft flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-3">
                     <Filter size={18} className="text-text-secondary" />
                     <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">Filters:</span>
@@ -176,7 +176,7 @@ export default function ExpensesPage() {
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-muted px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-muted px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                     <div className="flex items-center gap-3">
@@ -185,7 +185,7 @@ export default function ExpensesPage() {
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-muted px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
+                            className="bg-muted px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors"
                         />
                     </div>
                     <div className="flex items-center gap-3">
@@ -193,7 +193,7 @@ export default function ExpensesPage() {
                         <select
                             value={categoryFilter || ''}
                             onChange={(e) => setCategoryFilter(e.target.value ? e.target.value as ExpenseCategory : undefined)}
-                            className="bg-muted px-3 py-1.5 rounded-lg text-xs font-bold border border-border outline-none focus:border-primary transition-colors appearance-none capitalize cursor-pointer"
+                            className="bg-muted px-3 py-1.5 rounded-xl text-xs font-bold border border-border outline-none focus:border-primary transition-colors appearance-none capitalize cursor-pointer"
                         >
                             <option value="">All Categories</option>
                             {Object.values(ExpenseCategory).map(cat => (

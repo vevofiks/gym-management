@@ -75,7 +75,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
     return (
         <div className="flex flex-col gap-8 max-w-2xl mx-auto pb-10">
             {/* Fee Management Section */}
-            <div className="bg-card border border-border rounded-3xl p-6 md:p-8 shadow-soft">
+            <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-soft">
                 <h3 className="text-lg font-black text-text-primary uppercase tracking-tight mb-6 flex items-center gap-2">
                     <div className="w-2 h-6 bg-primary rounded-full" />
                     Fee Management
@@ -117,7 +117,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
                         </div>
                     </div>
 
-                    <div className="bg-primary/5 rounded-2xl p-6 flex flex-col justify-between border border-primary/10">
+                    <div className="bg-primary/5 rounded-xl p-6 flex flex-col justify-between border border-primary/10">
                         <div>
                             <div className="text-xs font-bold text-primary uppercase mb-1">Total Fee</div>
                             <div className="text-3xl font-black text-text-primary">₹{totalFee}</div>
@@ -191,7 +191,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
                             />
                             <label
                                 htmlFor="screenshot-upload"
-                                className={`flex flex-col items-center justify-center w-full min-h-[100px] border-2 border-dashed rounded-2xl cursor-pointer transition-all ${screenshotUrl
+                                className={`flex flex-col items-center justify-center w-full min-h-[100px] border-2 border-dashed rounded-xl cursor-pointer transition-all ${screenshotUrl
                                     ? 'border-green-500/50 bg-green-500/5'
                                     : 'border-border bg-card hover:border-primary/50'
                                     }`}
@@ -225,7 +225,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
                             <QrCode size={18} className="text-primary" />
                             Scan to Pay
                         </h4>
-                        <div className="bg-white p-4 rounded-2xl border-2 border-primary/10 shadow-lg">
+                        <div className="bg-white p-4 rounded-xl border-2 border-primary/10 shadow-lg">
                             {qrCodeUrl ? (
                                 <img src={qrCodeUrl} alt="Payment QR Code" className="w-48 h-48 object-contain" />
                             ) : (
@@ -251,7 +251,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
 
             <button
                 onClick={handleSubmit}
-                className="w-full rounded-2xl bg-primary py-5 text-sm font-black text-white uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98] mt-4"
+                className="w-full rounded-xl bg-primary py-5 text-sm font-black text-white uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98] mt-4"
             >
                 Confirm Payment & Register Member
             </button>

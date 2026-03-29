@@ -169,11 +169,11 @@ export const DietTemplateModal: React.FC<DietTemplateModalProps> = ({
                 onClick={onClose}
             />
 
-            <div className="bg-background w-full max-w-2xl max-h-[90vh] rounded-4xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
+            <div className="bg-background w-full max-w-2xl max-h-[90vh] rounded-xl overflow-hidden shadow-2xl border border-border flex flex-col relative animate-in zoom-in-95 fade-in duration-300">
                 {/* Header */}
                 <div className="p-6 md:p-8 border-b border-border bg-card flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <Apple size={24} />
                         </div>
                         <div>
@@ -196,14 +196,14 @@ export const DietTemplateModal: React.FC<DietTemplateModalProps> = ({
                 {/* Form Body - Scrollable */}
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar">
                     {error && (
-                        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3 text-rose-500 text-sm font-bold animate-in slide-in-from-top-2">
+                        <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-500 text-sm font-bold animate-in slide-in-from-top-2">
                             <AlertCircle size={18} />
                             {error}
                         </div>
                     )}
 
                     {success && (
-                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center gap-3 text-emerald-500 text-sm font-bold animate-in slide-in-from-top-2">
+                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-500 text-sm font-bold animate-in slide-in-from-top-2">
                             <CheckCircle2 size={18} />
                             Diet plan template saved!
                         </div>
@@ -264,7 +264,7 @@ export const DietTemplateModal: React.FC<DietTemplateModalProps> = ({
                                 type="button"
                                 onClick={handleAddMeal}
                                 variant="outline"
-                                className="h-8 px-3 rounded-lg border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 transition-all"
+                                className="h-8 px-3 rounded-xl border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 transition-all"
                             >
                                 <Plus size={14} className="mr-1" /> Add Meal
                             </Button>
@@ -272,7 +272,7 @@ export const DietTemplateModal: React.FC<DietTemplateModalProps> = ({
 
                         <div className="space-y-6">
                             {meals.map((meal, mealIdx) => (
-                                <div key={mealIdx} className="bg-card/50 border border-border rounded-3xl p-6 relative group/meal animate-in slide-in-from-bottom-2">
+                                <div key={mealIdx} className="bg-card/50 border border-border rounded-xl p-6 relative group/meal animate-in slide-in-from-bottom-2">
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveMeal(mealIdx)}
@@ -365,14 +365,14 @@ export const DietTemplateModal: React.FC<DietTemplateModalProps> = ({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-12 rounded-2xl bg-muted border border-border font-black uppercase text-[10px] tracking-widest text-text-primary hover:bg-border transition-all active:scale-95"
+                        className="flex-1 h-12 rounded-xl bg-muted border border-border font-black uppercase text-[10px] tracking-widest text-text-primary hover:bg-border transition-all active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={isLoading}
-                        className="flex-2 flex items-center justify-center gap-2 h-12 px-8 rounded-2xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                        className="flex-2 flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {isLoading ? (
                             <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />

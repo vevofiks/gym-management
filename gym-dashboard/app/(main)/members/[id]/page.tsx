@@ -12,7 +12,7 @@ export default function MemberProfilePage() {
 
     if (isNaN(memberId)) {
         return (
-            <div className="p-8 text-center bg-card rounded-3xl border border-border shadow-soft">
+            <div className="p-8 text-center bg-card rounded-xl border border-border shadow-soft">
                 <h2 className="text-2xl font-bold text-text-primary mb-4">Invalid Member ID</h2>
                 <button
                     onClick={() => router.push('/members')}

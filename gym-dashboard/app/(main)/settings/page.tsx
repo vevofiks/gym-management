@@ -29,6 +29,8 @@ export default function SettingsPage() {
         zip_code: '',
         payment_qr_code_url: '',
         logo_url: '',
+        google_map: '',
+        upi_id: '',
     });
     const [isEditingGym, setIsEditingGym] = useState(false);
     const [originalGymForm, setOriginalGymForm] = useState(gymForm);
@@ -47,6 +49,8 @@ export default function SettingsPage() {
                     zip_code: data.zip_code || '',
                     payment_qr_code_url: data.payment_qr_code_url || '',
                     logo_url: data.logo_url || '',
+                    google_map: data.google_map || '',
+                    upi_id: data.upi_id || '',
                 };
                 setGymForm(initialForm);
                 setOriginalGymForm(initialForm);
@@ -177,6 +181,8 @@ export default function SettingsPage() {
         { label: 'City', value: gymForm.city, key: 'city', type: 'text' },
         { label: 'State', value: gymForm.state, key: 'state', type: 'text' },
         { label: 'Zip Code', value: gymForm.zip_code, key: 'zip_code', type: 'text' },
+        { label: 'Google Maps URL', value: gymForm.google_map, key: 'google_map', type: 'url' },
+        { label: 'UPI ID', value: gymForm.upi_id, key: 'upi_id', type: 'text' },
     ];
 
     return (
@@ -185,7 +191,7 @@ export default function SettingsPage() {
             <Card>
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
+                        <div className="p-2 rounded-xl bg-primary/10">
                             <Building2 className="text-primary" size={24} />
                         </div>
                         <div>
@@ -207,7 +213,7 @@ export default function SettingsPage() {
                     {/* Logo Upload */}
                     <div className="space-y-4">
                         <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">Gym Logo</label>
-                        <div className="relative group w-32 h-32 rounded-2xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
+                        <div className="relative group w-32 h-32 rounded-xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
                             {gymForm.logo_url ? (
                                 <>
                                     <img
@@ -218,12 +224,12 @@ export default function SettingsPage() {
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                         <button
                                             onClick={handleRemoveLogo}
-                                            className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                            className="p-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
                                             title="Remove Logo"
                                         >
                                             <Trash2 size={16} />
                                         </button>
-                                        <label className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 cursor-pointer transition-colors" title="Change Logo">
+                                        <label className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 cursor-pointer transition-colors" title="Change Logo">
                                             <Upload size={16} />
                                             <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
                                         </label>
@@ -293,7 +299,7 @@ export default function SettingsPage() {
             {user?.role === 'gym_owner' && (
                 <Card>
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 rounded-lg bg-primary/10">
+                        <div className="p-2 rounded-xl bg-primary/10">
                             <CreditCard className="text-primary" size={24} />
                         </div>
                         <div>
@@ -305,7 +311,7 @@ export default function SettingsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <label className="block text-xs font-bold text-text-secondary uppercase">Payment QR Code</label>
-                            <div className="relative group w-48 h-48 rounded-2xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
+                            <div className="relative group w-48 h-48 rounded-xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center overflow-hidden">
                                 {gymForm.payment_qr_code_url ? (
                                     <>
                                         <img
@@ -316,12 +322,12 @@ export default function SettingsPage() {
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                             <button
                                                 onClick={handleRemoveQRCode}
-                                                className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                                className="p-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
                                                 title="Remove QR Code"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
-                                            <label className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 cursor-pointer transition-colors" title="Change QR Code">
+                                            <label className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 cursor-pointer transition-colors" title="Change QR Code">
                                                 <Upload size={16} />
                                                 <input type="file" className="hidden" accept="image/*" onChange={handleQRCodeUpload} />
                                             </label>
@@ -346,7 +352,7 @@ export default function SettingsPage() {
                             </p>
                         </div>
 
-                        <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                        <div className="bg-primary/5 rounded-xl p-6 border border-primary/10">
                             <h4 className="font-bold text-text-primary flex items-center gap-2 mb-2">
                                 <Bell size={16} className="text-primary" />
                                 Auto-Sync
@@ -364,7 +370,7 @@ export default function SettingsPage() {
                 <Card className="border-primary/20 bg-primary/5">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className="p-2 rounded-xl bg-primary/10">
                                 <MessageSquare className="text-primary" size={24} />
                             </div>
                             <div>

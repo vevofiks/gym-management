@@ -46,7 +46,7 @@ export const columns: ColumnDef<ExpenseResponse>[] = [
             const category = row.getValue('category') as ExpenseCategory;
             return (
                 <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-muted text-text-secondary">
+                    <div className="p-1.5 rounded-xl bg-muted text-text-secondary">
                         {categoryIcons[category] || <MoreHorizontal size={14} />}
                     </div>
                     <span className="capitalize font-bold text-text-primary">
@@ -74,7 +74,7 @@ export const columns: ColumnDef<ExpenseResponse>[] = [
         cell: ({ row }) => {
             const method = row.getValue('payment_method') as PaymentMethod;
             return (
-                <span className="px-2 py-1 rounded-lg bg-muted border border-border text-[10px] font-black uppercase text-text-secondary">
+                <span className="px-2 py-1 rounded-xl bg-muted border border-border text-[10px] font-black uppercase text-text-secondary">
                     {method.replace('_', ' ')}
                 </span>
             );

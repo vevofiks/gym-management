@@ -85,7 +85,7 @@ export const ActivityLedgerModal: React.FC<ActivityLedgerModalProps> = ({
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-card border border-border rounded-4xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between shrink-0">
                     <div>
@@ -148,7 +148,7 @@ export const ActivityLedgerModal: React.FC<ActivityLedgerModalProps> = ({
                     ) : (
                         <div className="space-y-4">
                             {activities.map((activity) => (
-                                <div key={activity.id} className="group flex items-center justify-between p-4 rounded-2xl bg-background/40 border border-transparent hover:border-border hover:bg-background/60 transition-all">
+                                <div key={activity.id} className="group flex items-center justify-between p-4 rounded-xl bg-background/40 border border-transparent hover:border-border hover:bg-background/60 transition-all">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-muted/50 group-hover:bg-card transition-colors">
                                             {getActivityIcon(activity.type)}

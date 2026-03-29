@@ -81,7 +81,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
     if (isLoading) {
         return (
             <div className={cn(
-                "bg-card rounded-3xl overflow-hidden shadow-soft border border-border flex items-center justify-center p-20",
+                "bg-card rounded-xl overflow-hidden shadow-soft border border-border flex items-center justify-center p-20",
                 !isPage && "w-full max-w-4xl"
             )}>
                 <div className="flex flex-col items-center gap-4">
@@ -95,7 +95,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
     if (error || !profile) {
         return (
             <div className={cn(
-                "bg-card rounded-3xl overflow-hidden shadow-soft border border-border p-12 text-center",
+                "bg-card rounded-xl overflow-hidden shadow-soft border border-border p-12 text-center",
                 !isPage && "w-full max-w-4xl"
             )}>
                 <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
@@ -206,7 +206,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
     return (
         <div className={cn(
             "flex flex-col transition-all duration-300",
-            isPage ? "w-full space-y-6" : "bg-background w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-border max-h-[90vh]"
+            isPage ? "w-full space-y-6" : "bg-background w-full max-w-4xl rounded-xl overflow-hidden shadow-2xl border border-border max-h-[90vh]"
         )}>
             {/* Header */}
             <div className={cn(
@@ -216,7 +216,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                     : "p-6 md:p-8 border-b border-border bg-card flex flex-col md:flex-row justify-between items-start gap-6"
             )}>
                 <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left w-full md:w-auto">
-                    <div className="w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-20 h-20 rounded-xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden shrink-0">
                         {profile.before_photo_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={profile.before_photo_url} alt="Profile" className="w-full h-full object-cover" />
@@ -248,13 +248,6 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                         </button>
                     )}
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <button
-                            onClick={() => setIsRenewModalOpen(true)}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-muted border border-border text-text-primary font-black uppercase text-[10px] tracking-widest hover:bg-border transition-all active:scale-95 shadow-soft w-full sm:w-auto"
-                        >
-                            <TrendingUp size={14} className="text-primary" />
-                            Change Plan
-                        </button>
                         <button
                             onClick={() => setIsRenewModalOpen(true)}
                             className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95 w-full sm:w-auto"
@@ -304,7 +297,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                     <>
                         {/* Stats Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+                            <div className="bg-card border border-border rounded-xl p-6 shadow-soft">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-2 bg-primary/10 rounded-xl text-primary"><TrendingUp size={20} /></div>
                                     {profile.plan_days_remaining !== undefined && (
@@ -320,7 +313,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                 </p>
                             </div>
 
-                            <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+                            <div className="bg-card border border-border rounded-xl p-6 shadow-soft">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-2 bg-green-500/10 rounded-xl text-green-500"><CreditCard size={20} /></div>
                                 </div>
@@ -329,7 +322,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                 <p className="text-xs text-text-secondary mt-1">Across all renewals</p>
                             </div>
 
-                            <div className="bg-card border border-border rounded-2xl p-6 shadow-soft">
+                            <div className="bg-card border border-border rounded-xl p-6 shadow-soft">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500"><AlertCircle size={20} /></div>
                                 </div>
@@ -361,7 +354,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                     </h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <div className="aspect-3/4 rounded-2xl bg-muted border border-border overflow-hidden relative">
+                                            <div className="aspect-3/4 rounded-xl bg-muted border border-border overflow-hidden relative">
                                                 {profile.before_photo_url ? (
                                                     // eslint-disable-next-line @next/next/no-img-element
                                                     <img src={profile.before_photo_url} alt="Before" className="w-full h-full object-cover" />
@@ -372,7 +365,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <div className="aspect-3/4 rounded-2xl bg-muted border border-border overflow-hidden relative">
+                                            <div className="aspect-3/4 rounded-xl bg-muted border border-border overflow-hidden relative">
                                                 {profile.after_photo_url ? (
                                                     // eslint-disable-next-line @next/next/no-img-element
                                                     <img src={profile.after_photo_url} alt="After" className="w-full h-full object-cover" />
@@ -423,7 +416,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                 </div>
 
                                 {/* Medical Info */}
-                                <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4">
+                                <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4">
                                     <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 flex items-center gap-1">
                                         <Heart size={12} /> Medical & Health
                                     </h4>
@@ -466,7 +459,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                             profile.recent_payments.map((payment) => (
                                                 <div key={payment.id} className="bg-card border border-border p-4 rounded-xl flex items-center justify-between group hover:border-primary/50 transition-colors">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
+                                                        <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
                                                             <CheckCircle2 size={18} />
                                                         </div>
                                                         <div>
@@ -482,7 +475,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-center py-10 bg-muted/30 rounded-2xl border-2 border-dashed border-border text-text-secondary italic text-sm">
+                                            <div className="text-center py-10 bg-muted/30 rounded-xl border-2 border-dashed border-border text-text-secondary italic text-sm">
                                                 No recent payment records found.
                                             </div>
                                         )}
@@ -508,7 +501,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                             dietPlans.map((assignment) => (
                                                 <div key={assignment.id} className="bg-card border border-border p-4 rounded-xl flex items-center justify-between group hover:border-primary/50 transition-colors">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                                             <Utensils size={18} />
                                                         </div>
                                                         <div>
@@ -535,7 +528,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-center py-10 bg-muted/30 rounded-2xl border-2 border-dashed border-border text-text-secondary italic text-sm">
+                                            <div className="text-center py-10 bg-muted/30 rounded-xl border-2 border-dashed border-border text-text-secondary italic text-sm">
                                                 No diet plans assigned yet.
                                             </div>
                                         )}
@@ -543,7 +536,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                 </div>
 
                                 {profile.emergency_contact_name || profile.emergency_contact_phone ? (
-                                    <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6">
+                                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-6">
                                         <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-4">Emergency Contact</h4>
                                         <div className="flex justify-between items-center">
                                             <div>
@@ -558,7 +551,7 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-muted/10 border border-dashed border-border rounded-2xl p-6 text-center">
+                                    <div className="bg-muted/10 border border-dashed border-border rounded-xl p-6 text-center">
                                         <p className="text-xs text-text-secondary italic">No emergency contact information provided.</p>
                                     </div>
                                 )}

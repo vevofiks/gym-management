@@ -86,7 +86,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative bg-card border border-border rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative bg-card border border-border rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-border flex items-center justify-between">
                     <div>
@@ -141,11 +141,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
                     {/* QR Code Display */}
                     {paymentMethod === PaymentMethod.UPI && qrCodeUrl && (
-                        <div className="bg-white p-4 rounded-2xl border-2 border-primary/20 shadow-sm flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-white p-4 rounded-xl border-2 border-primary/20 shadow-sm flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <div className="text-[10px] font-black text-primary uppercase tracking-widest text-center px-4 py-1 bg-primary/10 rounded-full w-full">
                                 Scan & Pay via UPI
                             </div>
-                            <div className="p-3 bg-muted/30 rounded-2xl border border-border/50">
+                            <div className="p-3 bg-muted/30 rounded-xl border border-border/50">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={qrCodeUrl}
