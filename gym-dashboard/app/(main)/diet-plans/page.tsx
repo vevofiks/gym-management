@@ -15,9 +15,9 @@ import {
     Utensils,
     Info
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     DietPlanTemplateResponse,
     DietPlanListResponse
@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DietTemplateModal } from '@/components/diet-plans/DietTemplateModal';
 import { AssignDietModal } from '@/components/diet-plans/AssignDietModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const CATEGORIES = [
     { value: 'all', label: 'All Categories' },

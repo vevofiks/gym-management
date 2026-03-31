@@ -1,9 +1,14 @@
 import React from 'react';
-import { UserPlus, CreditCard, PieChart, Settings, PlusCircle, FileText } from 'lucide-react';
+import { UserPlus, CreditCard, Settings, PlusCircle, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/AuthStore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export const QuickActions = () => {
+interface QuickActionsProps {
+    isLoading?: boolean;
+}
+
+export const QuickActions = ({ isLoading = false }: QuickActionsProps) => {
     const { user } = useAuthStore();
     const actions = [
         {
@@ -43,6 +48,27 @@ export const QuickActions = () => {
             roles: ['gym_owner']
         }
     ].filter(action => !action.roles || action.roles.includes(user?.role || ''));
+
+    if (isLoading) {
+        return (
+            <div className="h-full rounded-xl bg-card p-6 shadow-soft border border-border">
+                <div className="h-7 w-32 bg-muted animate-pulse rounded-lg mb-6" />
+                
+                <div className="grid grid-cols-2 gap-4 flex-1">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="flex flex-col items-center justify-center p-4 rounded-xl bg-background border border-transparent">
+                            <Skeleton className="h-12 w-12 rounded-xl mb-3" />
+                            <Skeleton className="h-4 w-20 rounded-lg" />
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-border flex justify-center">
+                    <Skeleton className="h-4 w-32 rounded-lg" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="h-full rounded-xl bg-card p-6 shadow-soft border border-border">

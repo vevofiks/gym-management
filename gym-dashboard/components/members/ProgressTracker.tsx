@@ -21,6 +21,8 @@ import {
     Legend,
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
+import { EmptyState } from '@/components/ui/empty-state';
+
 
 interface ProgressTrackerProps {
     memberId: number;
@@ -217,11 +219,20 @@ export function ProgressTracker({ memberId }: ProgressTrackerProps) {
             )}
 
             {records.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                    <Scale size={40} className="mx-auto text-text-secondary mb-3 opacity-50" />
-                    <p className="text-text-secondary font-medium">No measurements yet</p>
-                    <p className="text-text-secondary text-sm mt-1">Add the first measurement to start tracking progress</p>
-                </div>
+                <EmptyState
+                    icon={Scale}
+                    title="No measurements yet"
+                    description="Add the first measurement to start tracking health and fitness progress over time."
+                    action={
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95"
+                        >
+                            <Plus size={16} strokeWidth={3} />
+                            Add First Measurement
+                        </button>
+                    }
+                />
             ) : (
                 <>
                     {/* Summary Cards */}

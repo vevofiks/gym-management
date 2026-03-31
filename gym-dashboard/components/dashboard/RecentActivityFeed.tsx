@@ -1,6 +1,6 @@
 import React from 'react';
 import { RecentActivity } from '@/types';
-import { Skeleton } from '../ui/Skeleton';
+import { Skeleton } from '../ui/skeleton';
 import { History, UserPlus, CreditCard, Clock, Package } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import { ActivityLedgerModal } from './ActivityLedgerModal';
@@ -15,7 +15,32 @@ export const RecentActivityFeed = ({ activities, isLoading }: Props) => {
     const [isLedgerOpen, setIsLedgerOpen] = useState(false);
 
     if (isLoading) {
-        return <Skeleton className="h-[400px] w-full rounded-xl" />;
+        return (
+            <div className="flex flex-col rounded-xl bg-card p-6 shadow-soft border border-border h-full animate-pulse">
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-28 rounded-lg" />
+                            <Skeleton className="h-3 w-40 rounded-lg" />
+                        </div>
+                    </div>
+                    <Skeleton className="h-4 w-12 rounded-lg" />
+                </div>
+
+                <div className="flex-1 space-y-6">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="flex gap-4">
+                            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                            <div className="pt-1 flex-1 space-y-2">
+                                <Skeleton className="h-4 w-full rounded-lg" />
+                                <Skeleton className="h-3 w-24 rounded-lg" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     const getActivityIcon = (type: string) => {

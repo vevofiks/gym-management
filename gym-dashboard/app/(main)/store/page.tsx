@@ -13,8 +13,11 @@ import {
     RefreshCw,
     Lock,
     ShoppingBasket,
-    AlertCircle
+    AlertCircle,
+    History as HistoryIcon
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
+
 import { useSubscriptionStore } from '@/store/SubscriptionStore';
 import { getProducts, getStoreStats, getSales, deleteProduct } from '@/services/storeService';
 import { StoreProduct, StoreStats, StoreSale } from '@/types';
@@ -306,31 +309,43 @@ export default function StorePage() {
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-                                            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
-                                                <ShoppingBag size={32} className="text-text-secondary/50" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-text-primary uppercase mb-2">No Products Found</h3>
-                                            <p className="text-text-secondary max-w-sm mb-8 font-medium">Add some products to your gym store (like creatine, protein, or apparel) to start tracking inventory.</p>
-                                            <button
-                                                className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95"
-                                                onClick={() => handleAddProduct()}
-                                            >
-                                                Add Your First Product
-                                            </button>
+                                        <div className="col-span-full">
+                                            <EmptyState
+                                                icon={searchQuery ? Search : ShoppingBag}
+                                                title={searchQuery ? "No products matched" : "No Products Found"}
+                                                description={searchQuery 
+                                                    ? `We couldn't find any products matching "${searchQuery}".` 
+                                                    : "Add some products to your gym store (like creatine, protein, or apparel) to start tracking inventory."
+                                                }
+                                                action={searchQuery ? (
+                                                    <button
+                                                        onClick={() => setSearchQuery('')}
+                                                        className="px-6 py-2 rounded-xl bg-primary text-white font-black uppercase text-[10px] tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95"
+                                                    >
+                                                        Clear Search
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-95"
+                                                        onClick={() => handleAddProduct()}
+                                                    >
+                                                        <Plus size={18} strokeWidth={3} />
+                                                        Add Your First Product
+                                                    </button>
+                                                )}
+                                            />
                                         </div>
                                     )}
                                 </div>
                             ) : (
                                 <div className="space-y-6">
                                     {sales.length === 0 ? (
-                                        <div className="text-center py-20">
-                                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <History size={24} className="text-text-secondary/50" />
-                                            </div>
-                                            <h3 className="text-lg font-black text-text-primary uppercase">No Sales Yet</h3>
-                                            <p className="text-xs text-text-secondary font-medium">Record your first sale to see it in history.</p>
-                                        </div>
+                                        <EmptyState
+                                            icon={HistoryIcon}
+                                            title="No Sales Yet"
+                                            description="Record your first sale to see it in history."
+                                            className="min-h-[300px]"
+                                        />
                                     ) : (
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left">

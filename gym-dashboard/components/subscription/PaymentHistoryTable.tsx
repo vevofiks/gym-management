@@ -16,9 +16,11 @@ interface Payment {
 interface PaymentHistoryTableProps {
     payments: Payment[];
     isLoading: boolean;
+    gymName?: string;
+    ownerName?: string;
 }
 
-const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) => {
+const PaymentHistoryTable = ({ payments, isLoading, gymName, ownerName }: PaymentHistoryTableProps) => {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'success':
@@ -55,50 +57,251 @@ const PaymentHistoryTable = ({ payments, isLoading }: PaymentHistoryTableProps) 
         if (payment.invoice_url) {
             window.open(payment.invoice_url, '_blank');
         } else {
-            // Fallback: Generate a simple print view
+            // Fallback: Generate a professional print view
             const printWindow = window.open('', '_blank');
             if (printWindow) {
+                const date = new Date(payment.payment_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+
                 printWindow.document.write(`
                     <html>
                         <head>
                             <title>Invoice #${payment.id}</title>
                             <style>
-                                body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; mx-auto; }
-                                .header { border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
-                                h1 { margin: 0; color: #333; }
-                                .details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-                                .label { color: #666; font-size: 0.9em; margin-bottom: 5px; }
-                                .value { font-weight: bold; font-size: 1.1em; }
-                                .total { border-top: 2px solid #eee; padding-top: 20px; text-align: right; font-size: 1.5em; font-weight: bold; }
+                                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                                
+                                * { margin: 0; padding: 0; box-sizing: border-box; }
+                                body { 
+                                    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+                                    color: #1a1a1a;
+                                    line-height: 1.5;
+                                    padding: 0;
+                                    margin: 0;
+                                    background: #fff;
+                                }
+                                .container { 
+                                    width: 100%;
+                                    max-width: 800px; 
+                                    margin: 0 auto; 
+                                    padding: 40px;
+                                    position: relative;
+                                }
+                                
+                                .header { 
+                                    display: flex; 
+                                    justify-content: space-between; 
+                                    align-items: center;
+                                    margin-bottom: 60px;
+                                }
+                                .logo-container { display: flex; items-center; gap: 12px; }
+                                .logo { height: 32px; width: 32px; object-fit: contain; }
+                                .company-name { font-size: 22px; font-weight: 900; color: #000; letter-spacing: -1px; text-transform: uppercase; }
+                                
+                                .invoice-meta { text-align: right; }
+                                .invoice-title { 
+                                    font-size: 100px; 
+                                    font-weight: 900; 
+                                    color: #f3f4f6; 
+                                    position: absolute; 
+                                    top: 10px; 
+                                    right: 40px; 
+                                    z-index: -1;
+                                    opacity: 0.5;
+                                }
+                                .meta-item { margin-bottom: 4px; }
+                                .meta-label { font-size: 9px; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: 2px; }
+                                .meta-value { font-size: 13px; font-weight: 700; color: #111827; }
+                                
+                                .billing-grid { 
+                                    display: grid; 
+                                    grid-template-columns: 1fr 1fr; 
+                                    gap: 60px; 
+                                    margin-bottom: 60px; 
+                                }
+                                .billing-section h3 { 
+                                    font-size: 9px; 
+                                    font-weight: 800; 
+                                    color: #9ca3af; 
+                                    text-transform: uppercase; 
+                                    letter-spacing: 2px;
+                                    margin-bottom: 12px;
+                                    border-bottom: 2px solid #f9fafb;
+                                    padding-bottom: 8px;
+                                }
+                                
+                                .table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+                                .table th { 
+                                    text-align: left; 
+                                    padding: 12px 0; 
+                                    font-size: 9px; 
+                                    font-weight: 800; 
+                                    color: #9ca3af; 
+                                    text-transform: uppercase; 
+                                    letter-spacing: 2px;
+                                    border-bottom: 2px solid #111827;
+                                }
+                                .table td { padding: 24px 0; border-bottom: 1px solid #f9fafb; font-size: 14px; }
+                                .item-desc { font-weight: 700; color: #111827; font-size: 15px; }
+                                .item-sub { font-size: 12px; color: #6b7280; margin-top: 4px; }
+                                
+                                .totals { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+                                .total-row { display: flex; gap: 60px; align-items: baseline; }
+                                .total-label { font-size: 13px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+                                .total-value { font-size: 28px; font-weight: 900; color: #111827; }
+                                
+                                .status-stamp {
+                                    display: inline-block;
+                                    padding: 10px 20px;
+                                    border: 4px solid #10b981;
+                                    color: #10b981;
+                                    font-weight: 900;
+                                    text-transform: uppercase;
+                                    border-radius: 8px;
+                                    transform: rotate(-15deg);
+                                    opacity: 0.9;
+                                    font-size: 28px;
+                                    margin-top: 20px;
+                                }
+                                .status-stamp.failed { border-color: #ef4444; color: #ef4444; }
+                                
+                                .footer { 
+                                    margin-top: 50px; 
+                                    border-top: 2px solid #f9fafb; 
+                                    padding-top: 30px;
+                                    font-size: 11px;
+                                    color: #9ca3af;
+                                    text-align: center;
+                                    letter-spacing: 0.5px;
+                                }
+                                
+                                .no-print { 
+                                    position: fixed; 
+                                    top: 20px; 
+                                    right: 20px; 
+                                    z-index: 100; 
+                                }
+                                .download-btn {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                    padding: 12px 24px;
+                                    background: #111827;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 12px;
+                                    font-weight: 700;
+                                    font-size: 14px;
+                                    cursor: pointer;
+                                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+                                    transition: all 0.2s;
+                                }
+                                .download-btn:hover {
+                                    transform: translateY(-2px);
+                                    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+                                    background: #000;
+                                }
+                                
+                                @media print {
+                                    body { padding: 0; margin: 0; }
+                                    .container { 
+                                        max-width: none; 
+                                        width: 100%; 
+                                        padding: 50px; 
+                                    }
+                                    .invoice-title { opacity: 0.2; }
+                                    .no-print { display: none; }
+                                }
                             </style>
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
                         </head>
                         <body>
-                            <div class="header">
-                                <h1>Payment Receipt</h1>
-                                <p>Transaction ID: #${payment.id}</p>
+                            <div class="no-print">
+                                <button onclick="downloadPDF()" class="download-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Download PDF
+                                </button>
                             </div>
-                            <div class="details">
-                                <div>
-                                    <div class="label">Date</div>
-                                    <div class="value">${new Date(payment.payment_date).toLocaleDateString()}</div>
+                            
+                            <div id="invoice-content" class="container">
+                                <div class="header">
+                                    <div class="logo-container">
+                                        <img src="/favicon.ico" class="logo" alt="Logo" onerror="this.style.display='none';">
+                                        <div class="company-name">FitDash</div>
+                                    </div>
+                                    <div class="invoice-meta">
+                                        <div class="meta-item">
+                                            <div class="meta-label">Invoice Number</div>
+                                            <div class="meta-value">#INV-${payment.id}</div>
+                                        </div>
+                                        <div class="meta-item">
+                                            <div class="meta-label">Date Issued</div>
+                                            <div class="meta-value">${date}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="label">Payment Method</div>
-                                    <div class="value">${payment.payment_method?.toUpperCase() || 'N/A'}</div>
+                                
+                                <div class="billing-grid">
+                                    <div class="billing-section">
+                                        <h3>Billed By</h3>
+                                        <div class="meta-value" style="font-size: 16px;">FitDash</div>
+                                        <div class="item-sub">By Vevofiks Solutions, Software Development & Services<br>Kerala, India</div>
+                                    </div>
+                                    <div class="billing-section" style="text-align: right;">
+                                        <h3>Billed To</h3>
+                                        <div class="meta-value" style="font-size: 16px;">${ownerName || 'Gym Owner'}</div>
+                                        <div class="item-sub">${gymName || 'Your Gym'}<br>Reference ID: ${payment.plan_id}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="label">Status</div>
-                                    <div class="value">${payment.status.toUpperCase()}</div>
+                                
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th style="text-align: right;">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="item-desc">${payment.notes || 'Gym Management Subscription'}</div>
+                                                <div class="item-sub">Service Period: 30 Days</div>
+                                            </td>
+                                            <td style="text-align: right; font-weight: 600;">₹${payment.amount.toLocaleString()}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                <div class="totals">
+                                    <div class="total-row">
+                                        <div class="total-label">Grand Total</div>
+                                        <div class="total-value">₹${payment.amount.toLocaleString()}</div>
+                                    </div>
+                                    <div class="status-stamp ${payment.status === 'success' ? '' : 'failed'}">
+                                        ${payment.status === 'success' ? 'PAID' : 'FAILED'}
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="label">Plan</div>
-                                    <div class="value">${payment.notes || 'Subscription'}</div>
+                                
+                                <div class="footer">
+                                    This is a computer-generated document. No signature required.
+                                    <br>Support: support@vevofiks.com | website: vevofiks.com
                                 </div>
                             </div>
-                            <div class="total">
-                                Total Paid: ₹${payment.amount}
-                            </div>
-                            <script>window.print();</script>
+                            <script>
+                                function downloadPDF() {
+                                    const element = document.getElementById('invoice-content');
+                                    const opt = {
+                                        margin: 0,
+                                        filename: 'Invoice_#INV-${payment.id}.pdf',
+                                        image: { type: 'jpeg', quality: 0.98 },
+                                        html2canvas: { scale: 2, useCORS: true },
+                                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                                    };
+                                    html2pdf().from(element).set(opt).save();
+                                }
+                            </script>
                         </body>
                     </html>
                 `);

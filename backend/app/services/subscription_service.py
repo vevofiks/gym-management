@@ -529,7 +529,7 @@ def check_feature_access(db: Session, tenant_id: int, feature: str) -> bool:
     if subscription.status == SubscriptionStatus.TRIAL:
         if feature == "whatsapp":
             return True  # Enabled during trial for testing
-        if feature in ["advanced_analytics", "diet_plans"]:
+        if feature in ["advanced_analytics", "diet_plans", "store"]:
             return True  # Available during trial
 
     # Active subscription: Check plan features

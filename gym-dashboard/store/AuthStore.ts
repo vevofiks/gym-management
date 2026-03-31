@@ -34,6 +34,24 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+// Response interceptor to handle 401 Unauthorized
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            console.warn('Unauthorized request, logging out');
+            const state = useAuthStore.getState();
+            state.logout();
+            
+            // Redirect to login if in browser
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 const decodeToken = (token: string): AuthUser | null => {
     try {
         const base64Url = token.split('.')[1];

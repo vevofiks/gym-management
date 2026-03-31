@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useSubscriptionStore } from '@/store/SubscriptionStore';
 
 /**
@@ -10,6 +10,7 @@ export function useSubscription() {
         isLoading,
         error,
         fetchSubscription,
+        fetchPaymentHistory,
         isSubscriptionActive,
         isTrialActive,
         needsUpgrade,
@@ -30,6 +31,7 @@ export function useSubscription() {
         needsUpgrade: needsUpgrade(),
         daysRemaining: subscription?.days_remaining || 0,
         refetch: fetchSubscription,
+        refetchHistory: () => fetchPaymentHistory(true),
     };
 }
 
@@ -122,37 +124,30 @@ export function useCanCreateDietTemplate() {
 /**
  * Hook to get payment history
  */
-import { useState, useCallback } from 'react';
-import { api } from '@/store/AuthStore';
-
 export function usePaymentHistory() {
-    const [payments, setPayments] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { 
+        payments, 
+        isHistoryLoading: isLoading, 
+        historyError: error, 
+        fetchPaymentHistory,
+        lastHistoryFetched
+    } = useSubscriptionStore();
 
-    const fetchHistory = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const { data } = await api.get('/subscriptions/payment/history');
-            setPayments(data.payments);
-        } catch (err: any) {
-            console.error('Failed to fetch payment history:', err);
-            setError(err.response?.data?.detail || 'Failed to load payment history');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+    const fetchHistory = useCallback(async (force = false) => {
+        await fetchPaymentHistory(force);
+    }, [fetchPaymentHistory]);
 
-    // Initial fetch
+    // Only fetch if never fetched before
     useEffect(() => {
-        fetchHistory();
-    }, [fetchHistory]);
+        if (lastHistoryFetched === null && !isLoading) {
+            fetchHistory();
+        }
+    }, [lastHistoryFetched, isLoading, fetchHistory]);
 
     return {
         payments,
         isLoading,
         error,
-        refetch: fetchHistory
+        refetch: () => fetchHistory(true)
     };
 }

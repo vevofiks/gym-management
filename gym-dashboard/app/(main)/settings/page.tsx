@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { getMyTenant, updateMyTenant } from '@/services/tenantService';
 import { uploadQRCode, uploadLogo } from '@/services/cloudinaryService';
 import { Building2, Bell, Save, CreditCard, QrCode, Upload, Trash2, Loader2, Image as ImageIcon, MessageSquare, ExternalLink } from 'lucide-react';

@@ -176,7 +176,7 @@ class ExporterService:
         elements = []
 
         # Gym Branding
-        gym_name = receipt_data.get("gym_name", "VEVOFIKS GYM")
+        gym_name = receipt_data.get("gym_name", "FitDash")
         elements.append(Paragraph(f"<b>{gym_name}</b>", styles["Title"]))
 
         # Header Info (Address/Contact)

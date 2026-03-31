@@ -22,7 +22,7 @@ import { getExpenses, deleteExpense, getExpenseSummary } from '@/services/expens
 import { DataTable } from '@/components/members/DataTable';
 import { columns } from '@/components/expenses/columns';
 import { ExpenseModal } from '@/components/expenses/ExpenseModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
@@ -122,7 +122,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-card border border-border p-6 rounded-xl shadow-soft">
                     <div className="flex justify-between items-start mb-4">
                         <div className="p-2 bg-primary/10 rounded-xl text-primary"><DollarSign size={20} /></div>

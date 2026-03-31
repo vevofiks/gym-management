@@ -17,7 +17,7 @@ interface PaymentStepProps {
     }) => void;
 }
 
-export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onComplete }) => {
+export const PaymentStep = React.forwardRef<any, PaymentStepProps>(({ plan, qrCodeUrl, onComplete }, ref) => {
     const [paymentMethod, setPaymentMethod] = useState<string>('upi');
     const [joiningFee, setJoiningFee] = useState<string>('0');
     const [discount, setDiscount] = useState<string>('0');
@@ -27,6 +27,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
     const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    React.useImperativeHandle(ref, () => ({
+        submit: handleSubmit
+    }));
 
     const planPrice = Number(plan?.price || 0);
     const numericJoiningFee = Number(joiningFee) || 0;
@@ -248,16 +252,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({ plan, qrCodeUrl, onCom
                     {error}
                 </div>
             )}
-
-            <button
-                onClick={handleSubmit}
-                className="w-full rounded-xl bg-primary py-5 text-sm font-black text-white uppercase tracking-widest shadow-glow hover:bg-primary/90 transition-all active:scale-[0.98] mt-4"
-            >
-                Confirm Payment & Register Member
-            </button>
         </div>
     );
-};
+});
 
 const X = ({ size, className }: { size: number, className?: string }) => (
     <svg

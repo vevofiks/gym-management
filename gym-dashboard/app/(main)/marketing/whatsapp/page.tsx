@@ -14,7 +14,7 @@ import {
     Clock,
     Flame
 } from 'lucide-react';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getMembers } from '@/services/memberService';
 import { sendBroadcast, getWhatsAppStatus } from '@/services/whatsappService';
 import { MemberStatus } from '@/types';

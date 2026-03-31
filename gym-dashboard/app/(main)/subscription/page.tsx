@@ -19,8 +19,10 @@ declare global {
 export default function SubscriptionPage() {
     const router = useRouter();
     const { user } = useAuthStore();
-    const { subscription, refetch } = useSubscription();
+    const { subscription, refetch, refetchHistory } = useSubscription();
     const [processingPlan, setProcessingPlan] = useState<string | null>(null);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
 
     const isInactive = subscription && (!subscription.is_active || subscription.status === 'expired');
 
@@ -29,6 +31,22 @@ export default function SubscriptionPage() {
             router.push('/');
         }
     }, [user, router]);
+
+    // Fetch plans from backend
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const { data } = await api.get('/subscriptions/plans');
+                setPlans(data);
+            } catch (error) {
+                console.error('Failed to fetch plans:', error);
+                toast.error('Failed to load subscription plans');
+            } finally {
+                setLoadingPlans(false);
+            }
+        };
+        fetchPlans();
+    }, []);
 
     // Load Razorpay script
     useEffect(() => {
@@ -42,26 +60,27 @@ export default function SubscriptionPage() {
     }, []);
 
     const handleSubscribe = async (planName: string) => {
-        // Map plan names to IDs
-        let planId = 2; // Default to Pro
-        if (planName.toLowerCase().includes('starter')) {
-            planId = 1;
-        } else if (planName.toLowerCase().includes('quarterly')) {
-            planId = 3;
+        // Find plan ID from fetched plans
+        const targetPlan = plans.find(p => p.name.toLowerCase() === planName.toLowerCase() || 
+                                           (planName === 'Pro Monthly' && p.name === 'Pro'));
+        
+        if (!targetPlan) {
+            toast.error('Plan not found');
+            return;
         }
 
         setProcessingPlan(planName);
         try {
             // 1. Initiate Razorpay Payment
             const { data: orderData } = await api.post('/subscriptions/payment/razorpay/initiate', {
-                plan_id: planId
+                plan_id: targetPlan.id
             });
 
             const options = {
                 key: orderData.key_id,
                 amount: orderData.amount * 100, // Amount is in paisa
                 currency: orderData.currency,
-                name: "VEVOFIKS GYM",
+                name: "FitDash",
                 description: `Subscription for ${orderData.plan_name}`,
                 order_id: orderData.razorpay_order_id,
                 handler: async function (response: any) {
@@ -77,7 +96,10 @@ export default function SubscriptionPage() {
 
                         if (verifyData.success) {
                             toast.success('Subscription activated successfully!');
-                            await refetch();
+                            await Promise.all([
+                                refetch(),
+                                refetchHistory()
+                            ]);
                             window.location.href = '/';
                         }
                     } catch (err: any) {
@@ -131,6 +153,23 @@ export default function SubscriptionPage() {
 
     const currentPlanName = subscription?.plan_name?.toLowerCase();
 
+    // Helper to get plan details from fetched plans
+    const getPlanPrice = (name: string) => {
+        const plan = plans.find(p => p.name === name);
+        return plan ? Number(plan.price_monthly) : 0;
+    };
+
+    if (loadingPlans) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-text-secondary font-medium">Loading plans...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto mt-10 px-4">
             {/* Expiration Warning */}
@@ -161,7 +200,7 @@ export default function SubscriptionPage() {
                 {/* Starter Plan */}
                 <PricingCard
                     name="Starter"
-                    price={1499}
+                    price={getPlanPrice('Starter')}
                     period="month"
                     features={starterFeatures}
                     limits={{
@@ -178,7 +217,7 @@ export default function SubscriptionPage() {
                 {/* Pro Monthly Plan */}
                 <PricingCard
                     name="Pro Monthly"
-                    price={3499}
+                    price={getPlanPrice('Pro')}
                     period="month"
                     badge="popular"
                     features={proFeatures}
@@ -196,7 +235,7 @@ export default function SubscriptionPage() {
                 {/* Pro Quarterly Plan */}
                 <PricingCard
                     name="Pro Quarterly"
-                    price={10000}
+                    price={getPlanPrice('Pro Quarterly')}
                     period="3 months"
                     badge="best-value"
                     features={[
@@ -208,12 +247,8 @@ export default function SubscriptionPage() {
                         plans: 'Unlimited',
                         dietTemplates: 'Unlimited',
                     }}
-                    discount={{
-                        originalPrice: 10499,
-                        savings: 499,
-                    }}
                     onSubscribe={() => handleSubscribe('Pro Quarterly')}
-                    isCurrentPlan={false}
+                    isCurrentPlan={currentPlanName === 'pro quarterly'}
                     isLoading={processingPlan === 'Pro Quarterly'}
                 />
             </div>

@@ -40,30 +40,30 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex min-h-screen bg-background font-sans text-text-primary transition-colors duration-300">
-      {active && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <div className={`flex-1 flex flex-col min-w-0 ${active ? 'lg:pl-72' : ''} transition-all duration-300`}>
+      <div className={`flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300`}>
         {/* Full-width banner - Hidden for staff */}
-        {active && user?.role !== 'gym_staff' && <SubscriptionBanner />}
+        {user?.role !== 'gym_staff' && <SubscriptionBanner />}
 
-        {active && (
-          <div className="px-6 lg:px-10">
-            {pathname === "/subscription" ? null : (
+        <div className="px-6 lg:px-10">
+          {pathname === "/subscription" ? null : (
+            <React.Suspense fallback={null}>
               <Header
                 title={getPageTitle(pathname).title}
                 subtitle={getPageTitle(pathname).subtitle}
                 onMenuClick={() => setIsSidebarOpen(true)}
               />
-            )}
-          </div>
-        )}
+            </React.Suspense>
+          )}
+        </div>
 
-        <main className={`flex-1 ${active ? 'px-6 pb-6 lg:px-10 lg:pb-10' : ''} overflow-x-hidden`}>
+        <main className={`flex-1 px-6 pb-6 lg:px-10 lg:pb-10 overflow-x-hidden`}>
           {children}
         </main>
       </div>
 
-      {active && isSidebarOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-0 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsSidebarOpen(false)}

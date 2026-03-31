@@ -408,10 +408,12 @@ export const MemberProfileDetail: React.FC<MemberProfileDetailProps> = ({
                                             <span className="text-text-secondary">Blood Group</span>
                                             <span className="font-bold text-red-500">{profile.blood_group || 'N/A'}</span>
                                         </div>
-                                        <div className="flex justify-between text-sm py-1">
-                                            <span className="text-text-secondary shrink-0">Address</span>
-                                            <span className="text-text-primary font-bold text-right truncate max-w-[150px]">{profile.address || 'N/A'}</span>
-                                        </div>
+                                        {profile.address && (
+                                            <div className="flex justify-between text-sm py-1">
+                                                <span className="text-text-secondary shrink-0">Address</span>
+                                                <span className="text-text-primary font-bold text-right truncate max-w-[150px]">{profile.address}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

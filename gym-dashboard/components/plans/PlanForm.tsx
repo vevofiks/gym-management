@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 import { PlanCreate, PlanUpdate } from '@/types';
 import { Plus, X } from 'lucide-react';
 
@@ -30,6 +32,16 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
     const [features, setFeatures] = useState<string[]>(
         parseFeatures(initialData?.features)
     );
+
+    const lastInputRef = useRef<HTMLInputElement>(null);
+    const [shouldFocus, setShouldFocus] = useState(false);
+
+    useEffect(() => {
+        if (shouldFocus && lastInputRef.current) {
+            lastInputRef.current.focus();
+            setShouldFocus(false);
+        }
+    }, [features.length, shouldFocus]);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -78,6 +90,7 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
 
     const addFeature = () => {
         setFeatures([...features, '']);
+        setShouldFocus(true);
     };
 
     const removeFeature = (index: number) => {
@@ -155,75 +168,101 @@ export function PlanForm({ initialData, onSubmit, onCancel, isLoading = false }:
                 </div>
             </div>
 
+
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/50 transition-all hover:bg-muted/50">
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-black uppercase tracking-widest text-text-primary">Plan Status</span>
+                    <p className="text-[10px] text-text-secondary font-medium">
+                        {formData.is_active 
+                            ? "Active plans are visible to members" 
+                            : "Inactive plans are hidden from the public list"}
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest transition-colors",
+                        formData.is_active ? "text-primary" : "text-text-secondary"
+                    )}>
+                        {formData.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    <Switch
+                        checked={formData.is_active}
+                        onChange={(checked: boolean) => setFormData({ ...formData, is_active: checked })}
+                        disabled={isLoading}
+                    />
+                </div>
+            </div>
+
             <div>
                 <label className="block text-sm font-medium text-text-primary mb-2">
                     Features (optional)
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {features.map((feature, index) => (
-                        <div key={index} className="flex gap-2">
-                            <input
-                                type="text"
-                                value={feature}
-                                onChange={(e) => updateFeature(index, e.target.value)}
-                                className="flex-1 px-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                                placeholder={`Feature ${index + 1}`}
-                                disabled={isLoading}
-                            />
-                            {features.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeFeature(index)}
-                                    className="p-2 rounded-xl text-red-600 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                        <div 
+                            key={index} 
+                            className="group flex gap-2 animate-in fade-in slide-in-from-left-2 duration-300"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                            <div className="flex-1 relative">
+                                <input
+                                    ref={index === features.length - 1 ? lastInputRef : null}
+                                    type="text"
+                                    value={feature}
+                                    onChange={(e) => updateFeature(index, e.target.value)}
+                                    className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-border bg-background/50 text-sm font-medium text-text-primary focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all placeholder:text-text-secondary/30"
+                                    placeholder={`e.g., Free Diet Plan ${index + 1}`}
                                     disabled={isLoading}
-                                >
-                                    <X size={20} />
-                                </button>
-                            )}
-                            {index === features.length - 1 && (
-                                <button
-                                    type="button"
-                                    onClick={addFeature}
-                                    className="p-2 rounded-xl text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
-                                    disabled={isLoading}
-                                >
-                                    <Plus size={20} />
-                                </button>
-                            )}
+                                />
+                                {features.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFeature(index)}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-text-secondary/40 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 shadow-none border-none bg-transparent outline-none"
+                                        disabled={isLoading}
+                                        title="Remove feature"
+                                    >
+                                        <X size={14} strokeWidth={3} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
+
+                    <button
+                        type="button"
+                        onClick={addFeature}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-card border border-border text-text-secondary hover:text-primary hover:border-primary/50 hover:bg-card/80 transition-all w-full justify-center group shadow-soft"
+                    >
+                        <div className="p-1 bg-muted group-hover:bg-primary/10 rounded-lg transition-colors">
+                            <Plus size={14} strokeWidth={3} className="text-text-secondary group-hover:text-primary transition-colors" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Add New Feature</span>
+                    </button>
                 </div>
             </div>
 
-            <div className="flex items-center gap-3">
-                <input
-                    type="checkbox"
-                    id="is_active"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-2 focus:ring-primary"
-                    disabled={isLoading}
-                />
-                <label htmlFor="is_active" className="text-sm font-medium text-text-primary">
-                    Active to use for registering members
-                </label>
-            </div>
-
-            <div className="flex gap-3 justify-end pt-4">
+            <div className="flex gap-4 justify-end pt-8 border-t border-border/50 mt-6">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={isLoading}
-                    className="px-4 py-2 rounded-xl font-medium text-text-primary bg-background border border-border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest text-text-secondary bg-transparent hover:bg-muted transition-all active:scale-95 disabled:opacity-50"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 rounded-xl font-medium bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    className="px-8 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-glow hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50 min-w-[140px]"
                 >
-                    {isLoading ? 'Saving...' : initialData?.id ? 'Update Plan' : 'Create Plan'}
+                    {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                             <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                             <span>Wait...</span>
+                        </div>
+                    ) : initialData?.id ? 'Update Plan' : 'Create Plan'}
                 </button>
             </div>
         </form>

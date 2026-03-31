@@ -4,10 +4,12 @@ import SubscriptionGuard from '@/components/SubscriptionGuard';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
     return (
-        <ProtectedRoute>
-            <SubscriptionGuard>
-                <Layout>{children}</Layout>
-            </SubscriptionGuard>
-        </ProtectedRoute>
+        <Layout>
+            <ProtectedRoute>
+                <SubscriptionGuard>
+                    {children}
+                </SubscriptionGuard>
+            </ProtectedRoute>
+        </Layout>
     );
 }

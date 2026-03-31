@@ -28,6 +28,7 @@ import toast from 'react-hot-toast';
 import { Clock, Filter } from 'lucide-react';
 import PaymentHistoryTable from '@/components/subscription/PaymentHistoryTable';
 import { usePaymentHistory } from '@/hooks/useSubscription';
+import { getMyTenant } from '@/services/tenantService';
 
 interface OwnerProfileModalProps {
     isOpen: boolean;
@@ -46,11 +47,14 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
     const updateUser = useAuthStore(state => state.updateUser);
     const { subscription, fetchSubscription, needsUpgrade } = useSubscriptionStore();
     const { payments, isLoading: isHistoryLoading } = usePaymentHistory();
-    const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'pending' | 'failed'>('all');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'success' | 'refunded' | 'failed'>('all');
+    const [gymName, setGymName] = useState<string>('');
 
-    const filteredPayments = statusFilter === 'all'
-        ? payments
-        : payments.filter(p => p.status === statusFilter);
+    const filteredPayments = payments.filter(p => {
+        if (p.status === 'pending') return false; // Exclude abandoned payments
+        if (statusFilter === 'all') return true;
+        return p.status === statusFilter;
+    });
 
     // Profile form state
     const [profileForm, setProfileForm] = useState<UserUpdate>({});
@@ -74,19 +78,23 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
     const fetchProfile = async () => {
         setIsLoading(true);
         try {
-            const data = await getMe();
-            console.log(`this is gym owner data : `, data)
-            setUser(data);
+            const [profileData, tenantData] = await Promise.all([
+                getMe(),
+                getMyTenant()
+            ]);
+
+            setUser(profileData);
+            setGymName(tenantData.name);
             setProfileForm({
-                name: data.name,
-                username: data.username,
-                email: data.email,
-                phone_number: data.phone_number,
-                avatar_url: data.avatar_url,
+                name: profileData.name,
+                username: profileData.username,
+                email: profileData.email,
+                phone_number: profileData.phone_number,
+                avatar_url: profileData.avatar_url,
             });
             updateUser({
-                avatar_url: data.avatar_url,
-                username: data.username,
+                avatar_url: profileData.avatar_url,
+                username: profileData.username,
             });
         } catch (error) {
             toast.error('Failed to load profile');
@@ -428,7 +436,7 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
 
                                     {/* Filter Dropdown/Tabs */}
                                     <div className="flex bg-secondary/50 p-1 rounded-xl">
-                                        {(['all', 'success', 'pending', 'failed'] as const).map((status) => (
+                                        {(['all', 'success', 'refunded', 'failed'] as const).map((status) => (
                                             <button
                                                 key={status}
                                                 onClick={() => setStatusFilter(status)}
@@ -444,7 +452,12 @@ export const OwnerProfileModal = ({ isOpen, onClose, onUpdate }: OwnerProfileMod
                                 </div>
 
                                 <div className="border border-border rounded-xl overflow-hidden">
-                                    <PaymentHistoryTable payments={filteredPayments} isLoading={isHistoryLoading} />
+                                    <PaymentHistoryTable 
+                                        payments={filteredPayments} 
+                                        isLoading={isHistoryLoading}
+                                        ownerName={profileForm.name}
+                                        gymName={gymName}
+                                    />
                                 </div>
                             </div>
 

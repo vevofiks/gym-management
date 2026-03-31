@@ -4,14 +4,13 @@ import React, { useState, useEffect } from 'react';
 import {
     Users,
     Plus,
-    RefreshCw,
     Shield,
     AlertCircle,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { StaffTable } from '@/components/staff/StaffTable';
 import { StaffModal } from '@/components/staff/StaffModal';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { UserResponse } from '@/types';
 import { listStaff, createStaff, updateStaff, deleteStaff } from '@/services/staffService';
 import { useSubscriptionStore } from '@/store/SubscriptionStore';

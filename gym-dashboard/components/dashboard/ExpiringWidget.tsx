@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExpiringMember } from '@/types/index';
-import { Skeleton } from '../ui/Skeleton';
+import { Skeleton } from '../ui/skeleton';
 import { Clock, Send, ChevronRight, Loader2, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { triggerWhatsAppExpiryReminders } from '@/services/whatsappService';
@@ -54,7 +54,37 @@ export const ExpiringWidget = ({ members, isLoading }: Props) => {
   };
 
   if (isLoading) {
-    return <Skeleton className="h-[400px] w-full rounded-xl" />;
+    return (
+      <div className="flex flex-col h-full rounded-xl bg-card p-6 shadow-soft border border-border animate-pulse">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24 rounded-lg" />
+              <Skeleton className="h-3 w-32 rounded-lg" />
+            </div>
+          </div>
+          <Skeleton className="h-4 w-12 rounded-lg" />
+        </div>
+        
+        <div className="flex-1 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between rounded-xl bg-background/50 p-4 border border-transparent">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-28 rounded-lg" />
+                  <Skeleton className="h-3 w-20 rounded-lg" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          ))}
+        </div>
+        
+        <Skeleton className="mt-4 h-12 w-full rounded-xl" />
+      </div>
+    );
   }
 
   const memberCount = members?.length || 0;

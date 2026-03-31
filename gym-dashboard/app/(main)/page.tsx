@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { ExpiringWidget } from '@/components/dashboard/ExpiringWidget';
@@ -12,7 +12,6 @@ import {
     DollarSign,
     UserPlus,
     TrendingUp,
-    RefreshCw,
     Activity,
     AlertCircle
 } from 'lucide-react';
@@ -25,64 +24,46 @@ import {
     getUpcomingBirthdays,
 } from '@/services/dashboardService';
 import { useAuthStore } from '@/store/AuthStore';
-import {
-    DashboardStats,
-    RevenueChartDataPoint,
-    ExpiringMember,
-    RecentActivity,
-    UpcomingBirthday,
-} from '@/types';
-import toast from 'react-hot-toast';
-import { Button } from '@/components/ui/Button';
-
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Dashboard() {
     const router = useRouter();
     const { user } = useAuthStore();
-    const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [revenueData, setRevenueData] = useState<RevenueChartDataPoint[]>([]);
-    const [expiringMembers, setExpiringMembers] = useState<ExpiringMember[]>([]);
-    const [activities, setActivities] = useState<RecentActivity[]>([]);
-    const [birthdays, setBirthdays] = useState<UpcomingBirthday[]>([]);
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    // Fetch all dashboard data using React Query for automatic caching and de-duplication
+    const { data: statsData, isLoading: isStatsLoading } = useQuery({
+        queryKey: ['dashboard', 'stats'],
+        queryFn: getDashboardStats,
+    });
 
-    const fetchDashboardData = async () => {
-        try {
-            setIsRefreshing(true);
+    const { data: revenueDataRes, isLoading: isRevenueLoading } = useQuery({
+        queryKey: ['dashboard', 'revenue'],
+        queryFn: () => getRevenueChartData(6),
+    });
 
-            const [statsRes, revenueRes, expiringRes, activityRes, birthdayRes] = await Promise.all([
-                getDashboardStats(),
-                getRevenueChartData(6),
-                getExpiringMembers(7),
-                getRecentActivities(10),
-                getUpcomingBirthdays(7),
-            ]);
+    const { data: expiringData, isLoading: isExpiringLoading } = useQuery({
+        queryKey: ['dashboard', 'expiring'],
+        queryFn: () => getExpiringMembers(7),
+    });
 
-            setStats(statsRes.stats);
-            setRevenueData(revenueRes.data);
-            setExpiringMembers(expiringRes.members);
-            setActivities(activityRes.activities);
-            setBirthdays(birthdayRes.birthdays);
-            console.log(`this is stats : `, statsRes.stats)
-        } catch (error: any) {
-            console.error('Failed to fetch dashboard data:', error);
-            toast.error('Failed to load dashboard data');
-        } finally {
-            setIsRefreshing(false);
-            setIsLoading(false);
-        }
-    };
+    const { data: activityData, isLoading: isActivityLoading } = useQuery({
+        queryKey: ['dashboard', 'activities'],
+        queryFn: () => getRecentActivities(10),
+    });
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
+    const { data: birthdayData, isLoading: isBirthdaysLoading } = useQuery({
+        queryKey: ['dashboard', 'birthdays'],
+        queryFn: () => getUpcomingBirthdays(7),
+    });
 
-    const handleRefresh = () => {
-        fetchDashboardData();
-    };
+    const isLoading = isStatsLoading || isRevenueLoading || isExpiringLoading || isActivityLoading || isBirthdaysLoading;
+
+    const stats = statsData?.stats || null;
+    const revenueData = revenueDataRes?.data || [];
+    const expiringMembers = expiringData?.members || [];
+    const activities = activityData?.activities || [];
+    const birthdays = birthdayData?.birthdays || [];
 
     return (
         <div className="space-y-8 pb-8">
@@ -131,6 +112,7 @@ export default function Dashboard() {
                     isLoading={isLoading}
                     icon={<TrendingUp size={20} />}
                     variant="primary"
+                    info="Percentage of members who renewed their plans this month compared to previous periods. High loyalty confirms member satisfaction."
                 />
                 {user?.role === 'gym_owner' && (
                     <StatsCard
@@ -153,12 +135,12 @@ export default function Dashboard() {
                             <RevenueChart data={revenueData} isLoading={isLoading} />
                         </div>
                         <div className="lg:col-span-1">
-                            <QuickActions />
+                            <QuickActions isLoading={isLoading} />
                         </div>
                     </>
                 ) : (
                     <div className="lg:col-span-3">
-                        <QuickActions />
+                        <QuickActions isLoading={isLoading} />
                     </div>
                 )}
             </div>

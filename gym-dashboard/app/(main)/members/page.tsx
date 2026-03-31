@@ -5,16 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { DataTable } from '@/components/members/DataTable';
 import { columns } from '@/components/members/columns';
 import { MemberOnboardingWizard } from '@/components/members/MemberOnboardingWizard';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
     Users,
     UserCheck,
     AlertCircle,
     TrendingUp,
+    CheckCircle2,
     Plus,
-    RefreshCw,
     X,
-    FileDown
 } from 'lucide-react';
 import { MemberResponse, MemberStatus } from '@/types/index';
 import { getMembers, deleteMember, updateMember, exportMembersCSV } from '@/services/memberService';
@@ -24,17 +23,16 @@ import { MemberForm } from '@/components/members/MemberForm';
 
 import { useCanAddMember } from '@/hooks/useSubscription';
 
-import { getMyTenantStats } from '@/services/tenantService';
-import { TenantStats } from '@/types/index';
+import { useTenantStore } from '@/store/TenantStore';
 
-export default function Members() {
+function MembersContent() {
     const { canAdd, message } = useCanAddMember();
     const router = useRouter();
     const searchParams = useSearchParams();
     const search = searchParams.get('search') || '';
 
+    const { stats, fetchStats } = useTenantStore();
     const [members, setMembers] = useState<MemberResponse[]>([]);
-    const [stats, setStats] = useState<TenantStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -59,23 +57,13 @@ export default function Members() {
         }
     };
 
-    // Fetch global stats
-    const fetchStats = async () => {
-        try {
-            const data = await getMyTenantStats();
-            setStats(data);
-        } catch (error) {
-            console.error('Failed to fetch stats:', error);
-        }
-    };
-
     useEffect(() => {
         fetchData();
     }, [search]);
 
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [fetchStats]);
 
     // Handle delete
     const handleDelete = async () => {
@@ -127,7 +115,7 @@ export default function Members() {
 
     return (
         <div className="flex flex-col gap-8 pb-10">
-            {/* ... Header section section ... */}
+            {/* Header section section */}
             <div className="flex items-center justify-end">
                 <div className="flex gap-3">
                     <button
@@ -161,16 +149,35 @@ export default function Members() {
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider">Active Now</div>
                 </div>
                 <div
-                    onClick={() => router.push('/members/insights?filter=expiring_soon')}
-                    className="bg-card border border-border p-4 rounded-xl shadow-soft cursor-pointer hover:shadow-lg transition-all active:scale-95 group"
+                    className="bg-card border border-border p-4 rounded-xl shadow-soft hover:shadow-lg"
                 >
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-orange-500/10 rounded-xl text-orange-500 group-hover:scale-110 transition-transform"><AlertCircle size={18} /></div>
-                        <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider">Action Required</span>
-                    </div>
-                    <div className="text-2xl font-black text-text-primary">
-                        {stats?.expired_members ?? members.filter(m => m.status === MemberStatus.EXPIRED).length}
-                    </div>
+                    {(() => {
+                        const expiringCount = stats?.expired_members ?? members.filter(m => m.status === MemberStatus.EXPIRED).length;
+                        const isHealthy = expiringCount === 0;
+                        return (
+                            <>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={cn(
+                                        "p-2 rounded-xl transition-all",
+                                        isHealthy
+                                            ? "bg-green-500/10 text-green-500"
+                                            : "bg-orange-500/10 text-orange-500 group-hover:scale-110"
+                                    )}>
+                                        {isHealthy ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                                    </div>
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase tracking-wider",
+                                        isHealthy ? "text-green-500" : "text-orange-500"
+                                    )}>
+                                        {isHealthy ? "" : "Action Required"}
+                                    </span>
+                                </div>
+                                <div className="text-2xl font-black text-text-primary">
+                                    {expiringCount}
+                                </div>
+                            </>
+                        );
+                    })()}
                     <div className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">Expiring Soon</div>
                 </div>
                 <div className="bg-card border border-border p-4 rounded-xl shadow-soft">
@@ -201,11 +208,10 @@ export default function Members() {
                 />
             )}
 
-            {/* Modals */}
             {isWizardOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsWizardOpen(false)} />
-                    <div className="relative z-10 w-full max-w-4xl max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+                    <div className="fixed inset-0 bg-background/60 backdrop-blur-md transition-opacity" onClick={() => setIsWizardOpen(false)} />
+                    <div className="relative z-10 w-full max-w-2xl my-auto animate-in fade-in zoom-in duration-300">
                         <MemberOnboardingWizard
                             onComplete={(newMember) => {
                                 setIsWizardOpen(false);
@@ -258,5 +264,15 @@ export default function Members() {
                 isLoading={isSubmitting}
             />
         </div>
+    );
+}
+
+import React, { Suspense } from 'react';
+
+export default function Members() {
+    return (
+        <Suspense fallback={<div className="h-96 flex items-center justify-center text-text-secondary font-bold">Loading Member Data...</div>}>
+            <MembersContent />
+        </Suspense>
     );
 }

@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -150,8 +151,13 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="h-24 text-center text-text-secondary font-medium">
-                  No results found.
+                <td colSpan={columns.length} className="px-6 py-12">
+                  <EmptyState
+                    icon={Search}
+                    title="No results found"
+                    description={globalFilter ? `We couldn't find any matches for "${globalFilter}"` : "There are no items to display in this list."}
+                    className="min-h-[300px] border-none bg-transparent"
+                  />
                 </td>
               </tr>
             )}

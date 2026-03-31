@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 import {
     getWhatsAppStatus,
     getWhatsAppQR,
@@ -12,8 +12,8 @@ import {
     getWhatsAppSettings,
     updateWhatsAppSettings
 } from '@/services/whatsappService';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     MessageSquare,
     RefreshCw,
@@ -29,8 +29,8 @@ import {
     Bell,
     Settings2
 } from 'lucide-react';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Switch } from '@/components/ui/Switch';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Switch } from '@/components/ui/switch';
 import toast from 'react-hot-toast';
 import { WhatsAppStatusResponse, WhatsAppSettings } from '@/types';
 

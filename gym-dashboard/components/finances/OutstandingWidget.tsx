@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Card } from '@/components/ui/Card';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { OutstandingPayment } from '@/types';
 import { AlertCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';

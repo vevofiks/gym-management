@@ -6,6 +6,9 @@ import { getPlans } from '@/services/planService';
 import { User, Activity, Phone, Camera as CameraIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { CameraCapture } from './CameraCapture';
+import { DatePicker } from '@/components/ui/date-picker';
+import { parseDMYToDate, formatDateToDMY } from '@/lib/utils';
+import { parseISO, format } from 'date-fns';
 
 interface MemberFormProps {
     initialData?: MemberUpdate & { id?: number };
@@ -232,18 +235,18 @@ export function MemberForm({ initialData, onSubmit, onCancel, isLoading = false 
 
                     {!initialData && (
                         <div>
-                            <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                Joining Date <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                value={formData.joining_date}
-                                onChange={(e) => setFormData({ ...formData, joining_date: e.target.value })}
-                                max={new Date().toISOString().split('T')[0]}
-                                className="w-full rounded-xl bg-background border border-border px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                            <DatePicker
+                                label="Joining Date"
+                                required
+                                date={formData.joining_date ? parseISO(formData.joining_date) : undefined}
+                                setDate={(date) => setFormData({ ...formData, joining_date: date ? format(date, 'yyyy-MM-dd') : '' })}
+                                disableFutureDates={true}
+                                captionLayout="dropdown"
+                                startMonth={new Date(2020, 0)}
+                                endMonth={new Date()}
+                                error={errors.joining_date}
                                 disabled={isLoading}
                             />
-                            {errors.joining_date && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.joining_date}</p>}
                         </div>
                     )}
 
@@ -349,12 +352,15 @@ export function MemberForm({ initialData, onSubmit, onCancel, isLoading = false 
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Date of Birth</label>
-                        <input
-                            type="date"
-                            value={formData.date_of_birth}
-                            onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                            className="w-full rounded-xl bg-background border border-border px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        <DatePicker
+                            label="Date of Birth"
+                            date={formData.date_of_birth ? parseISO(formData.date_of_birth) : undefined}
+                            setDate={(date) => setFormData({ ...formData, date_of_birth: date ? format(date, 'yyyy-MM-dd') : '' })}
+                            disableFutureDates={true}
+                            captionLayout="dropdown"
+                            startMonth={new Date(1900, 0)}
+                            endMonth={new Date()}
+                            placeholder="Select date of birth"
                             disabled={isLoading}
                         />
                     </div>

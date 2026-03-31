@@ -1,16 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Package } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/ui/empty-state';
 import { PlanCard } from '@/components/plans/PlanCard';
 import { PlanForm } from '@/components/plans/PlanForm';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { MembershipPlan, PlanCreate, PlanUpdate } from '@/types';
 import { getPlans, createPlan, updatePlan, deletePlan } from '@/services/planService';
 import { useAuthStore } from '@/store/AuthStore';
 import toast from 'react-hot-toast';
 
 import { useCanCreatePlan } from '@/hooks/useSubscription';
+import { Switch } from '@/components/ui/switch';
 
 export default function MembershipPlanPage() {
     const { user } = useAuthStore();
@@ -153,15 +156,18 @@ export default function MembershipPlanPage() {
                         className="w-full pl-10 pr-4 py-2 rounded-xl border border-border bg-background text-text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                 </div>
-                <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background cursor-pointer">
-                    <input
-                        type="checkbox"
-                        checked={showInactive}
-                        onChange={(e) => setShowInactive(e.target.checked)}
-                        className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-2 focus:ring-primary"
+                     <div className="flex items-center gap-3 px-4 py-2 bg-background border border-border rounded-xl w-full md:w-auto shrink-0 shadow-sm">
+                    <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest transition-colors",
+                        showInactive ? "text-primary" : "text-text-secondary"
+                    )}>
+                        {showInactive ? 'Showing Inactive' : 'Show Inactive'}
+                    </span>
+                    <Switch
+                        checked={showInactive} 
+                        onChange={setShowInactive} 
                     />
-                    <span className="text-sm font-medium text-text-primary">Show Inactive</span>
-                </label>
+                </div>
             </div>
 
             {/* Plans Grid */}
@@ -172,11 +178,30 @@ export default function MembershipPlanPage() {
                     ))}
                 </div>
             ) : filteredPlans.length === 0 ? (
-                <div className="text-center py-16">
-                    <p className="text-text-secondary text-lg">
-                        {searchQuery ? 'No plans found matching your search.' : 'No plans yet. Create your first plan!'}
-                    </p>
-                </div>
+                <EmptyState
+                    icon={searchQuery ? Search : Package}
+                    title={searchQuery ? "No matches found" : "No plans created yet"}
+                    description={searchQuery
+                        ? `We couldn't find any plans matching "${searchQuery}". Try a different search term.`
+                        : "Start by creating your first membership plan to manage your gym members effectively."
+                    }
+                    action={searchQuery ? (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="px-6 py-2 rounded-xl bg-primary text-white font-bold shadow-soft hover:bg-primary/90 transition-all active:scale-95"
+                        >
+                            Clear Search
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleCreateClick}
+                            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-primary text-white font-bold shadow-soft hover:bg-primary/90 transition-all active:scale-95"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Create Your First Plan
+                        </button>
+                    )}
+                />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredPlans.map((plan) => (

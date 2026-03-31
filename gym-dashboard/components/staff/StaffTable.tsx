@@ -15,6 +15,8 @@ import { UserResponse } from '@/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+import { EmptyState } from '@/components/ui/empty-state';
+
 interface StaffTableProps {
     staff: UserResponse[];
     onEdit: (staff: UserResponse) => void;
@@ -41,15 +43,11 @@ export const StaffTable = ({
 
     if (staff.length === 0) {
         return (
-            <div className="w-full bg-card rounded-xl border border-border overflow-hidden min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
-                <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6">
-                    <User size={40} />
-                </div>
-                <h3 className="text-xl font-bold text-text-primary mb-2">No staff members found</h3>
-                <p className="text-sm text-text-secondary max-w-xs">
-                    You haven't added any staff members yet. Use the "Add Staff" button to get started.
-                </p>
-            </div>
+            <EmptyState
+                icon={User}
+                title="No staff members found"
+                description="You haven't added any staff members yet. Use the 'Add Staff' button to get started."
+            />
         );
     }
 

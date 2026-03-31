@@ -71,14 +71,15 @@ export default function SubscriptionGuard({ children }: SubscriptionGuardProps) 
         }
     }, [subscription, isLoading, isSubscriptionActive, pathname, router]);
 
-    // While loading initial subscription data, show a simple loader
+    // While loading initial subscription data, only show a restricted loader if we have NO subscription data yet
+    // and we're not already on the subscription page.
     if (isLoading && !subscription && pathname !== '/subscription') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-text-secondary">Verifying subscription status...</p>
-                </div>
+            <div className="flex flex-col items-center justify-center min-h-[60vh] w-full">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
+                <p className="text-sm font-medium text-text-secondary uppercase tracking-widest animate-pulse">
+                    Verifying subscription...
+                </p>
             </div>
         );
     }

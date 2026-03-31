@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UpcomingBirthday } from '@/types';
-import { Skeleton } from '../ui/Skeleton';
+import { Skeleton } from '../ui/skeleton';
 import { Cake, ChevronRight } from 'lucide-react';
 import { BirthdayCalendarModal } from './BirthdayCalendarModal';
 
@@ -13,7 +13,34 @@ export const UpcomingBirthdays = ({ birthdays, isLoading }: Props) => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     if (isLoading) {
-        return <Skeleton className="h-[250px] w-full rounded-xl" />;
+        return (
+            <div className="flex flex-col rounded-xl bg-card p-6 shadow-soft border border-border h-full animate-pulse">
+                <div className="mb-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-32 rounded-lg" />
+                            <Skeleton className="h-3 w-24 rounded-lg" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 space-y-4">
+                    {[1, 2].map((i) => (
+                        <div key={i} className="flex items-center justify-between rounded-xl bg-background/50 p-4 border border-transparent">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="space-y-1.5">
+                                    <Skeleton className="h-4 w-32 rounded-lg" />
+                                    <Skeleton className="h-3 w-40 rounded-lg" />
+                                </div>
+                            </div>
+                            <Skeleton className="h-4 w-4 rounded-full" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     const hasBirthdays = birthdays && birthdays.length > 0;

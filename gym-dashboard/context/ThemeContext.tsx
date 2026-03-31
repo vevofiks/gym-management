@@ -39,10 +39,8 @@ export const ThemeProvider = ({ children }: { children?: React.ReactNode }) => {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('theme-violet', 'theme-blue', 'theme-emerald', 'theme-rose');
-
-    if (colorTheme !== 'violet') {
-      root.classList.add(`theme-${colorTheme}`);
-    }
+    
+    root.classList.add(`theme-${colorTheme}`);
     localStorage.setItem('colorTheme', colorTheme);
   }, [colorTheme]);
 

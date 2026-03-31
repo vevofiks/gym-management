@@ -109,8 +109,8 @@ def get_plans_by_tenant(
         and_(MembershipPlan.tenant_id == tenant_id, MembershipPlan.is_deleted == False)
     )
 
-    if active_only:
-        query = query.filter(MembershipPlan.is_active == True)
+    if active_only is not None:
+        query = query.filter(MembershipPlan.is_active == active_only)
 
     total = query.count()
 

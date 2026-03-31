@@ -21,8 +21,8 @@ import {
 import { getMembers } from '@/services/memberService';
 import { assignToMember } from '@/services/dietPlanService';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/AuthStore';
 import { Copy } from 'lucide-react';
 import toast from 'react-hot-toast';

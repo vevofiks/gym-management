@@ -16,6 +16,7 @@ import { MemberResponse } from '@/types/index';
 import { getMembers } from '@/services/memberService';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type ReportTab = 'expiring_soon' | 'expired' | 'outstanding_dues';
 
@@ -158,13 +159,15 @@ function InsightsContent() {
                         <div className="text-xs font-black text-text-secondary uppercase tracking-widest animate-pulse">Loading Report...</div>
                     </div>
                 ) : members.length === 0 ? (
-                    <div className="h-96 flex flex-col items-center justify-center text-center p-8">
-                        <div className="p-4 bg-muted rounded-full mb-4">
-                            <Clock size={40} className="text-text-secondary opacity-20" />
-                        </div>
-                        <h3 className="text-xl font-black text-text-primary uppercase tracking-tight">No Results Found</h3>
-                        <p className="text-sm font-bold text-text-secondary uppercase tracking-wider mt-2">Everything looks clear in this category!</p>
-                    </div>
+                    <EmptyState
+                        icon={tabs.find(t => t.id === activeTab)?.icon || Clock}
+                        title="No Results Found"
+                        description={searchTerm 
+                            ? `We couldn't find any members matching "${searchTerm}" in the ${tabs.find(t => t.id === activeTab)?.label} category.` 
+                            : `Everything looks clear in the ${tabs.find(t => t.id === activeTab)?.label} category!`
+                        }
+                        className="border-none shadow-none"
+                    />
                 ) : (
                     <DataTable
                         columns={columns}

@@ -10,7 +10,7 @@ import {
     Shield,
     Loader2,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { UserResponse } from '@/types';
 import { StaffCreate, StaffUpdate, validateStaffUniqueness } from '@/services/staffService';
 import toast from 'react-hot-toast';

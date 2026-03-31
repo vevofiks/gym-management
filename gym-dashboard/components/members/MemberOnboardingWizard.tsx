@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Activity, Camera, CreditCard, ChevronRight, ChevronLeft, Check, X, Loader2, Upload } from 'lucide-react';
 import { MemberCreate, MembershipPlan, MemberResponse, MemberStatus } from '@/types/index';
 import { getPlans } from '@/services/planService';
@@ -11,9 +11,10 @@ import { PaymentStep } from './PaymentStep';
 import { uploadFromCamera } from '@/services/cloudinaryService';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { formatDate, parseInputDate } from '@/lib/utils';
+import { formatDate, parseInputDate, formatDateToDMY, parseDMYToDate } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useDashboardStore } from '@/store/DashboardStore';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface MemberOnboardingWizardProps {
     onComplete: (member: MemberResponse) => void;
@@ -32,13 +33,12 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
     const [isLoading, setIsLoading] = useState(false);
     const [plans, setPlans] = useState<MembershipPlan[]>([]);
     const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+    const paymentRef = useRef<any>(null);
 
-    // Initial value for joining date in DD/MM/YY
+    // Initial value for joining date
     const today = new Date();
-    const initialJoiningDateFormatted = format(today, "dd/MM/yy");
-
-    const [joiningDateInput, setJoiningDateInput] = useState(initialJoiningDateFormatted);
-    const [dobInput, setDobInput] = useState('');
+    const [joiningDate, setJoiningDate] = useState<Date | undefined>(today);
+    const [dob, setDob] = useState<Date | undefined>(undefined);
 
     // Form States
     const [basicData, setBasicData] = useState({
@@ -114,9 +114,9 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
         if (field === 'first_name' || field === 'last_name') return value.trim().length < 2;
         if (field === 'phone_number') return value.trim().length < 10;
         if (field === 'plan_id') return !value;
-        if (field === 'joining_date') return value.length !== 8;
+        if (field === 'joining_date') return !joiningDate;
         if (field === 'gender') return !value;
-        if (field === 'date_of_birth') return value.length !== 8;
+        if (field === 'date_of_birth') return !dob;
         return false;
     };
 
@@ -156,23 +156,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
         }
     };
 
-    const handleDateInputChange = (value: string, setter: (val: string) => void) => {
-        // Simple masking: DD/MM/YY
-        let cleaned = value.replace(/\D/g, '');
-        if (cleaned.length > 6) cleaned = cleaned.slice(0, 6);
-
-        let formatted = '';
-        if (cleaned.length > 0) {
-            formatted = cleaned.slice(0, 2);
-            if (cleaned.length > 2) {
-                formatted += '/' + cleaned.slice(2, 4);
-                if (cleaned.length > 4) {
-                    formatted += '/' + cleaned.slice(4, 6);
-                }
-            }
-        }
-        setter(formatted);
-    };
+    // Date input change handlers removed as we use DatePicker now
 
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -205,20 +189,20 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
             }
 
             // 2. Prepare member create data
-            const parsedJoiningDate = parseInputDate(joiningDateInput);
-            const parsedDob = parseInputDate(dobInput);
-
-            if (!parsedJoiningDate) {
-                toast.error('Invalid joining date format. Use DD/MM/YY');
+            if (!joiningDate) {
+                toast.error('Joining date is required');
                 setIsLoading(false);
                 return;
             }
 
-            if (!parsedDob) {
-                toast.error('Invalid date of birth format. Use DD/MM/YY');
+            if (!dob) {
+                toast.error('Date of birth is required');
                 setIsLoading(false);
                 return;
             }
+
+            const parsedJoiningDate = format(joiningDate, 'yyyy-MM-dd');
+            const parsedDob = format(dob, 'yyyy-MM-dd');
 
             const memberData: MemberCreate = {
                 ...basicData,
@@ -334,19 +318,20 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                                     <p className="text-[10px] text-red-500 font-bold px-1 mt-1">{validationErrors.email}</p>
                                 )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                    Joining Date <span className="text-primary">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={joiningDateInput}
-                                    onChange={(e) => handleDateInputChange(e.target.value, setJoiningDateInput)}
-                                    onBlur={() => handleBlur('joining_date')}
-                                    placeholder="DD/MM/YY"
-                                    className={getFieldClass('joining_date', joiningDateInput, "w-full rounded-xl bg-card border px-4 py-3 text-sm focus:ring-1 outline-none font-bold transition-all")}
-                                />
-                            </div>
+                            <DatePicker
+                                label="Joining Date"
+                                required
+                                date={joiningDate}
+                                setDate={(d) => {
+                                    setJoiningDate(d);
+                                    handleBlur('joining_date');
+                                }}
+                                disableFutureDates={true}
+                                captionLayout="dropdown"
+                                startMonth={new Date(2020, 0)}
+                                endMonth={new Date()}
+                                error={touchedFields.joining_date && !joiningDate ? 'Joining date is required' : ''}
+                            />
                             <div>
                                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
                                     Select Plan <span className="text-primary">*</span>
@@ -432,19 +417,21 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                                     ))}
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
-                                    Date of Birth <span className="text-primary">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={dobInput}
-                                    onChange={(e) => handleDateInputChange(e.target.value, setDobInput)}
-                                    onBlur={() => handleBlur('date_of_birth')}
-                                    placeholder="DD/MM/YY"
-                                    className={getFieldClass('date_of_birth', dobInput, "w-full rounded-xl bg-card border px-4 py-3 text-sm focus:ring-1 outline-none font-bold transition-all")}
-                                />
-                            </div>
+                            <DatePicker
+                                label="Date of Birth"
+                                side="top"
+                                required
+                                date={dob}
+                                setDate={(d) => {
+                                    setDob(d);
+                                    handleBlur('date_of_birth');
+                                }}
+                                disableFutureDates={true}
+                                captionLayout="dropdown"
+                                startMonth={new Date(1900, 0)}
+                                endMonth={new Date()}
+                                error={touchedFields.date_of_birth && !dob ? 'Date of birth is required' : ''}
+                            />
                         </div>
                         <div className="space-y-4">
                             <div>
@@ -458,7 +445,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Emergency Contact Phone (Optional)</label>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Emergency Contact Phone <span className="text-xs font-medium lowercase opacity-60">(Optional)</span></label>
                                 <input
                                     type="tel"
                                     value={healthData.emergency_contact_phone}
@@ -468,7 +455,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Medical Conditions (Optional)</label>
+                                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">Medical Conditions<span className="text-xs font-medium lowercase opacity-60">(Optional)</span></label>
                                 <textarea
                                     value={healthData.medical_conditions}
                                     onChange={(e) => setHealthData({ ...healthData, medical_conditions: e.target.value })}
@@ -530,6 +517,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                 const selectedPlan = plans.find(p => p.id === parseInt(basicData.plan_id));
                 return (
                     <PaymentStep
+                        ref={paymentRef}
                         plan={selectedPlan || null}
                         qrCodeUrl={qrCodeUrl}
                         onComplete={handleComplete}
@@ -548,14 +536,14 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                     basicData.last_name.trim().length >= 2 &&
                     basicData.phone_number.trim().length >= 10 &&
                     !!basicData.plan_id &&
-                    joiningDateInput.length === 8 &&
+                    !!joiningDate &&
                     !validationErrors.phone_number &&
                     !validationErrors.email &&
                     !isValidating.phone_number &&
                     !isValidating.email
                 );
             case 1:
-                return !!healthData.gender && dobInput.length === 8;
+                return !!healthData.gender && !!dob;
             case 2:
                 return photoBlob !== null;
             case 3:
@@ -566,9 +554,9 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
     };
 
     return (
-        <div className="bg-background rounded-xl border border-border shadow-2xl flex flex-col max-w-4xl w-full mx-auto max-h-[90vh]">
+        <div className="bg-card rounded-xl border border-border shadow-2xl flex flex-col overflow-hidden">
             {/* Header / Stepper */}
-            <div className="bg-card border-b border-border p-6 md:p-8">
+            <div className="bg-card/30 border-b border-border/50 p-4 md:p-6">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h2 className="text-2xl font-black text-text-primary">Member Onboarding</h2>
@@ -580,7 +568,7 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                 </div>
 
                 <div className="flex justify-between relative">
-                    <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 z-0" />
+                    <div className="absolute top-1/2 left-0 w-full h-0.5 bg-border/50 -translate-y-1/2 z-0" />
                     <div
                         className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-500"
                         style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
@@ -610,12 +598,12 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
             </div>
 
             {/* Content Area */}
-            <div className="p-6 md:p-10 flex-1 overflow-y-auto min-h-[400px]">
+            <div className="p-4 md:p-8 flex-1 overflow-y-auto min-h-[400px] bg-background/20">
                 {renderStepContent()}
             </div>
 
             {/* Footer Navigation */}
-            <div className="bg-card border-t border-border p-6 flex justify-between items-center">
+            <div className="bg-card/30 border-t border-border/50 p-4 md:p-6 flex justify-between items-center">
                 <button
                     onClick={handleBack}
                     disabled={currentStep === 0 || isLoading}
@@ -633,6 +621,16 @@ export const MemberOnboardingWizard: React.FC<MemberOnboardingWizardProps> = ({ 
                     >
                         Next Step
                         <ChevronRight size={18} />
+                    </button>
+                )}
+
+                {currentStep === STEPS.length - 1 && (
+                    <button
+                        onClick={() => paymentRef.current?.submit()}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-sm font-bold text-white shadow-glow hover:bg-primary/90 transition-all disabled:opacity-50"
+                    >
+                        {isLoading ? "Processing..." : "Confirm Payment & Register Member"}
                     </button>
                 )}
 

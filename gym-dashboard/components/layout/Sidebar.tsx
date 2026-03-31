@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
     LayoutDashboard,
     Users,
+    UserCheck,
     CreditCard,
     Settings,
     TrendingUp,
@@ -63,7 +64,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         { icon: Users, label: 'Members', path: '/members' },
         { icon: Wallet, label: 'Member Insights', path: '/members/insights' },
         { icon: ClipboardList, label: 'Plans', path: '/plans' },
-        { icon: Users, label: 'Staff', path: '/settings/staff', role: 'gym_owner' },
+        { icon: UserCheck, label: 'Staff', path: '/settings/staff', role: 'gym_owner' },
         { icon: CreditCard, label: 'Finances', path: '/finances', role: 'gym_owner' },
         { icon: Receipt, label: 'Expenses', path: '/expenses', feature: 'expenses' as const, role: 'gym_owner' },
         { icon: Apple, label: 'Diet Plans', path: '/diet-plans' },
@@ -100,27 +101,39 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         {/* User Profile Header */}
                         <button
                             onClick={() => setIsProfileModalOpen(true)}
-                            className="group flex items-center gap-4 mb-10 text-left hover:bg-primary/5 p-2 -m-2 rounded-xl transition-all w-full"
+                            className="group flex items-center gap-3 mb-6 text-left hover:bg-primary/5 p-2 -m-2 rounded-xl transition-all w-full"
                         >
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 {user?.avatar_url ? (
                                     <img
                                         src={user.avatar_url}
                                         alt={user.username}
-                                        className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-md"
+                                        className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-md"
                                     />
                                 ) : (
-                                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-md overflow-hidden">
+                                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-md overflow-hidden">
                                         {user?.username?.charAt(0).toUpperCase() || 'U'}
                                     </div>
                                 )}
-                                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-sidebar"></div>
+                                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-sidebar"></div>
                             </div>
-                            <div className="flex flex-col">
-                                <h2 className="text-lg font-bold text-text-primary leading-tight uppercase group-hover:text-primary transition-colors">
-                                    {user?.username || 'GUEST USER'}
-                                </h2>
-                                <span className="text-xs font-medium text-primary tracking-widest uppercase opacity-80">
+                            <div className="flex flex-col min-w-0 overflow-hidden">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                    <h2 className="text-sm font-black text-text-primary uppercase group-hover:text-primary transition-colors truncate">
+                                        {user?.username || 'GUEST'}
+                                    </h2>
+                                    {subscription && (
+                                        <span className={cn(
+                                            "px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shrink-0",
+                                            subscription.plan_name.toLowerCase().includes('starter') 
+                                                ? "bg-slate-200 text-slate-600" 
+                                                : "bg-primary/20 text-primary border border-primary/20"
+                                        )}>
+                                            {subscription.plan_name.toLowerCase().includes('starter') ? 'Basic' : subscription.plan_name}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[10px] font-bold text-text-secondary tracking-widest uppercase opacity-70 truncate">
                                     {user?.role?.replace('_', ' ') || 'GYM OWNER'}
                                 </span>
                             </div>
